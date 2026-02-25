@@ -67,7 +67,22 @@
         "preferred-install": "dist",
         "sort-packages": true,
         "platform": {
-            "ext-gd": "8.2"
+            "ext-gd": "8.2",
+            "ext-zip": "8.2",
+            "ext-xml": "8.2",
+            "ext-xmlreader": "8.2",
+            "ext-xmlwriter": "8.2",
+            "ext-mbstring": "8.2",
+            "ext-ctype": "8.2",
+            "ext-iconv": "8.2",
+            "ext-openssl": "8.2",
+            "ext-zlib": "8.2",
+            "ext-dom": "8.2",
+            "ext-intl": "8.2",
+            "ext-curl": "8.2",
+            "ext-pdo": "8.2",
+            "ext-sodium": "8.2",
+            "ext-fileinfo": "8.2"
         },
         "allow-plugins": {
             "pestphp/pest-plugin": true,
