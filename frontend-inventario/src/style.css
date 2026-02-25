@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+/* Fuente Inter de Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Variables de colores DYM SAC */
+:root {
+  --color-primary: #d97706; /* amber-600 - dorado del logo */
+  --color-primary-dark: #b45309; /* amber-700 */
+  --color-secondary: #4b5563; /* gray-600 - gris del logo */
+  --color-accent: #f59e0b; /* amber-500 - naranja/rayo */
+}
+
+/* Estilos base */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #f1f5f9;
+}
+
+#app {
+  min-height: 100%;
+  height: 100%;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e2e8f0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Clases utilitarias personalizadas */
+@layer components {
+  /* Card base */
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-shadow duration-200 hover:shadow-md;
+  }
+
+  /* Stat card (como los de la imagen) */
+  .stat-card {
+    @apply bg-white rounded-lg p-4 border-l-4 shadow-sm;
+  }
+
+  /* Sidebar link */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-colors duration-200;
+  }
+
+  .sidebar-link.active {
+    @apply bg-amber-600 text-white;
+  }
+
+  /* Badge de estado */
+  .badge {
+    @apply px-2 py-1 text-xs font-medium rounded-full;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .badge-warning {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .badge-danger {
+    @apply bg-red-100 text-red-800;
+  }
+
+  .badge-info {
+    @apply bg-gray-100 text-gray-800;
+  }
+
+  /* Input base */
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors;
+  }
+
+  /* Button base */
+  .btn {
+    @apply px-4 py-2 font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-500;
+  }
+
+  .btn-success {
+    @apply bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+  }
+}
+
+/* Override PrimeVue para colores DYM */
+.p-button {
+  --p-button-primary-background: #d97706;
+  --p-button-primary-hover-background: #b45309;
+  --p-button-primary-active-background: #92400e;
+}
+
+/* Fix para Select/DatePicker overlay dentro de Dialog */
+.p-select-overlay,
+.p-select-panel,
+.p-dropdown-panel,
+.p-listbox-list-container {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+.p-datepicker-panel,
+.p-datepicker,
+.p-calendar-panel {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+/* Asegurar que los items del Select sean clickeables */
+.p-select-option,
+.p-select-list-item,
+.p-dropdown-item {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.p-select-option:hover,
+.p-select-list-item:hover,
+.p-dropdown-item:hover {
+  background-color: #f1f5f9;
+}
+
+/* Fix overlay mask */
+.p-overlay-mask {
+  pointer-events: none !important;
+}
+
+/* Fix PrimeVue 4 Select - mostrar valor seleccionado correctamente */
+.p-select .p-select-label {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.p-select .p-select-label:not(.p-placeholder) {
+  color: #1f2937 !important;
+  font-weight: 400;
+}
+
+.p-select .p-select-label.p-placeholder {
+  color: #9ca3af !important;
+}
+
+/* Asegurar que el contenedor del select muestre el texto */
+.p-select .p-select-trigger {
+  display: flex;
+  align-items: center;
+}
+
+/* Fix para el valor seleccionado dentro del Select */
+.p-select-option-label,
+.p-select-selected-option {
+  display: inline-block !important;
+  visibility: visible !important;
+}

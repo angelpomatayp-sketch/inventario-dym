@@ -1,0 +1,34 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Backend (ver backend-inventario/.gitignore)
+backend-inventario/.env
+backend-inventario/vendor/
+backend-inventario/node_modules/
+backend-inventario/storage/logs/*
+backend-inventario/storage/framework/cache/*
+backend-inventario/storage/framework/sessions/*
+backend-inventario/storage/framework/views/*
+backend-inventario/public/storage
+backend-inventario/public/hot
+backend-inventario/public/build/
+!backend-inventario/storage/logs/.gitkeep
+!backend-inventario/storage/framework/cache/.gitkeep
+!backend-inventario/storage/framework/sessions/.gitkeep
+!backend-inventario/storage/framework/views/.gitkeep
+
+# Frontend
+frontend-inventario/node_modules/
+frontend-inventario/dist/
+frontend-inventario/.env.local
