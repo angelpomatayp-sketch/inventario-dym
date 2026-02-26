@@ -8,8 +8,8 @@ use App\Shared\Traits\ApiResponse;
 use App\Shared\Traits\FiltrosPorRol;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -343,7 +343,7 @@ class UsuarioController extends Controller
     /**
      * Descargar / visualizar kardex PDF de usuario.
      */
-    public function descargarKardexPdf(Usuario $usuario): Response
+    public function descargarKardexPdf(Usuario $usuario): BinaryFileResponse
     {
         if (!$usuario->kardex_pdf_ruta) {
             abort(404, 'Este usuario no tiene kardex PDF.');

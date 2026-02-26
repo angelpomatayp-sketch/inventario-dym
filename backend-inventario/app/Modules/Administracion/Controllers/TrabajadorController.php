@@ -7,8 +7,8 @@ use App\Modules\Administracion\Models\Trabajador;
 use App\Shared\Traits\FiltrosPorRol;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -200,7 +200,7 @@ class TrabajadorController extends Controller
     /**
      * Descargar / visualizar kardex PDF.
      */
-    public function descargarKardexPdf(Trabajador $trabajador): Response
+    public function descargarKardexPdf(Trabajador $trabajador): BinaryFileResponse
     {
         if (!$trabajador->kardex_pdf_ruta) {
             abort(404, 'Este trabajador no tiene kardex PDF.');
