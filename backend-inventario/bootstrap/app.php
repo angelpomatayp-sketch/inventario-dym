@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Confiar en proxy de Railway (HTTPS termination) para generar URLs correctas
+        $middleware->trustProxies(at: '*');
+
         // Middleware aliases
         $middleware->alias([
             'empresa' => \App\Core\Tenancy\Middleware\EmpresaMiddleware::class,
@@ -20,11 +23,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-        ]);
-
-        // CORS middleware
-        $middleware->use([
-            \Illuminate\Http\Middleware\HandleCors::class,
         ]);
 
         // API usa tokens Bearer, no necesita CSRF/session stateful
