@@ -30,6 +30,8 @@ return [
             'http://127.0.0.1:5173',
             'http://127.0.0.1:5176',
             'http://localhost:3000',
+            // Producción Railway (hardcoded como fallback)
+            'https://loving-youth-production.up.railway.app',
         ],
         // Producción: Railway u otro dominio (configurar via FRONTEND_URL en .env)
         env('FRONTEND_URL') ? [env('FRONTEND_URL')] : [],
