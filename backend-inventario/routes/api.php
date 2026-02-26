@@ -62,6 +62,9 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
         Route::apiResource('usuarios', \App\Modules\Administracion\Controllers\UsuarioController::class);
         Route::put('usuarios/{usuario}/toggle-activo', [\App\Modules\Administracion\Controllers\UsuarioController::class, 'toggleActivo']);
         Route::put('usuarios/{usuario}/cambiar-password', [\App\Modules\Administracion\Controllers\UsuarioController::class, 'cambiarPassword']);
+        Route::post('usuarios/{usuario}/kardex-pdf', [\App\Modules\Administracion\Controllers\UsuarioController::class, 'subirKardexPdf']);
+        Route::get('usuarios/{usuario}/kardex-pdf', [\App\Modules\Administracion\Controllers\UsuarioController::class, 'descargarKardexPdf']);
+        Route::delete('usuarios/{usuario}/kardex-pdf', [\App\Modules\Administracion\Controllers\UsuarioController::class, 'eliminarKardexPdf']);
 
         // Centros de Costo
         Route::apiResource('centros-costo', \App\Modules\Administracion\Controllers\CentroCostoController::class);
@@ -79,6 +82,9 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
         Route::get('trabajadores/buscar', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'buscar']);
         Route::apiResource('trabajadores', \App\Modules\Administracion\Controllers\TrabajadorController::class);
         Route::post('trabajadores/{trabajador}/dar-de-baja', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'darDeBaja']);
+        Route::post('trabajadores/{trabajador}/kardex-pdf', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'subirKardexPdf']);
+        Route::get('trabajadores/{trabajador}/kardex-pdf', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'descargarKardexPdf']);
+        Route::delete('trabajadores/{trabajador}/kardex-pdf', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'eliminarKardexPdf']);
     });
 
     // -----------------------------------------------------------------

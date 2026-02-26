@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
 import { useAuthStore } from '@/stores/auth'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -11,10 +12,12 @@ import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Password from 'primevue/password'
+import ConfirmDialog from 'primevue/confirmdialog'
 import usuariosService from '@/services/usuariosService'
 import api from '@/services/api'
 
 const toast = useToast()
+const confirm = useConfirm()
 const authStore = useAuthStore()
 
 // Estado
@@ -284,10 +287,123 @@ const getRolLabel = (roles) => {
   if (!roles || roles.length === 0) return 'Sin rol'
   return roleLabels[roles[0].name] || roles[0].name
 }
+
+// ==================== KARDEX PDF ====================
+
+const kardexDialogVisible = ref(false)
+const kardexUsuario = ref(null)
+const kardexFile = ref(null)
+const kardexFileInput = ref(null)
+const uploadingKardex = ref(false)
+
+const openKardexDialog = (usuario) => {
+  kardexUsuario.value = usuario
+  kardexFile.value = null
+  kardexDialogVisible.value = true
+}
+
+const onKardexFileChange = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  if (file.type !== 'application/pdf') {
+    toast.add({ severity: 'warn', summary: 'Formato inválido', detail: 'Solo se permiten archivos PDF', life: 4000 })
+    event.target.value = ''
+    return
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    toast.add({ severity: 'warn', summary: 'Archivo muy grande', detail: 'El PDF no debe superar 20 MB', life: 4000 })
+    event.target.value = ''
+    return
+  }
+  kardexFile.value = file
+}
+
+const subirKardexPdf = async () => {
+  if (!kardexFile.value) {
+    toast.add({ severity: 'warn', summary: 'Sin archivo', detail: 'Seleccione un archivo PDF', life: 3000 })
+    return
+  }
+  uploadingKardex.value = true
+  try {
+    const formDataUpload = new FormData()
+    formDataUpload.append('kardex_pdf', kardexFile.value)
+    const response = await api.post(
+      `/administracion/usuarios/${kardexUsuario.value.id}/kardex-pdf`,
+      formDataUpload,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    )
+    if (response.data.success) {
+      toast.add({ severity: 'success', summary: 'Subido', detail: 'Kardex PDF subido exitosamente', life: 3000 })
+      const idx = usuarios.value.findIndex(u => u.id === kardexUsuario.value.id)
+      if (idx !== -1) {
+        usuarios.value[idx] = { ...usuarios.value[idx], ...response.data.data, tiene_kardex: true }
+        kardexUsuario.value = usuarios.value[idx]
+      }
+      kardexFile.value = null
+      if (kardexFileInput.value) kardexFileInput.value.value = ''
+    }
+  } catch (err) {
+    const message = err.response?.data?.message || 'Error al subir el PDF'
+    toast.add({ severity: 'error', summary: 'Error', detail: message, life: 5000 })
+  } finally {
+    uploadingKardex.value = false
+  }
+}
+
+const verKardexPdf = async (usuario) => {
+  try {
+    const response = await api.get(
+      `/administracion/usuarios/${usuario.id}/kardex-pdf`,
+      { responseType: 'blob' }
+    )
+    const blob = new Blob([response.data], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo abrir el PDF', life: 5000 })
+  }
+}
+
+const confirmarEliminarKardex = (usuario) => {
+  confirm.require({
+    message: `¿Eliminar el kardex PDF de ${usuario.nombre}?`,
+    header: 'Eliminar Kardex PDF',
+    icon: 'pi pi-exclamation-triangle',
+    acceptClass: 'p-button-danger',
+    accept: () => eliminarKardexPdf(usuario)
+  })
+}
+
+const eliminarKardexPdf = async (usuario) => {
+  try {
+    await api.delete(`/administracion/usuarios/${usuario.id}/kardex-pdf`)
+    toast.add({ severity: 'success', summary: 'Eliminado', detail: 'Kardex PDF eliminado', life: 3000 })
+    const idx = usuarios.value.findIndex(u => u.id === usuario.id)
+    if (idx !== -1) {
+      usuarios.value[idx] = { ...usuarios.value[idx], tiene_kardex: false, kardex_pdf_nombre_original: null, kardex_pdf_tamano: null, kardex_pdf_subido_en: null }
+      if (kardexUsuario.value?.id === usuario.id) kardexUsuario.value = usuarios.value[idx]
+    }
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar el PDF', life: 5000 })
+  }
+}
+
+const formatBytes = (bytes) => {
+  if (!bytes) return '-'
+  if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB'
+  return (bytes / 1024).toFixed(0) + ' KB'
+}
+
+const formatDateTime = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })
+}
 </script>
 
 <template>
   <div class="space-y-4">
+    <ConfirmDialog />
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
@@ -389,7 +505,20 @@ const getRolLabel = (roles) => {
             />
           </template>
         </Column>
-        <Column header="Acciones" style="width: 100px">
+        <Column header="Kardex" style="width: 80px; text-align: center">
+          <template #body="{ data }">
+            <span
+              v-if="data.tiene_kardex"
+              class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 cursor-pointer"
+              v-tooltip.top="'Ver Kardex PDF'"
+              @click="verKardexPdf(data)"
+            >
+              <i class="pi pi-file-pdf text-red-600 text-sm"></i>
+            </span>
+            <span v-else class="text-gray-300 text-xs">—</span>
+          </template>
+        </Column>
+        <Column header="Acciones" style="width: 120px">
           <template #body="{ data }">
             <div class="flex gap-1">
               <Button
@@ -400,6 +529,15 @@ const getRolLabel = (roles) => {
                 size="small"
                 @click="editUsuario(data)"
                 v-tooltip.top="'Editar'"
+              />
+              <Button
+                icon="pi pi-file-pdf"
+                :severity="data.tiene_kardex ? 'danger' : 'secondary'"
+                text
+                rounded
+                size="small"
+                @click="openKardexDialog(data)"
+                v-tooltip.top="'Kardex PDF'"
               />
               <Button
                 icon="pi pi-trash"
@@ -545,6 +683,68 @@ const getRolLabel = (roles) => {
           :loading="submitting"
           class="!bg-amber-600 !border-amber-600"
         />
+      </template>
+    </Dialog>
+
+    <!-- Dialog Kardex PDF -->
+    <Dialog
+      v-model:visible="kardexDialogVisible"
+      header="Kardex Físico Escaneado (PDF)"
+      modal
+      :style="{ width: '480px' }"
+    >
+      <div v-if="kardexUsuario" class="space-y-4">
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <p class="font-semibold text-gray-800">{{ kardexUsuario.nombre }}</p>
+          <p class="text-sm text-gray-500">{{ kardexUsuario.email }} · DNI: {{ kardexUsuario.dni || '-' }}</p>
+        </div>
+
+        <div v-if="kardexUsuario.tiene_kardex" class="border border-green-200 bg-green-50 rounded-lg p-3">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-file-pdf text-red-500 text-2xl"></i>
+              <div>
+                <p class="text-sm font-medium text-gray-800 break-all">{{ kardexUsuario.kardex_pdf_nombre_original }}</p>
+                <p class="text-xs text-gray-500">
+                  {{ formatBytes(kardexUsuario.kardex_pdf_tamano) }}
+                  · Subido: {{ formatDateTime(kardexUsuario.kardex_pdf_subido_en) }}
+                </p>
+              </div>
+            </div>
+            <div class="flex gap-1 flex-shrink-0">
+              <Button icon="pi pi-eye" severity="success" text rounded size="small" @click="verKardexPdf(kardexUsuario)" v-tooltip.top="'Ver PDF'" />
+              <Button icon="pi pi-trash" severity="danger" text rounded size="small" @click="confirmarEliminarKardex(kardexUsuario)" v-tooltip.top="'Eliminar PDF'" />
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-center py-3 text-gray-400 border border-dashed border-gray-300 rounded-lg">
+          <i class="pi pi-file-pdf text-3xl mb-1 block"></i>
+          <p class="text-sm">Sin kardex PDF adjunto</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            {{ kardexUsuario.tiene_kardex ? 'Reemplazar PDF' : 'Subir PDF' }}
+          </label>
+          <p class="text-xs text-gray-500 mb-2">Formatos: PDF · Máximo: 20 MB · Multi-página permitido</p>
+          <input ref="kardexFileInput" type="file" accept="application/pdf" class="hidden" @change="onKardexFileChange" />
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-colors"
+            @click="kardexFileInput.click()"
+          >
+            <i class="pi pi-upload text-2xl text-gray-400 mb-1 block"></i>
+            <p v-if="!kardexFile" class="text-sm text-gray-500">Haga clic para seleccionar PDF</p>
+            <p v-else class="text-sm text-amber-700 font-medium">
+              <i class="pi pi-file-pdf text-red-500 mr-1"></i>
+              {{ kardexFile.name }}
+              <span class="text-gray-400 ml-1">({{ formatBytes(kardexFile.size) }})</span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Cerrar" severity="secondary" @click="kardexDialogVisible = false" />
+        <Button label="Subir PDF" icon="pi pi-upload" :loading="uploadingKardex" :disabled="!kardexFile" @click="subirKardexPdf" class="!bg-amber-600 !border-amber-600" />
       </template>
     </Dialog>
 

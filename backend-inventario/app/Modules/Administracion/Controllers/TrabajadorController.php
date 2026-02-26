@@ -7,7 +7,10 @@ use App\Modules\Administracion\Models\Trabajador;
 use App\Shared\Traits\FiltrosPorRol;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class TrabajadorController extends Controller
 {
@@ -154,6 +157,93 @@ class TrabajadorController extends Controller
             'message' => 'Trabajador dado de baja exitosamente.',
             'data' => $trabajador->fresh(),
         ]);
+    }
+
+    /**
+     * Subir kardex físico escaneado en PDF.
+     */
+    public function subirKardexPdf(Request $request, Trabajador $trabajador): JsonResponse
+    {
+        $request->validate([
+            'kardex_pdf' => ['required', 'file', 'mimes:pdf', 'max:20480'],
+        ], [
+            'kardex_pdf.required' => 'Seleccione un archivo PDF.',
+            'kardex_pdf.mimes'    => 'El archivo debe ser PDF.',
+            'kardex_pdf.max'      => 'El PDF no debe superar 20 MB.',
+        ]);
+
+        // Eliminar PDF anterior si existe
+        if ($trabajador->kardex_pdf_ruta && Storage::disk('public')->exists($trabajador->kardex_pdf_ruta)) {
+            Storage::disk('public')->delete($trabajador->kardex_pdf_ruta);
+        }
+
+        $archivo = $request->file('kardex_pdf');
+        $nombreArchivo = Str::uuid() . '.pdf';
+        $directorio = "kardex/trabajadores/{$trabajador->id}";
+
+        Storage::disk('public')->putFileAs($directorio, $archivo, $nombreArchivo);
+
+        $trabajador->update([
+            'kardex_pdf_ruta'           => "{$directorio}/{$nombreArchivo}",
+            'kardex_pdf_nombre_original' => $archivo->getClientOriginalName(),
+            'kardex_pdf_tamano'          => $archivo->getSize(),
+            'kardex_pdf_subido_en'       => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kardex PDF subido exitosamente.',
+            'data'    => $trabajador->only(['tiene_kardex', 'kardex_pdf_nombre_original', 'kardex_pdf_tamano', 'kardex_pdf_subido_en']),
+        ]);
+    }
+
+    /**
+     * Descargar / visualizar kardex PDF.
+     */
+    public function descargarKardexPdf(Trabajador $trabajador): Response
+    {
+        if (!$trabajador->kardex_pdf_ruta) {
+            abort(404, 'Este trabajador no tiene kardex PDF.');
+        }
+
+        $path = Storage::disk('public')->path($trabajador->kardex_pdf_ruta);
+
+        if (!file_exists($path)) {
+            abort(404, 'Archivo no encontrado en el servidor.');
+        }
+
+        return response()->file($path, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $trabajador->kardex_pdf_nombre_original . '"',
+        ]);
+    }
+
+    /**
+     * Eliminar kardex PDF.
+     */
+    public function eliminarKardexPdf(Trabajador $trabajador): JsonResponse
+    {
+        if (!$trabajador->kardex_pdf_ruta) {
+            return response()->json(['success' => false, 'message' => 'No hay kardex PDF.'], 404);
+        }
+
+        if (Storage::disk('public')->exists($trabajador->kardex_pdf_ruta)) {
+            Storage::disk('public')->delete($trabajador->kardex_pdf_ruta);
+        }
+
+        $directorio = "kardex/trabajadores/{$trabajador->id}";
+        if (empty(Storage::disk('public')->files($directorio))) {
+            Storage::disk('public')->deleteDirectory($directorio);
+        }
+
+        $trabajador->update([
+            'kardex_pdf_ruta'           => null,
+            'kardex_pdf_nombre_original' => null,
+            'kardex_pdf_tamano'          => null,
+            'kardex_pdf_subido_en'       => null,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Kardex PDF eliminado.']);
     }
 
     /**

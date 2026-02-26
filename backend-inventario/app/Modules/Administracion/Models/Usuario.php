@@ -33,6 +33,10 @@ class Usuario extends Authenticatable implements Auditable
         'centro_costo_id',
         'almacen_id',
         'activo',
+        'kardex_pdf_ruta',
+        'kardex_pdf_nombre_original',
+        'kardex_pdf_tamano',
+        'kardex_pdf_subido_en',
     ];
 
     protected $hidden = [
@@ -40,13 +44,22 @@ class Usuario extends Authenticatable implements Auditable
         'remember_token',
     ];
 
+    protected $appends = ['tiene_kardex'];
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'activo' => 'boolean',
+            'kardex_pdf_tamano' => 'integer',
+            'kardex_pdf_subido_en' => 'datetime',
         ];
+    }
+
+    public function getTieneKardexAttribute(): bool
+    {
+        return !is_null($this->kardex_pdf_ruta);
     }
 
     // ==================== RELACIONES ====================

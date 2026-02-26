@@ -32,7 +32,13 @@ class Trabajador extends Model
         'fecha_cese',
         'activo',
         'observaciones',
+        'kardex_pdf_ruta',
+        'kardex_pdf_nombre_original',
+        'kardex_pdf_tamano',
+        'kardex_pdf_subido_en',
     ];
+
+    protected $appends = ['tiene_kardex'];
 
     protected function casts(): array
     {
@@ -40,7 +46,14 @@ class Trabajador extends Model
             'fecha_ingreso' => 'date',
             'fecha_cese' => 'date',
             'activo' => 'boolean',
+            'kardex_pdf_tamano' => 'integer',
+            'kardex_pdf_subido_en' => 'datetime',
         ];
+    }
+
+    public function getTieneKardexAttribute(): bool
+    {
+        return !is_null($this->kardex_pdf_ruta);
     }
 
     // ==================== RELACIONES ====================
