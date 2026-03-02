@@ -17,11 +17,13 @@ use App\Modules\Administracion\Models\Usuario;
 use App\Modules\Inventario\Models\Producto;
 use App\Shared\Traits\ApiResponse;
 use App\Shared\Traits\FiltrosPorRol;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ValeSalidaController extends Controller
 {
@@ -447,6 +449,38 @@ class ValeSalidaController extends Controller
             ]);
             return $this->serverError('Error interno al procesar la entrega');
         }
+    }
+
+    /**
+     * Generar PDF imprimible del vale de salida.
+     */
+    public function imprimirVale(Request $request, ValeSalida $valeSalida): StreamedResponse
+    {
+        if ($valeSalida->empresa_id !== $request->user()->empresa_id) {
+            abort(403, 'No autorizado');
+        }
+
+        $valeSalida->load([
+            'empresa',
+            'detalles.producto',
+            'almacen',
+            'centroCosto',
+            'solicitante',
+            'despachador',
+            'requisicion',
+        ]);
+
+        $pdf = Pdf::loadView('pdf.vale_salida', ['vale' => $valeSalida]);
+        $pdf->setPaper('A4', 'portrait');
+
+        $filename = 'vale-' . $valeSalida->numero . '.pdf';
+
+        return response()->stream(function () use ($pdf) {
+            echo $pdf->output();
+        }, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
     }
 
     /**

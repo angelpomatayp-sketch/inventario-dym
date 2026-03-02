@@ -149,6 +149,7 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
         Route::get('/personal', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'personalReceptores']);
         Route::get('/requisiciones-aprobadas', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'requisicionesAprobadas']);
         Route::get('/{valeSalida}', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'show']);
+        Route::get('/{valeSalida}/imprimir', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'imprimirVale']);
         Route::post('/{valeSalida}/entregar', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'entregar']);
         Route::post('/{valeSalida}/anular', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'anular']);
     });
