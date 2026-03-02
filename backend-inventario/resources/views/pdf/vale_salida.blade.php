@@ -142,8 +142,8 @@
     <tr>
         <td class="lbl">Fecha:</td>
         <td class="val">{{ \Carbon\Carbon::parse($vale->fecha)->format('d/m/Y') }}</td>
-        <td class="lbl">Estado:</td>
-        <td class="val"><span class="estado-{{ $vale->estado }}">{{ $vale->estado }}</span></td>
+        <td class="lbl">Registrado por:</td>
+        <td class="val">{{ $vale->despachador->nombre }}</td>
     </tr>
     <tr>
         <td class="lbl">Almacén:</td>
@@ -157,12 +157,6 @@
         <td class="val" colspan="3">{{ $vale->requisicion->numero }}</td>
     </tr>
     @endif
-    <tr>
-        <td class="lbl">Registrado por:</td>
-        <td class="val">{{ $vale->despachador->nombre }}</td>
-        <td class="lbl">Solicitante:</td>
-        <td class="val">{{ $vale->solicitante->nombre }}</td>
-    </tr>
     <tr>
         <td class="lbl">Receptor:</td>
         <td class="val">{{ $vale->receptor_nombre }}</td>
@@ -211,19 +205,13 @@
 {{-- FIRMAS --}}
 <table class="firmas-table">
     <tr>
-        <td>
+        <td style="width:50%">
             <div class="firma-linea">
                 <div class="firma-nombre">{{ $vale->despachador->nombre }}</div>
                 <div class="firma-cargo">Registrado por / Despachador</div>
             </div>
         </td>
-        <td>
-            <div class="firma-linea">
-                <div class="firma-nombre">{{ $vale->solicitante->nombre }}</div>
-                <div class="firma-cargo">Solicitante</div>
-            </div>
-        </td>
-        <td>
+        <td style="width:50%">
             <div class="firma-linea">
                 <div class="firma-nombre">{{ $vale->receptor_nombre }}</div>
                 <div class="firma-cargo">Receptor / Conforme</div>
