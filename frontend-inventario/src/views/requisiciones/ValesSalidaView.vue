@@ -460,6 +460,17 @@ const procesarEntrega = async () => {
   }
 }
 
+const imprimirVale = async (vale) => {
+  try {
+    const response = await api.get(`/vales-salida/${vale.id}/imprimir`, { responseType: 'blob' })
+    const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el PDF del vale', life: 5000 })
+  }
+}
+
 const anularVale = async (vale) => {
   if (!confirm('¿Esta seguro de anular este vale de salida?')) return
   try {
@@ -676,10 +687,11 @@ onMounted(() => {
             </template>
           </Column>
 
-          <Column header="Acciones" style="width: 150px">
+          <Column header="Acciones" style="width: 170px">
             <template #body="{ data }">
               <div class="flex gap-1">
                 <Button icon="pi pi-eye" severity="info" text rounded size="small" @click="viewVale(data)" v-tooltip.top="'Ver detalle'" />
+                <Button icon="pi pi-print" severity="secondary" text rounded size="small" @click="imprimirVale(data)" v-tooltip.top="'Imprimir vale PDF'" />
                 <Button v-if="canEntregar(data)" icon="pi pi-check-circle" severity="success" text rounded size="small" @click="openEntregarDialog(data)" v-tooltip.top="'Procesar entrega'" />
                 <Button v-if="canAnular(data)" icon="pi pi-ban" severity="danger" text rounded size="small" @click="anularVale(data)" v-tooltip.top="'Anular'" />
               </div>
