@@ -574,6 +574,10 @@ watch(
             appendTo="body"
             :disabled="productosEpp.length === 0"
           >
+            <template #value="{ value, placeholder }">
+              <span v-if="value">{{ value.nombre }}</span>
+              <span v-else class="text-gray-400">{{ placeholder }}</span>
+            </template>
             <template #option="{ option }">
               <div class="flex justify-between items-center w-full">
                 <div>
@@ -608,6 +612,10 @@ watch(
             filter
             appendTo="body"
           >
+            <template #value="{ value, placeholder }">
+              <span v-if="value">{{ value.display_name || value.nombre }}</span>
+              <span v-else class="text-gray-400">{{ placeholder }}</span>
+            </template>
             <template #option="{ option }">
               <div class="flex justify-between items-center w-full">
                 <div>
