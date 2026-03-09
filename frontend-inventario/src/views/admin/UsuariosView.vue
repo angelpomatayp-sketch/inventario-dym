@@ -446,105 +446,87 @@ const formatDateTime = (date) => {
         :loading="loading"
         paginator
         :rows="10"
+        :rowsPerPageOptions="[10, 20, 50]"
         stripedRows
+        size="small"
         emptyMessage="No hay usuarios registrados"
         class="text-sm"
       >
-        <Column field="nombre" header="Nombre" sortable style="min-width: 200px">
+        <Column field="nombre" header="Nombre" sortable style="min-width: 180px">
           <template #body="{ data }">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
-                <i class="pi pi-user text-amber-600"></i>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <i class="pi pi-user text-amber-600 text-xs"></i>
               </div>
-              <div>
-                <p class="font-medium text-gray-800">{{ data.nombre }}</p>
-                <p class="text-xs text-gray-500">{{ data.email }}</p>
+              <div class="min-w-0">
+                <p class="font-medium text-gray-800 truncate">{{ data.nombre }}</p>
+                <p class="text-xs text-gray-400 truncate">{{ data.email }}</p>
               </div>
             </div>
           </template>
         </Column>
-        <Column field="dni" header="DNI" sortable style="width: 100px">
+
+        <Column field="dni" header="DNI" style="width: 95px">
           <template #body="{ data }">
-            <span class="font-mono text-gray-600">{{ data.dni || '-' }}</span>
+            <span class="font-mono text-gray-600 text-xs">{{ data.dni || '-' }}</span>
           </template>
         </Column>
-        <Column field="telefono" header="Teléfono" style="width: 110px">
-          <template #body="{ data }">
-            <span class="text-gray-600">{{ data.telefono || '-' }}</span>
-          </template>
-        </Column>
-        <Column header="Rol" style="width: 140px">
+
+        <Column header="Rol" style="width: 130px">
           <template #body="{ data }">
             <Tag
               :value="getRolLabel(data.roles)"
               :severity="roleSeverity(data.roles?.[0]?.name)"
+              class="text-xs"
             />
           </template>
         </Column>
-        <Column header="Centro de Costo" style="min-width: 150px">
+
+        <Column header="Área / Almacén" style="min-width: 160px">
           <template #body="{ data }">
-            <span v-if="data.centro_costo" class="text-gray-700">
-              {{ data.centro_costo.nombre }}
-            </span>
-            <span v-else class="text-gray-400">-</span>
+            <div class="text-xs">
+              <p v-if="data.centro_costo" class="text-gray-700 font-medium truncate">
+                {{ data.centro_costo.nombre }}
+              </p>
+              <p v-if="data.almacen" class="text-gray-400 truncate">
+                {{ data.almacen.nombre }}
+              </p>
+              <span v-if="!data.centro_costo && !data.almacen" class="text-gray-300">-</span>
+            </div>
           </template>
         </Column>
-        <Column header="Almacén" style="min-width: 130px">
-          <template #body="{ data }">
-            <span v-if="data.almacen" class="text-gray-700">
-              {{ data.almacen.nombre }}
-            </span>
-            <span v-else class="text-gray-400">-</span>
-          </template>
-        </Column>
-        <Column field="activo" header="Estado" style="width: 90px">
+
+        <Column field="activo" header="Estado" style="width: 85px">
           <template #body="{ data }">
             <Tag
               :value="data.activo ? 'Activo' : 'Inactivo'"
               :severity="data.activo ? 'success' : 'danger'"
+              class="text-xs"
             />
           </template>
         </Column>
-        <Column header="Kardex" style="width: 80px; text-align: center">
-          <template #body="{ data }">
-            <span
-              v-if="data.tiene_kardex"
-              class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 cursor-pointer"
-              v-tooltip.top="'Ver Kardex PDF'"
-              @click="verKardexPdf(data)"
-            >
-              <i class="pi pi-file-pdf text-red-600 text-sm"></i>
-            </span>
-            <span v-else class="text-gray-300 text-xs">—</span>
-          </template>
-        </Column>
-        <Column header="Acciones" style="width: 120px">
+
+        <Column header="Acciones" style="width: 110px">
           <template #body="{ data }">
             <div class="flex gap-1">
               <Button
                 icon="pi pi-pencil"
                 severity="secondary"
-                text
-                rounded
-                size="small"
+                text rounded size="small"
                 @click="editUsuario(data)"
                 v-tooltip.top="'Editar'"
               />
               <Button
                 icon="pi pi-file-pdf"
                 :severity="data.tiene_kardex ? 'danger' : 'secondary'"
-                text
-                rounded
-                size="small"
+                text rounded size="small"
                 @click="openKardexDialog(data)"
-                v-tooltip.top="'Kardex PDF'"
+                v-tooltip.top="data.tiene_kardex ? 'Kardex PDF (subido)' : 'Subir Kardex PDF'"
               />
               <Button
                 icon="pi pi-trash"
                 severity="danger"
-                text
-                rounded
-                size="small"
+                text rounded size="small"
                 @click="confirmDelete(data)"
                 v-tooltip.top="'Eliminar'"
               />
