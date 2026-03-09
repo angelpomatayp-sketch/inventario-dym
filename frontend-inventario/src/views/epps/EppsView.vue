@@ -633,7 +633,12 @@ watch(
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Almacén (para descuento de stock) *</label>
-          <Select v-model="asignacionForm.almacen" :options="almacenes" optionLabel="nombre" placeholder="Seleccione almacén" class="w-full" filter appendTo="body" />
+          <Select v-model="asignacionForm.almacen" :options="almacenes" optionLabel="nombre" placeholder="Seleccione almacén" class="w-full" filter appendTo="body">
+            <template #value="{ value, placeholder }">
+              <span v-if="value">{{ value.nombre }}</span>
+              <span v-else class="text-gray-400">{{ placeholder }}</span>
+            </template>
+          </Select>
           <p class="text-xs text-gray-500 mt-1">
             <i class="pi pi-info-circle mr-1"></i>
             Se descontará {{ asignacionForm.cantidad || 1 }} unidad(es) del stock de este almacén
@@ -716,7 +721,12 @@ watch(
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Almacén (para descuento de stock) *</label>
-            <Select v-model="renovarForm.almacen" :options="almacenes" optionLabel="nombre" placeholder="Seleccione almacén" class="w-full" filter appendTo="body" />
+            <Select v-model="renovarForm.almacen" :options="almacenes" optionLabel="nombre" placeholder="Seleccione almacén" class="w-full" filter appendTo="body">
+              <template #value="{ value, placeholder }">
+                <span v-if="value">{{ value.nombre }}</span>
+                <span v-else class="text-gray-400">{{ placeholder }}</span>
+              </template>
+            </Select>
             <p class="text-xs text-gray-500 mt-1">
               <i class="pi pi-info-circle mr-1"></i>
               Se descontará {{ selectedAsignacion.cantidad || 1 }} unidad(es) del stock para el nuevo EPP

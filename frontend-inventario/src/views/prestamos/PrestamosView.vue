@@ -814,7 +814,12 @@ onMounted(() => {
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Centro de Costo</label>
-          <Select v-model="prestamo.centro_costo_id" :options="centrosCosto" optionLabel="nombre" optionValue="id" class="w-full" placeholder="Opcional" showClear />
+          <Select v-model="prestamo.centro_costo_id" :options="centrosCosto" optionLabel="nombre" optionValue="id" class="w-full" placeholder="Opcional" showClear>
+            <template #value="{ value, placeholder }">
+              <span v-if="value">{{ centrosCosto.find(c => c.id === value)?.nombre || placeholder }}</span>
+              <span v-else class="text-gray-400">{{ placeholder }}</span>
+            </template>
+          </Select>
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Área Destino</label>
