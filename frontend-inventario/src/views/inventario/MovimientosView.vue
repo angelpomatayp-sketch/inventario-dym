@@ -81,6 +81,13 @@ const nuevoDetalle = ref({
 // Motivo de anulación
 const motivoAnulacion = ref('')
 
+// Importación Excel
+const dialogImportarExcel = ref(false)
+const inputArchivoExcel = ref(null)
+const archivoExcel = ref(null)
+const previewData = ref(null)
+const loadingPreview = ref(false)
+
 // Opciones
 const tiposMovimiento = [
   { label: 'Entrada', value: 'ENTRADA', icon: 'pi-arrow-down', color: 'success' },
@@ -201,6 +208,73 @@ const loadProductos = async () => {
   } catch (err) {
     console.error('Error al cargar productos:', err)
   }
+}
+
+// ==================== IMPORTACIÓN EXCEL ====================
+
+const descargarPlantilla = () => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
+  const url = `${import.meta.env.VITE_API_URL || ''}/api/inventario/movimientos/plantilla-excel`
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', 'plantilla_entrada_inventario.xlsx')
+  // Usar fetch para incluir el token de auth
+  fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    .then(r => r.blob())
+    .then(blob => {
+      const objectUrl = URL.createObjectURL(blob)
+      link.href = objectUrl
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(objectUrl)
+    })
+}
+
+const procesarExcel = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  archivoExcel.value = file
+  loadingPreview.value = true
+  previewData.value = null
+  try {
+    const formDataUpload = new FormData()
+    formDataUpload.append('archivo', file)
+    const response = await api.post('/inventario/movimientos/preview-excel', formDataUpload, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    previewData.value = response.data.data
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'Error al procesar el archivo', life: 4000 })
+  } finally {
+    loadingPreview.value = false
+    // Limpiar el input para permitir subir el mismo archivo de nuevo
+    if (inputArchivoExcel.value) inputArchivoExcel.value.value = ''
+  }
+}
+
+const usarProductosImportados = () => {
+  const filasValidas = previewData.value.filas.filter(f => f.valido)
+  for (const fila of filasValidas) {
+    formData.value.detalles.push({
+      producto_id:     fila.producto.id,
+      producto_codigo: fila.producto.codigo,
+      producto_nombre: fila.producto.nombre,
+      unidad:          fila.producto.unidad_medida,
+      cantidad:        fila.cantidad,
+      costo_unitario:  fila.costo_unitario,
+      lote:            fila.lote || null,
+      fecha_vencimiento: fila.fecha_vencimiento || null,
+    })
+  }
+  toast.add({ severity: 'success', summary: 'Importado', detail: `${filasValidas.length} producto(s) agregados al movimiento`, life: 3000 })
+  cerrarDialogImport()
+}
+
+const cerrarDialogImport = () => {
+  dialogImportarExcel.value = false
+  archivoExcel.value = null
+  previewData.value = null
 }
 
 onMounted(() => {
@@ -873,7 +947,18 @@ watch([selectedTipo, selectedEstado, fechaRango], () => {
 
         <!-- Agregar productos -->
         <div class="border rounded-lg p-4 bg-gray-50">
-          <h4 class="font-medium text-gray-700 mb-3">Agregar Productos</h4>
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="font-medium text-gray-700">Agregar Productos</h4>
+            <Button
+              v-if="formData.tipo === 'ENTRADA'"
+              label="Importar desde Excel"
+              icon="pi pi-file-excel"
+              severity="success"
+              size="small"
+              outlined
+              @click="dialogImportarExcel = true"
+            />
+          </div>
           <div class="grid grid-cols-12 gap-2 items-end">
             <div class="col-span-5">
               <label class="block text-xs text-gray-500 mb-1">Producto</label>
@@ -999,6 +1084,104 @@ watch([selectedTipo, selectedEstado, fechaRango], () => {
           @click="saveMovimiento"
           :loading="loading"
           class="!bg-amber-600 !border-amber-600"
+        />
+      </template>
+    </Dialog>
+
+    <!-- Dialog Importar desde Excel -->
+    <Dialog v-model:visible="dialogImportarExcel" header="Importar Productos desde Excel" :style="{ width: '750px', maxHeight: '90vh' }" :contentStyle="{ overflow: 'auto' }" modal>
+      <div class="space-y-4">
+
+        <!-- Paso 1: descargar plantilla y subir archivo -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p class="text-sm text-blue-800 mb-3">
+            <i class="pi pi-info-circle mr-1"></i>
+            Descarga la plantilla, llena los productos y sube el archivo. El sistema buscará cada producto por código o nombre.
+          </p>
+          <div class="flex flex-wrap gap-3 items-center">
+            <Button label="Descargar Plantilla" icon="pi pi-download" severity="info" outlined size="small" @click="descargarPlantilla" />
+            <div class="flex items-center gap-2 flex-1 min-w-[250px]">
+              <input
+                type="file"
+                ref="inputArchivoExcel"
+                accept=".xlsx,.xls"
+                class="hidden"
+                @change="procesarExcel"
+              />
+              <Button
+                :label="archivoExcel ? archivoExcel.name : 'Seleccionar archivo Excel'"
+                icon="pi pi-upload"
+                severity="secondary"
+                size="small"
+                class="flex-1"
+                @click="inputArchivoExcel.click()"
+                :loading="loadingPreview"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultado preview -->
+        <div v-if="previewData">
+          <!-- Resumen -->
+          <div class="flex gap-4 mb-3">
+            <span class="text-sm">Total filas: <strong>{{ previewData.total }}</strong></span>
+            <span class="text-sm text-green-600">Válidos: <strong>{{ previewData.validos }}</strong></span>
+            <span v-if="previewData.con_errores > 0" class="text-sm text-red-600">Con errores: <strong>{{ previewData.con_errores }}</strong></span>
+          </div>
+
+          <!-- Tabla preview -->
+          <div class="border rounded overflow-auto max-h-72">
+            <table class="w-full text-xs">
+              <thead class="bg-gray-100 sticky top-0">
+                <tr>
+                  <th class="p-2 text-left">Fila</th>
+                  <th class="p-2 text-left">Producto Encontrado</th>
+                  <th class="p-2 text-center">Cantidad</th>
+                  <th class="p-2 text-right">Costo Unit.</th>
+                  <th class="p-2 text-left">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="fila in previewData.filas"
+                  :key="fila.fila"
+                  :class="fila.valido ? 'bg-green-50' : 'bg-red-50'"
+                  class="border-t"
+                >
+                  <td class="p-2 text-gray-500">{{ fila.fila }}</td>
+                  <td class="p-2">
+                    <span v-if="fila.producto" class="font-medium">{{ fila.producto.nombre }}</span>
+                    <span v-else class="text-gray-400 italic">{{ fila.nombre_ingresado || fila.codigo_ingresado }}</span>
+                  </td>
+                  <td class="p-2 text-center">{{ fila.cantidad }}</td>
+                  <td class="p-2 text-right">{{ fila.costo_unitario != null ? 'S/ ' + Number(fila.costo_unitario).toFixed(2) : '-' }}</td>
+                  <td class="p-2">
+                    <span v-if="fila.valido" class="text-green-600"><i class="pi pi-check-circle mr-1"></i>OK</span>
+                    <span v-else class="text-red-600 text-xs">
+                      <i class="pi pi-times-circle mr-1"></i>{{ fila.errores.join('; ') }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p v-if="previewData.con_errores > 0" class="text-xs text-orange-600 mt-2">
+            <i class="pi pi-exclamation-triangle mr-1"></i>
+            Las filas con errores serán ignoradas. Solo se importarán las {{ previewData.validos }} filas válidas.
+          </p>
+        </div>
+      </div>
+
+      <template #footer>
+        <Button label="Cancelar" severity="secondary" @click="cerrarDialogImport" />
+        <Button
+          v-if="previewData && previewData.validos > 0"
+          :label="`Usar ${previewData.validos} producto(s)`"
+          icon="pi pi-check"
+          severity="success"
+          @click="usarProductosImportados"
         />
       </template>
     </Dialog>

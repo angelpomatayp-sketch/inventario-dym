@@ -5,6 +5,7 @@ namespace App\Modules\Inventario\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Inventario\Models\Movimiento;
 use App\Modules\Inventario\Models\MovimientoDetalle;
+use App\Modules\Inventario\Models\Producto;
 use App\Modules\Inventario\Models\StockAlmacen;
 use App\Modules\Inventario\Models\Kardex;
 use App\Shared\Traits\ApiResponse;
@@ -14,6 +15,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MovimientoController extends Controller
 {
@@ -383,6 +390,163 @@ class MovimientoController extends Controller
                 'error' => $e->getMessage(),
             ]);
             return $this->serverError('Error interno al confirmar la recepción');
+        }
+    }
+
+    /**
+     * Descargar plantilla Excel para importar entradas.
+     */
+    public function descargarPlantilla(): StreamedResponse
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Plantilla Entrada');
+
+        // Cabeceras
+        $headers = [
+            'Código',
+            'Nombre Producto',
+            'Cantidad',
+            'Costo Unitario',
+            'Lote (opcional)',
+            'Fecha Vencimiento (opcional, YYYY-MM-DD)',
+        ];
+        foreach ($headers as $i => $header) {
+            $sheet->setCellValueByColumnAndRow($i + 1, 1, $header);
+        }
+
+        // Estilo de cabecera
+        $sheet->getStyle('A1:F1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1D4ED8']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ]);
+
+        // Filas de ejemplo
+        $ejemplos = [
+            ['PRD-001', 'Casco de seguridad', 10, 25.50, 'L001', ''],
+            ['',        'Guantes de cuero',   50,  8.00, '',     ''],
+            ['PRD-003', '',                   20, 15.00, '',     '2026-12-31'],
+        ];
+        foreach ($ejemplos as $j => $fila) {
+            foreach ($fila as $k => $val) {
+                $sheet->setCellValueByColumnAndRow($k + 1, $j + 2, $val);
+            }
+        }
+
+        // Ancho automático
+        foreach (range('A', 'F') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, 'plantilla_entrada_inventario.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    /**
+     * Previsualizar importación desde Excel.
+     * Devuelve las filas con el producto resuelto (por código o nombre) y errores por fila.
+     */
+    public function previewExcel(Request $request): JsonResponse
+    {
+        $request->validate([
+            'archivo' => 'required|file|mimes:xlsx,xls|max:5120',
+        ], [
+            'archivo.required' => 'Seleccione un archivo Excel',
+            'archivo.mimes'    => 'Solo se aceptan archivos .xlsx o .xls',
+            'archivo.max'      => 'El archivo no puede superar 5 MB',
+        ]);
+
+        $empresaId = $request->user()->empresa_id;
+
+        try {
+            $spreadsheet = IOFactory::load($request->file('archivo')->getPathname());
+            $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
+
+            $resultados  = [];
+            $totalValidos = 0;
+            $totalErrores = 0;
+
+            foreach ($rows as $i => $row) {
+                if ($i === 0) continue; // saltar cabecera
+
+                $codigo          = trim((string) ($row[0] ?? ''));
+                $nombre          = trim((string) ($row[1] ?? ''));
+                $cantidad        = $row[2] ?? null;
+                $costoUnitario   = $row[3] ?? null;
+                $lote            = trim((string) ($row[4] ?? ''));
+                $fechaVencimiento = trim((string) ($row[5] ?? ''));
+
+                // Omitir filas vacías
+                if ($codigo === '' && $nombre === '') continue;
+
+                $resultado = [
+                    'fila'             => $i + 1,
+                    'codigo_ingresado' => $codigo,
+                    'nombre_ingresado' => $nombre,
+                    'cantidad'         => is_numeric($cantidad) ? (float) $cantidad : null,
+                    'costo_unitario'   => is_numeric($costoUnitario) ? (float) $costoUnitario : null,
+                    'lote'             => $lote ?: null,
+                    'fecha_vencimiento' => $fechaVencimiento ?: null,
+                    'producto'         => null,
+                    'errores'          => [],
+                    'valido'           => false,
+                ];
+
+                // Buscar producto: primero por código, luego por nombre exacto (case-insensitive)
+                $producto = null;
+                if ($codigo !== '') {
+                    $producto = Producto::where('empresa_id', $empresaId)
+                        ->where('codigo', $codigo)
+                        ->first();
+                }
+                if (!$producto && $nombre !== '') {
+                    $producto = Producto::where('empresa_id', $empresaId)
+                        ->whereRaw('LOWER(nombre) = LOWER(?)', [$nombre])
+                        ->first();
+                }
+
+                if (!$producto) {
+                    $ref = $codigo ? "código '{$codigo}'" : "nombre '{$nombre}'";
+                    $resultado['errores'][] = "Producto no encontrado ({$ref})";
+                } else {
+                    $resultado['producto'] = [
+                        'id'           => $producto->id,
+                        'codigo'       => $producto->codigo,
+                        'nombre'       => $producto->nombre,
+                        'unidad_medida' => $producto->unidad_medida,
+                    ];
+                }
+
+                if (!is_numeric($cantidad) || (float) $cantidad <= 0) {
+                    $resultado['errores'][] = 'Cantidad inválida o vacía';
+                }
+                if (!is_numeric($costoUnitario) || (float) $costoUnitario < 0) {
+                    $resultado['errores'][] = 'Costo unitario inválido o vacío';
+                }
+
+                $resultado['valido'] = empty($resultado['errores']);
+                $resultado['valido'] ? $totalValidos++ : $totalErrores++;
+
+                $resultados[] = $resultado;
+            }
+
+            return $this->success([
+                'filas'       => $resultados,
+                'total'       => count($resultados),
+                'validos'     => $totalValidos,
+                'con_errores' => $totalErrores,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al procesar Excel de movimiento', ['error' => $e->getMessage()]);
+            return $this->error('Error al procesar el archivo: ' . $e->getMessage(), 422);
         }
     }
 

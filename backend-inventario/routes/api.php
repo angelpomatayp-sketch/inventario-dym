@@ -112,6 +112,8 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
         Route::put('productos/{producto}/imagenes/reordenar', [\App\Modules\Inventario\Controllers\ProductoController::class, 'reordenarImagenes']);
 
         // Movimientos
+        Route::get('movimientos/plantilla-excel', [\App\Modules\Inventario\Controllers\MovimientoController::class, 'descargarPlantilla']);
+        Route::post('movimientos/preview-excel', [\App\Modules\Inventario\Controllers\MovimientoController::class, 'previewExcel']);
         Route::apiResource('movimientos', \App\Modules\Inventario\Controllers\MovimientoController::class);
         Route::post('movimientos/{movimiento}/anular', [\App\Modules\Inventario\Controllers\MovimientoController::class, 'anular']);
         Route::post('movimientos/{movimiento}/confirmar-recepcion', [\App\Modules\Inventario\Controllers\MovimientoController::class, 'confirmarRecepcion']);
