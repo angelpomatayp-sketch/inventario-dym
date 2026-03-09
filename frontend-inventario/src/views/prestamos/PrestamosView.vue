@@ -7,8 +7,8 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
-import Dropdown from 'primevue/dropdown'
-import Calendar from 'primevue/calendar'
+import Select from 'primevue/select'
+import DatePicker from 'primevue/datepicker'
 import InputNumber from 'primevue/inputnumber'
 import Tag from 'primevue/tag'
 import TabView from 'primevue/tabview'
@@ -565,7 +565,7 @@ onMounted(() => {
       <TabPanel header="Préstamos">
         <div class="flex flex-wrap gap-2 mb-4">
           <Button label="Nuevo Préstamo" icon="pi pi-plus" @click="nuevoPrestamo" />
-          <Dropdown
+          <Select
             v-model="filtrosPrestamo.estado"
             :options="estadosPrestamo"
             optionLabel="label"
@@ -714,7 +714,7 @@ onMounted(() => {
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Tipo de Control *</label>
-          <Dropdown v-model="equipo.tipo_control" :options="tiposControl" optionLabel="label" optionValue="value" class="w-full" />
+          <Select v-model="equipo.tipo_control" :options="tiposControl" optionLabel="label" optionValue="value" class="w-full" />
         </div>
         <div v-if="equipo.tipo_control === 'CANTIDAD'" class="field">
           <label class="block text-sm font-medium mb-1">Cantidad Total</label>
@@ -722,7 +722,7 @@ onMounted(() => {
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Almacén</label>
-          <Dropdown v-model="equipo.almacen_id" :options="almacenes" optionLabel="nombre" optionValue="id" class="w-full" placeholder="Seleccionar" showClear />
+          <Select v-model="equipo.almacen_id" :options="almacenes" optionLabel="nombre" optionValue="id" class="w-full" placeholder="Seleccionar" showClear />
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Ubicación Física</label>
@@ -734,11 +734,11 @@ onMounted(() => {
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Fecha Adquisición</label>
-          <Calendar v-model="equipo.fecha_adquisicion" class="w-full" dateFormat="dd/mm/yy" />
+          <DatePicker v-model="equipo.fecha_adquisicion" class="w-full" dateFormat="dd/mm/yy" />
         </div>
         <div class="field col-span-2">
           <label class="block text-sm font-medium mb-1">Vincular a Producto (Inventario)</label>
-          <Dropdown v-model="equipo.producto_id" :options="productos" optionLabel="nombre" optionValue="id" class="w-full" filter placeholder="Opcional - sincroniza stock" showClear />
+          <Select v-model="equipo.producto_id" :options="productos" optionLabel="nombre" optionValue="id" class="w-full" filter placeholder="Opcional - sincroniza stock" showClear />
         </div>
       </div>
       <template #footer>
@@ -752,7 +752,7 @@ onMounted(() => {
       <div class="grid gap-4">
         <div class="field">
           <label class="block text-sm font-medium mb-1">Equipo *</label>
-          <Dropdown
+          <Select
             v-model="prestamo.equipo_id"
             :options="equiposDisponibles"
             optionLabel="nombre"
@@ -761,6 +761,12 @@ onMounted(() => {
             filter
             placeholder="Seleccionar equipo"
           >
+            <template #value="slotProps">
+              <span v-if="slotProps.value">
+                {{ equiposDisponibles.find(e => e.id === slotProps.value)?.nombre || 'Equipo seleccionado' }}
+              </span>
+              <span v-else class="text-gray-400">Seleccionar equipo</span>
+            </template>
             <template #option="{ option }">
               <div class="flex items-center gap-2">
                 <span class="font-medium">{{ option.nombre }}</span>
@@ -769,7 +775,7 @@ onMounted(() => {
                 <Tag v-if="option.tipo_control === 'CANTIDAD'" :value="`Disp: ${option.cantidad_disponible}`" severity="info" />
               </div>
             </template>
-          </Dropdown>
+          </Select>
           <p v-if="equiposDisponibles.length === 0" class="text-sm text-orange-600 mt-1">
             <i class="pi pi-info-circle mr-1"></i>
             No hay equipos disponibles. Importe productos desde el inventario en la pestaña "Equipos Prestables".
@@ -781,7 +787,7 @@ onMounted(() => {
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Trabajador / Usuario Responsable *</label>
-          <Dropdown
+          <Select
             v-model="prestamo.responsable"
             :options="trabajadores"
             optionLabel="display_name"
@@ -789,6 +795,10 @@ onMounted(() => {
             filter
             placeholder="Seleccionar trabajador o usuario"
           >
+            <template #value="slotProps">
+              <span v-if="slotProps.value">{{ slotProps.value.display_name || slotProps.value.nombre }}</span>
+              <span v-else class="text-gray-400">Seleccionar trabajador o usuario</span>
+            </template>
             <template #option="{ option }">
               <div class="flex items-center gap-2">
                 <span class="font-medium">{{ option.nombre }}</span>
@@ -800,11 +810,11 @@ onMounted(() => {
                 <span v-if="option.centro_costo" class="ml-2">{{ option.centro_costo.nombre }}</span>
               </div>
             </template>
-          </Dropdown>
+          </Select>
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Centro de Costo</label>
-          <Dropdown v-model="prestamo.centro_costo_id" :options="centrosCosto" optionLabel="nombre" optionValue="id" class="w-full" placeholder="Opcional" showClear />
+          <Select v-model="prestamo.centro_costo_id" :options="centrosCosto" optionLabel="nombre" optionValue="id" class="w-full" placeholder="Opcional" showClear />
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Área Destino</label>
@@ -813,11 +823,11 @@ onMounted(() => {
         <div class="grid grid-cols-2 gap-4">
           <div class="field">
             <label class="block text-sm font-medium mb-1">Fecha Préstamo</label>
-            <Calendar v-model="prestamo.fecha_prestamo" class="w-full" dateFormat="dd/mm/yy" />
+            <DatePicker v-model="prestamo.fecha_prestamo" class="w-full" dateFormat="dd/mm/yy" />
           </div>
           <div class="field">
             <label class="block text-sm font-medium mb-1">Fecha Devolución *</label>
-            <Calendar v-model="prestamo.fecha_devolucion_esperada" class="w-full" dateFormat="dd/mm/yy" :minDate="new Date()" />
+            <DatePicker v-model="prestamo.fecha_devolucion_esperada" class="w-full" dateFormat="dd/mm/yy" :minDate="new Date()" />
           </div>
         </div>
         <div class="field">
@@ -845,11 +855,11 @@ onMounted(() => {
       <div class="grid gap-4">
         <div class="field">
           <label class="block text-sm font-medium mb-1">Condición del Equipo *</label>
-          <Dropdown v-model="devolucion.condicion_devolucion" :options="condicionesDevolucion" optionLabel="label" optionValue="value" class="w-full" />
+          <Select v-model="devolucion.condicion_devolucion" :options="condicionesDevolucion" optionLabel="label" optionValue="value" class="w-full" />
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Fecha Devolución</label>
-          <Calendar v-model="devolucion.fecha_devolucion" class="w-full" dateFormat="dd/mm/yy" />
+          <DatePicker v-model="devolucion.fecha_devolucion" class="w-full" dateFormat="dd/mm/yy" />
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Observaciones</label>
@@ -873,7 +883,7 @@ onMounted(() => {
       </div>
       <div class="field">
         <label class="block text-sm font-medium mb-1">Nueva Fecha de Devolución *</label>
-        <Calendar v-model="renovacion.nueva_fecha_devolucion" class="w-full" dateFormat="dd/mm/yy" :minDate="new Date()" />
+        <DatePicker v-model="renovacion.nueva_fecha_devolucion" class="w-full" dateFormat="dd/mm/yy" :minDate="new Date()" />
       </div>
       <template #footer>
         <Button label="Cancelar" severity="secondary" @click="dialogRenovacion = false" />
@@ -933,7 +943,7 @@ onMounted(() => {
         </div>
         <div class="mb-3">
           <label class="block text-sm font-medium mb-1">Tipo de Control para los productos seleccionados:</label>
-          <Dropdown v-model="tipoControlImportar" :options="tiposControl" optionLabel="label" optionValue="value" class="w-64" />
+          <Select v-model="tipoControlImportar" :options="tiposControl" optionLabel="label" optionValue="value" class="w-64" />
           <p class="text-xs text-gray-500 mt-1">
             <strong>Individual:</strong> Cada unidad se controla por separado. <strong>Por Cantidad:</strong> Se controla el stock total.
           </p>
