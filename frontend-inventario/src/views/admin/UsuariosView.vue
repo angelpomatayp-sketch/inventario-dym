@@ -609,15 +609,15 @@ const formatDateTime = (date) => {
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Centro de Costo / Proyecto</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Obra / Unidad</label>
             <!-- Si el usuario tiene centro de costo asignado, mostrar bloqueado -->
             <template v-if="centroCostoAsignado">
               <InputText
-                :modelValue="nombreCentroCostoAsignado || 'Centro de costo asignado'"
+                :modelValue="nombreCentroCostoAsignado || 'Obra / unidad asignada'"
                 class="w-full"
                 disabled
               />
-              <p class="text-xs text-gray-500 mt-1">Asignado a tu centro de costo</p>
+              <p class="text-xs text-gray-500 mt-1">Asignado a tu obra / unidad</p>
             </template>
             <Select
               v-else

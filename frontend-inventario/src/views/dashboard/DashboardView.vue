@@ -499,7 +499,7 @@ onMounted(() => {
           <template #title>
             <div class="flex align-items-center gap-2">
               <i class="pi pi-sitemap text-cyan-500"></i>
-              <span>Consumo por Centro de Costo</span>
+              <span>Consumo por Obra / Unidad</span>
             </div>
           </template>
           <template #subtitle>

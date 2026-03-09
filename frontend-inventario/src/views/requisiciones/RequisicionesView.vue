@@ -293,7 +293,7 @@ const removeDetalle = (index) => {
 const saveRequisicion = async (enviarAprobacion = false) => {
   // Validaciones
   if (!formData.value.centro_costo_id) {
-    toast.add({ severity: 'warn', summary: 'Validacion', detail: 'Seleccione un centro de costo', life: 4000 })
+    toast.add({ severity: 'warn', summary: 'Validacion', detail: 'Seleccione una obra / unidad', life: 4000 })
     return
   }
   if (!formData.value.fecha_requerida) {
@@ -788,11 +788,11 @@ onMounted(() => {
       <div class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Centro de Costo *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Obra / Unidad *</label>
             <!-- Si el usuario tiene centro de costo asignado, mostrar bloqueado -->
             <template v-if="centroCostoAsignado">
               <InputText
-                :modelValue="nombreCentroCostoAsignado || 'Centro de costo asignado'"
+                :modelValue="nombreCentroCostoAsignado || 'Obra / unidad asignada'"
                 class="w-full"
                 disabled
               />
@@ -1005,7 +1005,7 @@ onMounted(() => {
             <p class="font-medium">{{ selectedRequisicion.solicitante?.nombre }}</p>
           </div>
           <div>
-            <p class="text-xs text-gray-500">Centro de Costo</p>
+            <p class="text-xs text-gray-500">Obra / Unidad</p>
             <p class="font-medium">{{ selectedRequisicion.centro_costo?.nombre }}</p>
           </div>
         </div>

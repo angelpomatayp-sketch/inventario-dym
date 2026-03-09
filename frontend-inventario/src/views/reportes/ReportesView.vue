@@ -422,7 +422,7 @@
         </div>
       </TabPanel>
 
-      <!-- Tab Consumo por Centro de Costo -->
+      <!-- Tab Consumo por Obra / Unidad -->
       <TabPanel value="3">
         <div class="grid">
           <!-- Filtros Consumo -->
@@ -431,7 +431,7 @@
               <template #content>
                 <div class="grid">
                   <div class="col-12 md:col-3">
-                    <label class="block mb-2 font-medium">Centro de Costo</label>
+                    <label class="block mb-2 font-medium">Obra / Unidad</label>
                     <Select
                       v-model="filtrosConsumo.centro_costo_id"
                       :options="centrosCosto"
@@ -478,7 +478,7 @@
                 <Card class="bg-blue-50">
                   <template #content>
                     <div class="text-center">
-                      <div class="text-500 mb-1">Centros de Costo</div>
+                      <div class="text-500 mb-1">Obras / Unidades</div>
                       <div class="text-2xl font-bold text-blue-600">{{ consumoData.totales.total_centros }}</div>
                     </div>
                   </template>
@@ -509,7 +509,7 @@
 
           <!-- Tabla Resumen por Centro -->
           <div class="col-12">
-            <h3 class="mt-0">Resumen por Centro de Costo</h3>
+            <h3 class="mt-0">Resumen por Obra / Unidad</h3>
             <DataTable
               :value="consumoData.resumen"
               :loading="loadingConsumo"
@@ -518,7 +518,7 @@
               emptyMessage="Seleccione filtros y presione Generar"
             >
               <Column field="centro_costo_codigo" header="Código" style="width: 100px" />
-              <Column field="centro_costo_nombre" header="Centro de Costo" />
+              <Column field="centro_costo_nombre" header="Obra / Unidad" />
               <Column field="total_vales" header="N° Vales" style="width: 100px; text-align: right" />
               <Column field="total_items" header="Items" style="width: 100px; text-align: right" />
               <Column header="Valor Total" style="width: 150px; text-align: right">

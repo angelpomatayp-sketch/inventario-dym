@@ -379,7 +379,7 @@ const deleteAlmacen = async () => {
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Proyecto (Centro de Costo)</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Proyecto (Obra / Unidad)</label>
           <Select
             v-model="selectedCentroCosto"
             :options="centrosCosto"

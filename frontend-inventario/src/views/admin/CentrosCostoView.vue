@@ -52,7 +52,7 @@ const loadCentrosCosto = async () => {
     const response = await api.get('/administracion/centros-costo')
     centrosCosto.value = response.data?.data || []
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los centros de costo', life: 3000 })
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar las obras / unidades', life: 3000 })
   } finally {
     loading.value = false
   }
@@ -92,10 +92,10 @@ const saveCentroCosto = async () => {
   try {
     if (isEditing.value) {
       await api.put(`/administracion/centros-costo/${formData.value.id}`, formData.value)
-      toast.add({ severity: 'success', summary: 'Éxito', detail: 'Centro de costo actualizado correctamente', life: 3000 })
+      toast.add({ severity: 'success', summary: 'Éxito', detail: 'Obra / unidad actualizada correctamente', life: 3000 })
     } else {
       await api.post('/administracion/centros-costo', formData.value)
-      toast.add({ severity: 'success', summary: 'Éxito', detail: 'Centro de costo creado correctamente', life: 3000 })
+      toast.add({ severity: 'success', summary: 'Éxito', detail: 'Obra / unidad creada correctamente', life: 3000 })
     }
     dialogVisible.value = false
     await loadCentrosCosto()
@@ -110,7 +110,7 @@ const saveCentroCosto = async () => {
 const deleteCentroCosto = async () => {
   try {
     await api.delete(`/administracion/centros-costo/${selectedCentroCosto.value.id}`)
-    toast.add({ severity: 'success', summary: 'Éxito', detail: 'Centro de costo eliminado correctamente', life: 3000 })
+    toast.add({ severity: 'success', summary: 'Éxito', detail: 'Obra / unidad eliminada correctamente', life: 3000 })
     deleteDialogVisible.value = false
     await loadCentrosCosto()
   } catch (error) {
@@ -125,11 +125,11 @@ const deleteCentroCosto = async () => {
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">Centros de Costo / Proyectos</h2>
-        <p class="text-gray-500 text-sm">Gestión de centros de costo y proyectos</p>
+        <h2 class="text-2xl font-bold text-gray-800">Obras / Unidades</h2>
+        <p class="text-gray-500 text-sm">Gestión de obras y unidades</p>
       </div>
       <Button
-        label="Nuevo Centro de Costo"
+        label="Nueva Obra / Unidad"
         icon="pi pi-plus"
         @click="openNew"
         class="!bg-amber-600 !border-amber-600 hover:!bg-amber-700"
@@ -143,7 +143,7 @@ const deleteCentroCosto = async () => {
           <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
           <InputText
             v-model="searchQuery"
-            placeholder="Buscar centro de costo..."
+            placeholder="Buscar obra / unidad..."
             class="w-full pl-10"
           />
         </div>
@@ -164,7 +164,7 @@ const deleteCentroCosto = async () => {
         paginator
         :rows="10"
         stripedRows
-        emptyMessage="No hay centros de costo registrados"
+        emptyMessage="No hay obras / unidades registradas"
         class="text-sm"
       >
         <Column field="codigo" header="Código" sortable style="width: 120px">
@@ -218,7 +218,7 @@ const deleteCentroCosto = async () => {
     <!-- Dialog Crear/Editar -->
     <Dialog
       v-model:visible="dialogVisible"
-      :header="isEditing ? 'Editar Centro de Costo' : 'Nuevo Centro de Costo'"
+      :header="isEditing ? 'Editar Obra / Unidad' : 'Nueva Obra / Unidad'"
       modal
       :style="{ width: '500px' }"
       :closable="!submitting"
@@ -231,7 +231,7 @@ const deleteCentroCosto = async () => {
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-          <InputText v-model="formData.nombre" class="w-full" placeholder="Nombre del centro de costo" />
+          <InputText v-model="formData.nombre" class="w-full" placeholder="Nombre de la obra / unidad" />
         </div>
 
         <div>
@@ -241,7 +241,7 @@ const deleteCentroCosto = async () => {
 
         <div class="flex items-center gap-2">
           <ToggleSwitch v-model="formData.activo" />
-          <label class="text-sm text-gray-700">Centro de costo activo</label>
+          <label class="text-sm text-gray-700">Obra / unidad activa</label>
         </div>
       </div>
 
@@ -260,7 +260,7 @@ const deleteCentroCosto = async () => {
     <Dialog v-model:visible="deleteDialogVisible" header="Confirmar Eliminación" modal :style="{ width: '400px' }">
       <div class="flex items-center gap-4">
         <i class="pi pi-exclamation-triangle text-4xl text-amber-500"></i>
-        <p>¿Está seguro que desea eliminar el centro de costo <strong>{{ selectedCentroCosto?.nombre }}</strong>?</p>
+        <p>¿Está seguro que desea eliminar la obra / unidad <strong>{{ selectedCentroCosto?.nombre }}</strong>?</p>
       </div>
       <template #footer>
         <Button label="Cancelar" severity="secondary" @click="deleteDialogVisible = false" />

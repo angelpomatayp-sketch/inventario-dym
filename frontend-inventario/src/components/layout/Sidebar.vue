@@ -96,7 +96,7 @@ const menuItemsBase = [
       { label: 'Trabajadores', icon: 'pi-id-card', to: '/admin/trabajadores', permission: 'trabajadores.ver' },
       { label: 'Roles', icon: 'pi-key', to: '/admin/roles', permission: 'roles.ver' },
       { label: 'Almacenes', icon: 'pi-warehouse', to: '/admin/almacenes', permission: 'almacenes.crear' },
-      { label: 'Centros de Costo', icon: 'pi-sitemap', to: '/admin/centros-costo', permission: 'centros_costo.crear' }
+      { label: 'Obras / Unidades', icon: 'pi-sitemap', to: '/admin/centros-costo', permission: 'centros_costo.crear' }
     ]
   }
 ]

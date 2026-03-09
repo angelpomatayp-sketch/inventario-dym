@@ -354,7 +354,7 @@ const formatDateTime = (date) => {
           :options="centrosCosto"
           optionLabel="label"
           optionValue="value"
-          placeholder="Centro de Costo"
+          placeholder="Obra / Unidad"
           class="w-48"
           showClear
           @change="loadTrabajadores"
@@ -393,7 +393,7 @@ const formatDateTime = (date) => {
             <span class="font-mono">{{ data.dni || '-' }}</span>
           </template>
         </Column>
-        <Column field="centro_costo" header="Centro de Costo" style="width: 180px">
+        <Column field="centro_costo" header="Obra / Unidad" style="width: 180px">
           <template #body="{ data }">
             <span v-if="data.centro_costo" class="text-sm">
               {{ data.centro_costo.codigo }} - {{ data.centro_costo.nombre }}
@@ -504,13 +504,13 @@ const formatDateTime = (date) => {
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Centro de Costo</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Obra / Unidad</label>
           <Select
             v-model="formData.centro_costo_id"
             :options="centrosCosto"
             optionLabel="label"
             optionValue="value"
-            placeholder="Seleccione centro de costo"
+            placeholder="Seleccione obra / unidad"
             class="w-full"
             showClear
           />

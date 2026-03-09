@@ -309,7 +309,7 @@ const saveVale = async () => {
     return
   }
   if (!ccId) {
-    toast.add({ severity: 'warn', summary: 'Validacion', detail: 'Seleccione un centro de costo', life: 4000 })
+    toast.add({ severity: 'warn', summary: 'Validacion', detail: 'Seleccione una obra / unidad', life: 4000 })
     return
   }
   if (!formData.value.receptor) {
@@ -720,10 +720,10 @@ onMounted(() => {
             </Select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Centro de Costo *</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Obra / Unidad *</label>
             <!-- Si el usuario tiene centro de costo asignado, mostrar bloqueado -->
             <template v-if="centroCostoAsignado">
-              <InputText :modelValue="nombreCentroCostoAsignado || 'Centro de costo asignado'" class="w-full" disabled />
+              <InputText :modelValue="nombreCentroCostoAsignado || 'Obra / unidad asignada'" class="w-full" disabled />
               <p class="text-xs text-gray-500 mt-1">Tu proyecto asignado</p>
             </template>
             <Select v-else v-model="formData.centro_costo_id" :options="centrosCosto" optionLabel="label" optionValue="value" placeholder="Seleccione" class="w-full">
@@ -900,7 +900,7 @@ onMounted(() => {
             <p class="font-medium">{{ selectedVale.receptor_nombre }}</p>
           </div>
           <div>
-            <p class="text-xs text-gray-500">Centro de Costo</p>
+            <p class="text-xs text-gray-500">Obra / Unidad</p>
             <p class="font-medium">{{ selectedVale.centro_costo?.nombre }}</p>
           </div>
         </div>

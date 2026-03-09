@@ -845,7 +845,7 @@ watch([selectedTipo, selectedEstado, fechaRango], () => {
         <!-- Centro de costo y documento -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Centro de Costo</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Obra / Unidad</label>
             <Select
               v-model="formData.centro_costo_id"
               :options="centrosCosto"
@@ -1038,7 +1038,7 @@ watch([selectedTipo, selectedEstado, fechaRango], () => {
             <p class="font-medium">{{ selectedMovimiento.almacen_destino.nombre }}</p>
           </div>
           <div v-if="selectedMovimiento.centro_costo">
-            <p class="text-sm text-gray-500">Centro de Costo</p>
+            <p class="text-sm text-gray-500">Obra / Unidad</p>
             <p class="font-medium">{{ selectedMovimiento.centro_costo.nombre }}</p>
           </div>
           <div>
