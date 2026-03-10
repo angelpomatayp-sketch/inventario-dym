@@ -305,7 +305,7 @@ const renovarEpp = async () => {
   submitting.value = true
   try {
     const payload = {
-      motivo: renovarForm.value.motivo?.value || renovarForm.value.motivo,
+      motivo: renovarForm.value.motivo,
       almacen_id: renovarForm.value.almacen.id,
       nueva_talla: renovarForm.value.nueva_talla,
       observaciones: renovarForm.value.observaciones
@@ -717,7 +717,7 @@ watch(
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Motivo de Renovación *</label>
-            <Select v-model="renovarForm.motivo" :options="motivosRenovacion" optionLabel="label" placeholder="Seleccione" class="w-full" appendTo="body" />
+            <Select v-model="renovarForm.motivo" :options="motivosRenovacion" optionLabel="label" optionValue="value" placeholder="Seleccione" class="w-full" appendTo="body" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Almacén (para descuento de stock) *</label>

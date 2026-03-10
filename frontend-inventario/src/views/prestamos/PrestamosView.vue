@@ -876,7 +876,7 @@ onMounted(() => {
                 <span class="font-medium">{{ option.nombre }}</span>
                 <span class="text-gray-500 text-sm">({{ option.codigo }})</span>
                 <Tag v-if="option.fuente === 'producto_inventario'" value="Inventario" severity="secondary" class="text-xs" />
-                <Tag v-if="option.tipo_control === 'CANTIDAD'" :value="`Disp: ${option.cantidad_disponible}`" severity="info" />
+                <Tag v-if="option.tipo_control === 'CANTIDAD'" :value="`Disponible: ${option.cantidad_disponible}`" severity="info" />
               </div>
             </template>
           </Select>

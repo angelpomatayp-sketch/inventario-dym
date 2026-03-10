@@ -63,7 +63,7 @@ onMounted(() => {
       <!-- Logo y título -->
       <div class="text-center mb-6">
         <div class="inline-flex items-center justify-center mb-3">
-          <img src="/logo-login.png" alt="DYM SAC" class="h-20 w-auto" style="filter: drop-shadow(0 0 8px rgba(255,255,255,0.6));" />
+          <img src="/logo-login.png" alt="DYM SAC" class="h-20 w-auto" style="filter: drop-shadow(0 2px 12px rgba(255,255,255,0.9)) drop-shadow(0 0 20px rgba(255,255,255,0.5));" />
         </div>
         <h1 class="text-2xl font-bold text-white">Sistema de Inventario</h1>
         <p class="text-gray-400 mt-1">KardexOne</p>
