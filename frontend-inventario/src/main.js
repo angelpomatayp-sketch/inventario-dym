@@ -2,6 +2,25 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
+import { definePreset } from '@primevue/themes'
+
+const CapTheme = definePreset(Aura, {
+  semantic: {
+    primary: {
+      50:  '#E3F2FD',
+      100: '#BBDEFB',
+      200: '#90CAF9',
+      300: '#64B5F6',
+      400: '#42A5F5',
+      500: '#2196F3',
+      600: '#1E88E5',
+      700: '#1976D2',
+      800: '#1565C0',
+      900: '#0D47A1',
+      950: '#0A3880'
+    }
+  }
+})
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
 import Tooltip from 'primevue/tooltip'
@@ -28,7 +47,7 @@ app.use(router)
 // PrimeVue con tema Aura
 app.use(PrimeVue, {
   theme: {
-    preset: Aura,
+    preset: CapTheme,
     options: {
       prefix: 'p',
       darkModeSelector: '.dark-mode',

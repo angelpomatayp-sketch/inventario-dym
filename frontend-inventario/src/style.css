@@ -121,12 +121,7 @@ body {
   }
 }
 
-/* Override PrimeVue para colores DYM */
-.p-button {
-  --p-button-primary-background: #d97706;
-  --p-button-primary-hover-background: #b45309;
-  --p-button-primary-active-background: #92400e;
-}
+/* Colores primarios gestionados por CapTheme en main.js */
 
 /* Fix para Select/DatePicker overlay dentro de Dialog */
 .p-select-overlay,
