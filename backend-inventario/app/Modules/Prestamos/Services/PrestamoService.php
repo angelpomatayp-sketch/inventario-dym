@@ -104,7 +104,8 @@ class PrestamoService
             }
 
             $condicion = $data['condicion_devolucion'] ?? PrestamoEquipo::CONDICION_BUENO;
-            $equipo = $prestamo->equipo;
+            // Forzar carga completa del equipo (puede venir parcial desde loadMissing con select)
+            $equipo = EquipoPrestable::find($prestamo->equipo_id);
 
             // Determinar estado final según condición
             $estadoFinal = match ($condicion) {
@@ -587,7 +588,15 @@ class PrestamoService
         }
 
         if (!$productoId || !$almacenId) {
-            throw new Exception('No se pudo resolver producto o almacén para registrar la devolución en inventario.');
+            // No hay suficiente información para generar el movimiento de inventario.
+            // Se omite sin abortar la devolución (el equipo puede no estar vinculado a inventario).
+            Log::warning('generarMovimientoEntrada: no se pudo resolver producto o almacén', [
+                'prestamo_id' => $prestamo->id,
+                'equipo_id'   => $equipo->id,
+                'producto_id' => $productoId,
+                'almacen_id'  => $almacenId,
+            ]);
+            return;
         }
 
         $receptorNombre = $prestamo->tipo_receptor === PrestamoEquipo::TIPO_USUARIO

@@ -789,6 +789,7 @@ class PrestamoController extends Controller
 
             $prestamos = PrestamoEquipo::where('empresa_id', $empresaId)
                 ->where('trabajador_id', $trabajadorId)
+                ->where('tipo_receptor', $tipoReceptor)
                 ->with(['equipo:id,codigo,nombre'])
                 ->orderBy('fecha_prestamo', 'asc')
                 ->get();

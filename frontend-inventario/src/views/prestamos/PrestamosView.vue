@@ -667,7 +667,7 @@ onMounted(() => {
           <Column field="trabajador.nombre" header="Responsable">
             <template #body="{ data }">
               <div>
-                <span class="font-medium">{{ data.trabajador_usuario?.nombre || data.trabajador?.nombre }}</span>
+                <span class="font-medium">{{ data.tipo_receptor === 'usuario' ? data.trabajador_usuario?.nombre : data.trabajador?.nombre }}</span>
                 <Tag v-if="data.tipo_receptor === 'usuario'" value="Usuario" severity="info" class="ml-1 text-xs" />
               </div>
             </template>
