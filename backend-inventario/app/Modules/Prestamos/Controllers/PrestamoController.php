@@ -829,6 +829,24 @@ class PrestamoController extends Controller
     }
 
     /**
+     * Sincronizar cantidades de equipos prestables desde stock de inventario.
+     * Útil para corregir desincronizaciones cuando entran nuevas unidades al inventario.
+     */
+    public function sincronizarEquipos(Request $request): JsonResponse
+    {
+        $empresaId = $request->user()->empresa_id;
+        $almacenId = $request->filled('almacen_id') ? (int) $request->almacen_id : null;
+
+        try {
+            $this->prestamoService->sincronizarEquiposDesdeStock($empresaId, $almacenId);
+            return $this->success(null, 'Equipos sincronizados correctamente con el inventario');
+        } catch (\Exception $e) {
+            Log::error('Error sincronizando equipos prestables', ['error' => $e->getMessage()]);
+            return $this->error('Error al sincronizar: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Para almaceneros, restringe acceso a préstamos de su almacén asignado.
      */
     private function usuarioPuedeAccederPrestamo(Request $request, PrestamoEquipo $prestamo): bool

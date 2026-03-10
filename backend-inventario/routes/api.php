@@ -303,6 +303,7 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
         Route::get('/trabajador/{trabajadorId}/historial', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'historialTrabajador']);
         Route::get('/trabajador/{trabajadorId}/imprimir-control', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'imprimirControlTrabajador']);
         Route::post('/procesar-vencidos', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'procesarVencidos']);
+        Route::post('/sincronizar-equipos', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'sincronizarEquipos']);
         Route::get('/{prestamo}', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'show']);
         Route::post('/{prestamo}/devolver', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'devolver']);
         Route::post('/{prestamo}/renovar', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'renovar']);

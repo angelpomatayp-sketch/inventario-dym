@@ -9,6 +9,7 @@ use App\Modules\Inventario\Models\Movimiento;
 use App\Modules\Inventario\Models\Kardex;
 use App\Modules\Inventario\Models\StockAlmacen;
 use App\Shared\Traits\ApiResponse;
+use App\Shared\Traits\FiltrosPorRol;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 
 class OrdenCompraController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, FiltrosPorRol;
 
     public function index(Request $request): JsonResponse
     {
@@ -25,6 +26,12 @@ class OrdenCompraController extends Controller
 
         if ($request->user()->empresa_id) {
             $query->where('empresa_id', $request->user()->empresa_id);
+        }
+
+        // Almacenero solo ve órdenes de su almacén destino
+        $almacenAsignado = $this->getAlmacenAsignado($request);
+        if ($almacenAsignado) {
+            $query->where('almacen_destino_id', $almacenAsignado);
         }
 
         if ($request->filled('search')) {
@@ -84,6 +91,11 @@ class OrdenCompraController extends Controller
             'detalles.required' => 'Agregue al menos un producto',
         ]);
 
+        // Validar que el almacenero solo pueda crear OC para su almacén
+        if (!$this->puedeAccederAlmacen($request, $request->almacen_destino_id)) {
+            return $this->error('No tiene acceso al almacén destino seleccionado', 403);
+        }
+
         DB::beginTransaction();
         try {
             $numero = $this->generarNumero($empresaId);
@@ -141,8 +153,15 @@ class OrdenCompraController extends Controller
         }
     }
 
-    public function show(OrdenCompra $ordenCompra): JsonResponse
+    public function show(Request $request, OrdenCompra $ordenCompra): JsonResponse
     {
+        if ($ordenCompra->empresa_id !== $request->user()->empresa_id) {
+            return $this->error('No autorizado', 403);
+        }
+        if (!$this->puedeAccederAlmacen($request, $ordenCompra->almacen_destino_id)) {
+            return $this->error('No tiene acceso a esta orden de compra', 403);
+        }
+
         $ordenCompra->load([
             'proveedor',
             'cotizacion',
@@ -264,6 +283,12 @@ class OrdenCompraController extends Controller
 
     public function recibir(Request $request, OrdenCompra $ordenCompra): JsonResponse
     {
+        if ($ordenCompra->empresa_id !== $request->user()->empresa_id) {
+            return $this->error('No autorizado', 403);
+        }
+        if (!$this->puedeAccederAlmacen($request, $ordenCompra->almacen_destino_id)) {
+            return $this->error('No tiene acceso al almacén de esta orden', 403);
+        }
         if (!$ordenCompra->puedeRecibirse()) {
             return $this->error('Esta orden no puede recibir mercancía en su estado actual', 422);
         }
@@ -387,6 +412,32 @@ class OrdenCompraController extends Controller
 
     // ==================== MÉTODOS PRIVADOS ====================
 
+    private function generarNumeroMovimiento(int $empresaId): string
+    {
+        $año = date('Y');
+        $mes = date('m');
+        $base = "ENT-{$año}{$mes}-";
+        $ultimo = Movimiento::where('empresa_id', $empresaId)
+            ->where('numero', 'like', $base . '%')
+            ->orderBy('numero', 'desc')
+            ->lockForUpdate()
+            ->value('numero');
+
+        $secuencia = 1;
+        if ($ultimo) {
+            $partes = explode('-', $ultimo);
+            $secuencia = (int) end($partes) + 1;
+        }
+
+        $numero = $base . str_pad($secuencia, 4, '0', STR_PAD_LEFT);
+        while (Movimiento::where('empresa_id', $empresaId)->where('numero', $numero)->exists()) {
+            $secuencia++;
+            $numero = $base . str_pad($secuencia, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $numero;
+    }
+
     private function generarNumero(int $empresaId): string
     {
         $año = date('Y');
@@ -415,16 +466,15 @@ class OrdenCompraController extends Controller
     {
         return Movimiento::create([
             'empresa_id' => $ordenCompra->empresa_id,
-            'tipo' => 'ENTRADA',
+            'tipo' => Movimiento::TIPO_ENTRADA,
             'subtipo' => 'COMPRA',
-            'almacen_id' => $ordenCompra->almacen_destino_id,
+            'almacen_destino_id' => $ordenCompra->almacen_destino_id,
             'fecha' => now(),
-            'documento_tipo' => 'ORDEN_COMPRA',
-            'documento_numero' => $ordenCompra->numero,
-            'proveedor_id' => $ordenCompra->proveedor_id,
+            'documento_referencia' => $ordenCompra->numero,
             'observaciones' => "Recepción de OC: {$ordenCompra->numero}",
             'usuario_id' => $request->user()->id,
-            'estado' => 'COMPLETADO',
+            'estado' => Movimiento::ESTADO_COMPLETADO,
+            'numero' => $this->generarNumeroMovimiento($ordenCompra->empresa_id),
         ]);
     }
 

@@ -38,6 +38,22 @@ class PrestamoService
                 }
             }
 
+            // Sincronizar cantidades desde stock real antes de verificar disponibilidad
+            if ($equipo->producto_id && $equipo->almacen_id && $equipo->tipo_control === EquipoPrestable::TIPO_CANTIDAD) {
+                $this->sincronizarEquiposDesdeStock($data['empresa_id'], $equipo->almacen_id);
+                $equipo->refresh();
+
+                // Validación adicional directa contra stock_almacenes
+                $stockReal = StockAlmacen::where('empresa_id', $data['empresa_id'])
+                    ->where('producto_id', $equipo->producto_id)
+                    ->where('almacen_id', $equipo->almacen_id)
+                    ->value('stock_actual') ?? 0;
+
+                if ($stockReal < $cantidad) {
+                    throw new Exception("Stock insuficiente para '{$equipo->nombre}'. Stock disponible: {$stockReal}, solicitado: {$cantidad}.");
+                }
+            }
+
             // Verificar disponibilidad
             if (!$equipo->estaDisponible($cantidad)) {
                 throw new Exception("El equipo '{$equipo->nombre}' no está disponible para préstamo.");
@@ -251,11 +267,69 @@ class PrestamoService
     }
 
     /**
+     * Sincronizar cantidad_disponible y cantidad_total de todos los equipos prestables
+     * vinculados a inventario (producto_id) con el stock real de stock_almacenes.
+     *
+     * Fórmula:
+     *   cantidad_disponible = stock_actual (en stock_almacenes para ese almacén)
+     *   cantidad_total      = stock_actual + préstamos activos
+     *
+     * Se llama antes de mostrar equipos disponibles para garantizar datos frescos.
+     */
+    public function sincronizarEquiposDesdeStock(int $empresaId, ?int $almacenId = null): void
+    {
+        $query = EquipoPrestable::where('empresa_id', $empresaId)
+            ->whereNotNull('producto_id')
+            ->whereNotNull('almacen_id')
+            ->where('tipo_control', EquipoPrestable::TIPO_CANTIDAD)
+            ->where('activo', true);
+
+        if ($almacenId) {
+            $query->where('almacen_id', $almacenId);
+        }
+
+        $equipos = $query->get();
+
+        foreach ($equipos as $equipo) {
+            $stockReal = StockAlmacen::where('empresa_id', $empresaId)
+                ->where('producto_id', $equipo->producto_id)
+                ->where('almacen_id', $equipo->almacen_id)
+                ->value('stock_actual') ?? 0;
+
+            $prestadoActivo = PrestamoEquipo::where('empresa_id', $empresaId)
+                ->where('equipo_id', $equipo->id)
+                ->whereIn('estado', [
+                    PrestamoEquipo::ESTADO_ACTIVO,
+                    PrestamoEquipo::ESTADO_VENCIDO,
+                    PrestamoEquipo::ESTADO_RENOVADO,
+                ])
+                ->sum('cantidad');
+
+            $cantidadTotal     = (int) $stockReal + (int) $prestadoActivo;
+            $cantidadDisponible = max(0, (int) $stockReal);
+
+            // Solo actualizar si hay diferencia real para evitar writes innecesarios
+            if ($equipo->cantidad_disponible != $cantidadDisponible || $equipo->cantidad_total != $cantidadTotal) {
+                $equipo->updateQuietly([
+                    'cantidad_total'     => $cantidadTotal,
+                    'cantidad_disponible' => $cantidadDisponible,
+                    'estado' => $cantidadDisponible > 0
+                        ? EquipoPrestable::ESTADO_DISPONIBLE
+                        : ($prestadoActivo > 0 ? EquipoPrestable::ESTADO_PRESTADO : EquipoPrestable::ESTADO_DISPONIBLE),
+                ]);
+            }
+        }
+    }
+
+    /**
      * Obtener equipos disponibles
      * Incluye equipos prestables registrados + productos de familias prestables con stock
      */
     public function obtenerEquiposDisponibles(int $empresaId, ?string $buscar = null, ?int $almacenId = null)
     {
+        // Sincronizar cantidades desde stock real antes de listar
+        $this->sincronizarEquiposDesdeStock($empresaId, $almacenId);
+
         $resultado = collect();
 
         // 1. Equipos prestables ya registrados

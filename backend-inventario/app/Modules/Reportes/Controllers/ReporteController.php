@@ -212,6 +212,7 @@ class ReporteController extends Controller
         ]);
 
         $empresaId = $request->user()->empresa_id;
+        $almacenAsignado = $this->getAlmacenAsignado($request);
 
         // Obtener vales de salida entregados en el período
         $consumo = DB::table('vales_salida as v')
@@ -220,6 +221,7 @@ class ReporteController extends Controller
             ->join('centros_costos as cc', 'v.centro_costo_id', '=', 'cc.id')
             ->where('v.empresa_id', $empresaId)
             ->where('v.estado', 'ENTREGADO')
+            ->when($almacenAsignado, fn($q) => $q->where('v.almacen_id', $almacenAsignado))
             ->whereBetween('v.fecha', [$request->fecha_inicio, $request->fecha_fin])
             ->select(
                 'cc.id as centro_costo_id',
@@ -242,6 +244,7 @@ class ReporteController extends Controller
                 ->where('v.empresa_id', $empresaId)
                 ->where('v.centro_costo_id', $request->centro_costo_id)
                 ->where('v.estado', 'ENTREGADO')
+                ->when($almacenAsignado, fn($q) => $q->where('v.almacen_id', $almacenAsignado))
                 ->whereBetween('v.fecha', [$request->fecha_inicio, $request->fecha_fin])
                 ->select(
                     'p.codigo',
@@ -343,7 +346,14 @@ class ReporteController extends Controller
             $query->where('tipo', $request->tipo);
         }
 
-        if ($request->filled('almacen_id')) {
+        // Filtrar por almacén asignado (almacenero solo ve su almacén)
+        $almacenAsignado = $this->getAlmacenAsignado($request);
+        if ($almacenAsignado) {
+            $query->where(function ($q) use ($almacenAsignado) {
+                $q->where('almacen_origen_id', $almacenAsignado)
+                  ->orWhere('almacen_destino_id', $almacenAsignado);
+            });
+        } elseif ($request->filled('almacen_id')) {
             $query->where(function ($q) use ($request) {
                 $q->where('almacen_origen_id', $request->almacen_id)
                   ->orWhere('almacen_destino_id', $request->almacen_id);
@@ -434,6 +444,7 @@ class ReporteController extends Controller
 
         $empresaId = $request->user()->empresa_id;
         $limite = $request->get('limite', 10);
+        $almacenAsignado = $this->getAlmacenAsignado($request);
 
         $topProductos = DB::table('vales_salida as v')
             ->join('vales_salida_detalle as vd', 'v.id', '=', 'vd.vale_salida_id')
@@ -441,6 +452,7 @@ class ReporteController extends Controller
             ->leftJoin('familias as f', 'p.familia_id', '=', 'f.id')
             ->where('v.empresa_id', $empresaId)
             ->where('v.estado', 'ENTREGADO')
+            ->when($almacenAsignado, fn($q) => $q->where('v.almacen_id', $almacenAsignado))
             ->whereBetween('v.fecha', [$request->fecha_inicio, $request->fecha_fin])
             ->select(
                 'p.id',
@@ -475,8 +487,14 @@ class ReporteController extends Controller
         $empresaId = $request->user()->empresa_id;
         $nombreArchivo = 'kardex_' . date('Y-m-d_His') . '.xlsx';
 
+        $filtros = $request->all();
+        $almacenAsignado = $this->getAlmacenAsignado($request);
+        if ($almacenAsignado) {
+            $filtros['almacen_id'] = $almacenAsignado;
+        }
+
         return Excel::download(
-            new KardexExport($empresaId, $request->all()),
+            new KardexExport($empresaId, $filtros),
             $nombreArchivo
         );
     }
@@ -489,8 +507,14 @@ class ReporteController extends Controller
         $empresaId = $request->user()->empresa_id;
         $nombreArchivo = 'inventario_' . date('Y-m-d_His') . '.xlsx';
 
+        $filtros = $request->all();
+        $almacenAsignado = $this->getAlmacenAsignado($request);
+        if ($almacenAsignado) {
+            $filtros['almacen_id'] = $almacenAsignado;
+        }
+
         return Excel::download(
-            new InventarioExport($empresaId, $request->all()),
+            new InventarioExport($empresaId, $filtros),
             $nombreArchivo
         );
     }
@@ -508,8 +532,14 @@ class ReporteController extends Controller
         $empresaId = $request->user()->empresa_id;
         $nombreArchivo = 'movimientos_' . date('Y-m-d_His') . '.xlsx';
 
+        $filtros = $request->all();
+        $almacenAsignado = $this->getAlmacenAsignado($request);
+        if ($almacenAsignado) {
+            $filtros['almacen_id'] = $almacenAsignado;
+        }
+
         return Excel::download(
-            new MovimientosExport($empresaId, $request->all()),
+            new MovimientosExport($empresaId, $filtros),
             $nombreArchivo
         );
     }
@@ -529,6 +559,7 @@ class ReporteController extends Controller
         $empresaId = $request->user()->empresa_id;
         $empresa = $request->user()->empresa?->razon_social ?? 'Sistema Inventario';
         $incluirAnulados = $request->boolean('incluir_anulados', false);
+        $almacenAsignado = $this->getAlmacenAsignado($request);
 
         $query = Kardex::with(['producto:id,codigo,nombre,unidad_medida', 'almacen:id,nombre'])
             ->where('empresa_id', $empresaId)
@@ -538,7 +569,9 @@ class ReporteController extends Controller
             $query->where('producto_id', $request->producto_id);
         }
 
-        if ($request->filled('almacen_id')) {
+        if ($almacenAsignado) {
+            $query->where('almacen_id', $almacenAsignado);
+        } elseif ($request->filled('almacen_id')) {
             $query->where('almacen_id', $request->almacen_id);
         }
 
@@ -576,7 +609,8 @@ class ReporteController extends Controller
         ];
 
         // Filtros para mostrar
-        $almacenNombre = $request->filled('almacen_id') ? Almacen::find($request->almacen_id)?->nombre : 'Todos';
+        $almacenIdFiltro = $almacenAsignado ?? ($request->filled('almacen_id') ? $request->almacen_id : null);
+        $almacenNombre = $almacenIdFiltro ? Almacen::find($almacenIdFiltro)?->nombre : 'Todos';
         $productoNombre = $request->filled('producto_id') ? Producto::find($request->producto_id)?->nombre : 'Todos';
 
         $pdf = Pdf::loadView('pdf.kardex', [
@@ -601,6 +635,8 @@ class ReporteController extends Controller
     {
         $empresaId = $request->user()->empresa_id;
         $empresa = $request->user()->empresa?->razon_social ?? 'Sistema Inventario';
+        $almacenAsignado = $this->getAlmacenAsignado($request);
+        $almacenFiltro = $almacenAsignado ?? ($request->filled('almacen_id') ? (int) $request->almacen_id : null);
 
         $query = Producto::with(['familia:id,nombre', 'stockAlmacenes.almacen:id,nombre'])
             ->where('empresa_id', $empresaId)
@@ -618,17 +654,17 @@ class ReporteController extends Controller
             $query->where('familia_id', $request->familia_id);
         }
 
-        if ($request->filled('almacen_id')) {
-            $query->whereHas('stockAlmacenes', function ($q) use ($request) {
-                $q->where('almacen_id', $request->almacen_id)
+        if ($almacenFiltro) {
+            $query->whereHas('stockAlmacenes', function ($q) use ($almacenFiltro) {
+                $q->where('almacen_id', $almacenFiltro)
                   ->where('stock_actual', '>', 0);
             });
         }
 
-        $productosData = $query->get()->map(function ($producto) use ($request) {
+        $productosData = $query->get()->map(function ($producto) use ($almacenFiltro) {
             $stocks = $producto->stockAlmacenes;
-            if ($request->filled('almacen_id')) {
-                $stocks = $stocks->where('almacen_id', $request->almacen_id);
+            if ($almacenFiltro) {
+                $stocks = $stocks->where('almacen_id', $almacenFiltro);
             }
 
             $stockTotal = $stocks->sum('stock_actual');
@@ -657,7 +693,7 @@ class ReporteController extends Controller
         ];
 
         // Filtros
-        $almacenNombre = $request->filled('almacen_id') ? Almacen::find($request->almacen_id)?->nombre : 'Todos';
+        $almacenNombre = $almacenFiltro ? Almacen::find($almacenFiltro)?->nombre : 'Todos';
         $familiaNombre = $request->filled('familia_id') ? \App\Modules\Inventario\Models\Familia::find($request->familia_id)?->nombre : 'Todas';
 
         $pdf = Pdf::loadView('pdf.inventario', [
@@ -685,6 +721,8 @@ class ReporteController extends Controller
 
         $empresaId = $request->user()->empresa_id;
         $empresa = $request->user()->empresa?->razon_social ?? 'Sistema Inventario';
+        $almacenAsignado = $this->getAlmacenAsignado($request);
+        $almacenFiltro = $almacenAsignado ?? ($request->filled('almacen_id') ? (int) $request->almacen_id : null);
 
         $query = Movimiento::with([
             'almacenOrigen:id,nombre',
@@ -699,10 +737,10 @@ class ReporteController extends Controller
             $query->where('tipo', $request->tipo);
         }
 
-        if ($request->filled('almacen_id')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('almacen_origen_id', $request->almacen_id)
-                  ->orWhere('almacen_destino_id', $request->almacen_id);
+        if ($almacenFiltro) {
+            $query->where(function ($q) use ($almacenFiltro) {
+                $q->where('almacen_origen_id', $almacenFiltro)
+                  ->orWhere('almacen_destino_id', $almacenFiltro);
             });
         }
 
@@ -731,7 +769,7 @@ class ReporteController extends Controller
         ];
 
         // Filtros
-        $almacenNombre = $request->filled('almacen_id') ? Almacen::find($request->almacen_id)?->nombre : 'Todos';
+        $almacenNombre = $almacenFiltro ? Almacen::find($almacenFiltro)?->nombre : 'Todos';
         $tipoNombre = $request->filled('tipo') ? $request->tipo : 'Todos';
 
         $pdf = Pdf::loadView('pdf.movimientos', [
