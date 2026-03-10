@@ -45,7 +45,7 @@ const orderData = ref({
       <!-- Indicadores adicionales -->
       <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
         <div class="text-center">
-          <p class="text-2xl font-bold text-amber-600">8</p>
+          <p class="text-2xl font-bold text-[#1E2D72]">8</p>
           <p class="text-xs text-gray-500">Pendientes</p>
         </div>
         <div class="text-center">

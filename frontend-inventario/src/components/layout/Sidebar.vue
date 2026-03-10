@@ -144,18 +144,18 @@ const navigateTo = (path) => {
 
 <template>
   <aside
-    class="fixed left-0 top-0 h-full bg-gray-800 text-white transition-all duration-300 z-50 flex flex-col"
+    class="fixed left-0 top-0 h-full bg-[#1A2660] text-white transition-all duration-300 z-50 flex flex-col"
     :class="[
       isMobile ? 'w-72' : (collapsed ? 'w-16' : 'w-64'),
       isMobile ? (mobileOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'
     ]"
   >
     <!-- Logo -->
-    <div class="h-16 flex items-center justify-center border-b border-gray-700 px-2">
+    <div class="h-16 flex items-center justify-center border-b border-[#243080] px-2">
       <div v-if="!collapsed" class="flex items-center gap-2">
-        <img src="/logo-sidebar.png" alt="DYM SAC" class="h-12 w-auto" />
+        <img src="/logo-login.png" alt="CAP Pacifico" class="h-12 w-auto" />
       </div>
-      <img v-else src="/logo-sidebar.png" alt="DYM SAC" class="h-10 w-auto" />
+      <img v-else src="/logo-login.png" alt="CAP Pacifico" class="h-10 w-auto" />
     </div>
 
     <!-- Menu -->
@@ -166,9 +166,9 @@ const navigateTo = (path) => {
           <template v-if="item.children">
             <button
               @click="toggleSubmenu(item.label)"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-200 hover:bg-[#243080] hover:text-white transition-colors"
               :class="{
-                'bg-gray-700 text-white': isParentActive(item),
+                'bg-[#243080] text-white': isParentActive(item),
                 'justify-center': collapsed
               }"
             >
@@ -188,8 +188,8 @@ const navigateTo = (path) => {
               <li v-for="child in item.children" :key="child.label">
                 <router-link
                   :to="child.to"
-                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition-colors text-sm"
-                  :class="{ 'bg-amber-600 text-white': isActive(child.to) }"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-[#243080] hover:text-white transition-colors text-sm"
+                  :class="{ 'bg-[#1A9A3B] text-white': isActive(child.to) }"
                   @click="emit('navigate')"
                 >
                   <i :class="['pi', child.icon, 'text-sm']"></i>
@@ -203,9 +203,9 @@ const navigateTo = (path) => {
           <template v-else>
             <router-link
               :to="item.to"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-200 hover:bg-[#243080] hover:text-white transition-colors"
               :class="{
-                'bg-amber-600 text-white': isActive(item.to),
+                'bg-[#1A9A3B] text-white': isActive(item.to),
                 'justify-center': collapsed
               }"
               @click="emit('navigate')"
@@ -219,10 +219,10 @@ const navigateTo = (path) => {
     </nav>
 
     <!-- Footer del sidebar -->
-    <div class="p-3 border-t border-gray-700">
+    <div class="p-3 border-t border-[#243080]">
       <button
         @click="emit('toggle')"
-        class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
+        class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-300 hover:bg-[#243080] hover:text-white transition-colors"
       >
         <i :class="['pi', collapsed ? 'pi-angle-double-right' : 'pi-angle-double-left']"></i>
         <span v-if="!collapsed" class="text-sm">Colapsar</span>

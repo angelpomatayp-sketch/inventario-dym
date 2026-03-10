@@ -271,7 +271,7 @@ onMounted(() => { loadOrdenes(); loadEstadisticas(); loadProveedores(); loadAlma
         <h1 class="text-2xl font-bold text-gray-900">Órdenes de Compra</h1>
         <p class="text-gray-600 text-sm">Gestión de compras a proveedores</p>
       </div>
-      <Button label="Nueva Orden" icon="pi pi-plus" class="!bg-amber-600 !border-amber-600" @click="openNewDialog" />
+      <Button label="Nueva Orden" icon="pi pi-plus" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="openNewDialog" />
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -287,7 +287,7 @@ onMounted(() => { loadOrdenes(); loadEstadisticas(); loadProveedores(); loadAlma
           <InputText v-model="searchQuery" placeholder="Buscar..." class="w-full" @keyup.enter="loadOrdenes" />
           <Select v-model="selectedEstado" :options="estados" optionLabel="label" optionValue="value" placeholder="Estado" class="w-full" @change="loadOrdenes" />
           <div class="md:col-span-2 flex gap-2">
-            <Button label="Buscar" icon="pi pi-search" class="!bg-amber-600 !border-amber-600" @click="loadOrdenes" />
+            <Button label="Buscar" icon="pi pi-search" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="loadOrdenes" />
             <Button icon="pi pi-refresh" severity="secondary" outlined @click="searchQuery='';selectedEstado=null;loadOrdenes()" />
           </div>
         </div>
@@ -342,7 +342,7 @@ onMounted(() => { loadOrdenes(); loadEstadisticas(); loadProveedores(); loadAlma
       </div>
       <template #footer>
         <Button label="Cancelar" severity="secondary" @click="dialogVisible=false" />
-        <Button label="Crear Orden" icon="pi pi-check" class="!bg-amber-600 !border-amber-600" @click="saveOrden" :loading="loading" />
+        <Button label="Crear Orden" icon="pi pi-check" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="saveOrden" :loading="loading" />
       </template>
     </Dialog>
 

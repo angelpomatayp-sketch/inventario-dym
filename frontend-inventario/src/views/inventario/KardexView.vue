@@ -464,7 +464,7 @@ onMounted(() => {
             <Button
               label="Buscar"
               icon="pi pi-search"
-              class="!bg-amber-600 !border-amber-600"
+              class="!bg-[#1E2D72] !border-[#1E2D72]"
               @click="aplicarFiltros"
             />
           </div>

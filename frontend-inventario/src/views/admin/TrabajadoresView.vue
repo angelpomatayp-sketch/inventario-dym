@@ -333,7 +333,7 @@ const formatDateTime = (date) => {
         label="Nuevo Trabajador"
         icon="pi pi-plus"
         @click="openNew"
-        class="!bg-amber-600 !border-amber-600"
+        class="!bg-[#1E2D72] !border-[#1E2D72]"
       />
     </div>
 
@@ -529,7 +529,7 @@ const formatDateTime = (date) => {
           icon="pi pi-check"
           @click="saveTrabajador"
           :loading="loading"
-          class="!bg-amber-600 !border-amber-600"
+          class="!bg-[#1E2D72] !border-[#1E2D72]"
         />
       </template>
     </Dialog>
@@ -544,7 +544,7 @@ const formatDateTime = (date) => {
       <div v-if="kardexTrabajador" class="space-y-4">
 
         <!-- Info del trabajador -->
-        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+        <div class="bg-[#F0F2FA] border border-[#c5cbea] rounded-lg p-3">
           <p class="font-semibold text-gray-800">{{ kardexTrabajador.nombre }}</p>
           <p class="text-sm text-gray-500">{{ kardexTrabajador.cargo || 'Sin cargo' }} · DNI: {{ kardexTrabajador.dni || '-' }}</p>
         </div>
@@ -606,12 +606,12 @@ const formatDateTime = (date) => {
           />
 
           <div
-            class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-colors"
+            class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-[#1E2D72] hover:bg-[#F0F2FA] transition-colors"
             @click="kardexFileInput.click()"
           >
             <i class="pi pi-upload text-2xl text-gray-400 mb-1 block"></i>
             <p v-if="!kardexFile" class="text-sm text-gray-500">Haga clic para seleccionar PDF</p>
-            <p v-else class="text-sm text-amber-700 font-medium">
+            <p v-else class="text-sm text-[#1E2D72] font-medium">
               <i class="pi pi-file-pdf text-red-500 mr-1"></i>
               {{ kardexFile.name }}
               <span class="text-gray-400 ml-1">({{ formatBytes(kardexFile.size) }})</span>
@@ -628,7 +628,7 @@ const formatDateTime = (date) => {
           :loading="uploadingKardex"
           :disabled="!kardexFile"
           @click="subirKardexPdf"
-          class="!bg-amber-600 !border-amber-600"
+          class="!bg-[#1E2D72] !border-[#1E2D72]"
         />
       </template>
     </Dialog>

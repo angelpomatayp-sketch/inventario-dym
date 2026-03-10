@@ -615,7 +615,7 @@ const deleteProducto = async () => {
           label="Nuevo Producto"
           icon="pi pi-plus"
           @click="openNew"
-          class="!bg-amber-600 !border-amber-600 hover:!bg-amber-700"
+          class="!bg-[#1E2D72] !border-[#1E2D72] hover:!bg-[#162060]"
         />
       </div>
     </div>
@@ -630,9 +630,9 @@ const deleteProducto = async () => {
         <p class="text-sm text-gray-500">Productos Activos</p>
         <p class="text-2xl font-bold text-gray-800">{{ productos.filter(p => p.activo).length }}</p>
       </div>
-      <div class="bg-white rounded-lg p-4 shadow-sm border-l-4 border-amber-500">
+      <div class="bg-white rounded-lg p-4 shadow-sm border-l-4 border-[#1A9A3B]">
         <p class="text-sm text-gray-500">Stock Bajo</p>
-        <p class="text-2xl font-bold text-amber-600">{{ stockBajoCount }}</p>
+        <p class="text-2xl font-bold text-[#1E2D72]">{{ stockBajoCount }}</p>
       </div>
       <div class="bg-white rounded-lg p-4 shadow-sm border-l-4 border-gray-400">
         <p class="text-sm text-gray-500">Sin Stock</p>
@@ -678,7 +678,7 @@ const deleteProducto = async () => {
         paginator
         :rows="10"
         stripedRows
-        :rowClass="(data) => data.tieneStockEnAlmacen && data.stockActual <= data.stockMinimo ? 'bg-amber-50' : ''"
+        :rowClass="(data) => data.tieneStockEnAlmacen && data.stockActual <= data.stockMinimo ? 'bg-[#F0F2FA]' : ''"
       >
         <Column field="codigo" header="Código" sortable style="width: 100px">
           <template #body="{ data }">
@@ -826,10 +826,10 @@ const deleteProducto = async () => {
             </div>
 
             <!-- Campos EPP (solo si la familia es EPP) -->
-            <div v-if="familiaSeleccionadaEsEpp" class="border rounded-lg p-4 bg-amber-50 mt-4">
+            <div v-if="familiaSeleccionadaEsEpp" class="border rounded-lg p-4 bg-[#F0F2FA] mt-4">
               <div class="flex items-center gap-2 mb-3">
-                <i class="pi pi-shield text-amber-600"></i>
-                <span class="font-medium text-amber-800">Configuración de EPP</span>
+                <i class="pi pi-shield text-[#1E2D72]"></i>
+                <span class="font-medium text-[#162060]">Configuración de EPP</span>
                 <Tag :value="categoriaEppSeleccionada" severity="warn" class="ml-2" />
               </div>
 
@@ -880,14 +880,14 @@ const deleteProducto = async () => {
 
       <template #footer>
         <Button label="Cancelar" severity="secondary" @click="dialogVisible = false" />
-        <Button :label="isEditing ? 'Actualizar' : 'Guardar'" @click="saveProducto" class="!bg-amber-600 !border-amber-600" />
+        <Button :label="isEditing ? 'Actualizar' : 'Guardar'" @click="saveProducto" class="!bg-[#1E2D72] !border-[#1E2D72]" />
       </template>
     </Dialog>
 
     <!-- Dialog Confirmar Eliminación -->
     <Dialog v-model:visible="deleteDialogVisible" header="Confirmar Eliminación" modal :style="{ width: '400px' }">
       <div class="flex items-center gap-4">
-        <i class="pi pi-exclamation-triangle text-4xl text-amber-500"></i>
+        <i class="pi pi-exclamation-triangle text-4xl text-[#1A9A3B]"></i>
         <p>¿Está seguro que desea eliminar el producto <strong>{{ selectedProducto?.nombre }}</strong>?</p>
       </div>
       <template #footer>
@@ -921,7 +921,7 @@ const deleteProducto = async () => {
           </div>
           <div>
             <p class="text-sm text-gray-500">Stock Actual</p>
-            <p class="font-bold text-xl" :class="selectedProducto.stockActual <= selectedProducto.stockMinimo ? 'text-amber-600' : 'text-gray-800'">
+            <p class="font-bold text-xl" :class="selectedProducto.stockActual <= selectedProducto.stockMinimo ? 'text-[#1E2D72]' : 'text-gray-800'">
               {{ selectedProducto.stockActual }} {{ selectedProducto.unidad }}
             </p>
           </div>
@@ -1020,7 +1020,7 @@ const deleteProducto = async () => {
           </div>
 
           <!-- Zona de carga -->
-          <div v-if="canAddMoreImages" class="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-amber-400 transition-colors">
+          <div v-if="canAddMoreImages" class="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-[#1E2D72] transition-colors">
             <FileUpload
               mode="basic"
               name="imagenes[]"
@@ -1038,16 +1038,16 @@ const deleteProducto = async () => {
             </p>
           </div>
 
-          <div v-else class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
-            <i class="pi pi-info-circle text-amber-600 mr-2"></i>
-            <span class="text-amber-700 text-sm">Ha alcanzado el límite máximo de {{ MAX_IMAGES }} imágenes</span>
+          <div v-else class="bg-[#F0F2FA] border border-[#c5cbea] rounded-lg p-3 text-center">
+            <i class="pi pi-info-circle text-[#1E2D72] mr-2"></i>
+            <span class="text-[#1E2D72] text-sm">Ha alcanzado el límite máximo de {{ MAX_IMAGES }} imágenes</span>
           </div>
         </div>
       </div>
 
       <template #footer>
         <Button label="Cerrar" severity="secondary" @click="viewDialogVisible = false" />
-        <Button label="Guardar Imágenes" icon="pi pi-save" @click="viewDialogVisible = false" class="!bg-amber-600 !border-amber-600" />
+        <Button label="Guardar Imágenes" icon="pi pi-save" @click="viewDialogVisible = false" class="!bg-[#1E2D72] !border-[#1E2D72]" />
       </template>
     </Dialog>
 

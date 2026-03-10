@@ -87,7 +87,7 @@ const handleLogout = async () => {
         >
           <Avatar
             icon="pi pi-user"
-            class="bg-amber-100 text-amber-600"
+            class="bg-[#E8EBF8] text-[#1E2D72]"
             shape="circle"
           />
           <i class="pi pi-chevron-down text-xs text-gray-400 hidden md:block"></i>

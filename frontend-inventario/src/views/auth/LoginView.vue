@@ -58,7 +58,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-screen bg-gradient-to-br from-gray-800 to-gray-900 flex flex-col items-center justify-center p-4">
+  <div class="h-screen bg-gradient-to-br from-[#1A2660] to-[#0F1740] flex flex-col items-center justify-center p-4">
     <div class="w-full max-w-md">
       <!-- Logo y título -->
       <div class="text-center mb-6">
@@ -132,14 +132,14 @@ onMounted(() => {
             label="Iniciar Sesión"
             :loading="loading"
             :disabled="loading"
-            class="w-full justify-center !bg-amber-600 !border-amber-600 hover:!bg-amber-700"
+            class="w-full justify-center !bg-[#1E2D72] !border-[#1E2D72] hover:!bg-[#162060]"
           />
         </form>
       </div>
 
       <!-- Footer -->
       <p class="text-center text-gray-500 text-sm mt-4">
-        © 2024 DYM SAC. Todos los derechos reservados.
+        © 2025 CAP Pacifico S.R.L. Todos los derechos reservados.
       </p>
     </div>
   </div>

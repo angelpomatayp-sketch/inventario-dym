@@ -23,10 +23,10 @@ const summaryData = ref([
     </div>
 
     <!-- Alerta de stock bajo - único acento de color -->
-    <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+    <div class="mt-4 p-3 bg-[#F0F2FA] border border-[#c5cbea] rounded-lg">
       <div class="flex items-center gap-2">
-        <i class="pi pi-exclamation-triangle text-amber-500"></i>
-        <span class="text-sm text-amber-700">
+        <i class="pi pi-exclamation-triangle text-[#1A9A3B]"></i>
+        <span class="text-sm text-[#1E2D72]">
           <strong>12 productos</strong> con stock bajo
         </span>
       </div>

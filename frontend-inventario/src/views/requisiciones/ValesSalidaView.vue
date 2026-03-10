@@ -574,7 +574,7 @@ onMounted(() => {
         <Button
           label="Nuevo Vale"
           icon="pi pi-plus"
-          class="!bg-amber-600 !border-amber-600"
+          class="!bg-[#1E2D72] !border-[#1E2D72]"
           @click="openNewDialog"
         />
       </div>
@@ -634,7 +634,7 @@ onMounted(() => {
             </template>
           </Select>
           <div class="flex gap-2">
-            <Button label="Buscar" icon="pi pi-search" class="!bg-amber-600 !border-amber-600" @click="loadVales" />
+            <Button label="Buscar" icon="pi pi-search" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="loadVales" />
             <Button icon="pi pi-refresh" severity="secondary" outlined @click="searchQuery = ''; selectedEstado = null; selectedAlmacen = null; loadVales()" />
           </div>
         </div>
@@ -801,7 +801,7 @@ onMounted(() => {
 
       <template #footer>
         <Button label="Cancelar" severity="secondary" @click="dialogVisible = false" />
-        <Button label="Crear Vale" icon="pi pi-check" class="!bg-amber-600 !border-amber-600" @click="saveVale" :loading="loading" />
+        <Button label="Crear Vale" icon="pi pi-check" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="saveVale" :loading="loading" />
       </template>
     </Dialog>
 
@@ -868,7 +868,7 @@ onMounted(() => {
 
       <template #footer>
         <Button label="Cancelar" severity="secondary" @click="desdeRequisicionDialogVisible = false" />
-        <Button label="Crear Vale" icon="pi pi-check" class="!bg-amber-600 !border-amber-600" @click="crearDesdeRequisicion" :loading="loading" :disabled="!selectedRequisicion" />
+        <Button label="Crear Vale" icon="pi pi-check" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="crearDesdeRequisicion" :loading="loading" :disabled="!selectedRequisicion" />
       </template>
     </Dialog>
 

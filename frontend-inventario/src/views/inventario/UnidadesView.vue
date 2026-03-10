@@ -191,7 +191,7 @@ onMounted(() => {
         label="Nueva Unidad"
         icon="pi pi-plus"
         @click="openNew"
-        class="!bg-amber-600 !border-amber-600 hover:!bg-amber-700"
+        class="!bg-[#1E2D72] !border-[#1E2D72] hover:!bg-[#162060]"
       />
     </div>
 
@@ -287,14 +287,14 @@ onMounted(() => {
 
       <template #footer>
         <Button label="Cancelar" severity="secondary" @click="dialogVisible = false" />
-        <Button :label="isEditing ? 'Actualizar' : 'Guardar'" @click="saveUnidad" class="!bg-amber-600 !border-amber-600" />
+        <Button :label="isEditing ? 'Actualizar' : 'Guardar'" @click="saveUnidad" class="!bg-[#1E2D72] !border-[#1E2D72]" />
       </template>
     </Dialog>
 
     <!-- Dialog Confirmar Eliminación -->
     <Dialog v-model:visible="deleteDialogVisible" header="Confirmar Eliminación" modal :style="{ width: '400px' }">
       <div class="flex items-center gap-4">
-        <i class="pi pi-exclamation-triangle text-4xl text-amber-500"></i>
+        <i class="pi pi-exclamation-triangle text-4xl text-[#1A9A3B]"></i>
         <div>
           <p>¿Está seguro que desea eliminar la unidad <strong>{{ selectedUnidad?.nombre }}</strong>?</p>
           <p class="text-sm text-gray-500 mt-1">Esta acción no se puede deshacer.</p>

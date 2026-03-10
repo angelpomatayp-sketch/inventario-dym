@@ -191,7 +191,7 @@
 <body>
     <div class="header">
         <h1>@yield('title')</h1>
-        <div class="empresa">{{ $empresa ?? 'Sistema de Inventario Minero' }}</div>
+        <div class="empresa">{{ $empresa ?? 'CAP Pacifico S.R.L.' }}</div>
         <div class="fecha">Generado: {{ now()->format('d/m/Y H:i:s') }}</div>
     </div>
 
@@ -209,7 +209,7 @@
             $pdf->page_text(
                 $w / 2 - 120,
                 $h - 18,
-                "Sistema de Inventario Minero DYM SAC  -  Página {PAGE_NUM} de {PAGE_COUNT}",
+                "CAP Pacifico S.R.L.  -  Página {PAGE_NUM} de {PAGE_COUNT}",
                 $font,
                 7,
                 $color

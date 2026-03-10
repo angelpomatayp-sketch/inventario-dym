@@ -414,7 +414,7 @@ const formatDateTime = (date) => {
         label="Nuevo Usuario"
         icon="pi pi-plus"
         @click="openNew"
-        class="!bg-amber-600 !border-amber-600 hover:!bg-amber-700"
+        class="!bg-[#1E2D72] !border-[#1E2D72] hover:!bg-[#162060]"
       />
     </div>
 
@@ -455,8 +455,8 @@ const formatDateTime = (date) => {
         <Column field="nombre" header="Nombre" sortable style="min-width: 180px">
           <template #body="{ data }">
             <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <i class="pi pi-user text-amber-600 text-xs"></i>
+              <div class="w-8 h-8 rounded-full bg-[#E8EBF8] flex items-center justify-center flex-shrink-0">
+                <i class="pi pi-user text-[#1E2D72] text-xs"></i>
               </div>
               <div class="min-w-0">
                 <p class="font-medium text-gray-800 truncate">{{ data.nombre }}</p>
@@ -663,7 +663,7 @@ const formatDateTime = (date) => {
           :label="isEditing ? 'Actualizar' : 'Guardar'"
           @click="saveUsuario"
           :loading="submitting"
-          class="!bg-amber-600 !border-amber-600"
+          class="!bg-[#1E2D72] !border-[#1E2D72]"
         />
       </template>
     </Dialog>
@@ -676,7 +676,7 @@ const formatDateTime = (date) => {
       :style="{ width: '480px' }"
     >
       <div v-if="kardexUsuario" class="space-y-4">
-        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+        <div class="bg-[#F0F2FA] border border-[#c5cbea] rounded-lg p-3">
           <p class="font-semibold text-gray-800">{{ kardexUsuario.nombre }}</p>
           <p class="text-sm text-gray-500">{{ kardexUsuario.email }} · DNI: {{ kardexUsuario.dni || '-' }}</p>
         </div>
@@ -711,12 +711,12 @@ const formatDateTime = (date) => {
           <p class="text-xs text-gray-500 mb-2">Formatos: PDF · Máximo: 20 MB · Multi-página permitido</p>
           <input ref="kardexFileInput" type="file" accept="application/pdf" class="hidden" @change="onKardexFileChange" />
           <div
-            class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-colors"
+            class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-[#1E2D72] hover:bg-[#F0F2FA] transition-colors"
             @click="kardexFileInput.click()"
           >
             <i class="pi pi-upload text-2xl text-gray-400 mb-1 block"></i>
             <p v-if="!kardexFile" class="text-sm text-gray-500">Haga clic para seleccionar PDF</p>
-            <p v-else class="text-sm text-amber-700 font-medium">
+            <p v-else class="text-sm text-[#1E2D72] font-medium">
               <i class="pi pi-file-pdf text-red-500 mr-1"></i>
               {{ kardexFile.name }}
               <span class="text-gray-400 ml-1">({{ formatBytes(kardexFile.size) }})</span>
@@ -726,7 +726,7 @@ const formatDateTime = (date) => {
       </div>
       <template #footer>
         <Button label="Cerrar" severity="secondary" @click="kardexDialogVisible = false" />
-        <Button label="Subir PDF" icon="pi pi-upload" :loading="uploadingKardex" :disabled="!kardexFile" @click="subirKardexPdf" class="!bg-amber-600 !border-amber-600" />
+        <Button label="Subir PDF" icon="pi pi-upload" :loading="uploadingKardex" :disabled="!kardexFile" @click="subirKardexPdf" class="!bg-[#1E2D72] !border-[#1E2D72]" />
       </template>
     </Dialog>
 
@@ -738,7 +738,7 @@ const formatDateTime = (date) => {
       :style="{ width: '400px' }"
     >
       <div class="flex items-center gap-4">
-        <i class="pi pi-exclamation-triangle text-4xl text-amber-500"></i>
+        <i class="pi pi-exclamation-triangle text-4xl text-[#1A9A3B]"></i>
         <p>¿Está seguro que desea eliminar al usuario <strong>{{ selectedUsuario?.nombre }}</strong>?</p>
       </div>
       <template #footer>

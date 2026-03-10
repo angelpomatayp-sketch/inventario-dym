@@ -132,7 +132,7 @@ const deleteCentroCosto = async () => {
         label="Nueva Obra / Unidad"
         icon="pi pi-plus"
         @click="openNew"
-        class="!bg-amber-600 !border-amber-600 hover:!bg-amber-700"
+        class="!bg-[#1E2D72] !border-[#1E2D72] hover:!bg-[#162060]"
       />
     </div>
 
@@ -169,7 +169,7 @@ const deleteCentroCosto = async () => {
       >
         <Column field="codigo" header="Código" sortable style="width: 120px">
           <template #body="{ data }">
-            <span class="font-mono font-medium text-amber-700">{{ data.codigo }}</span>
+            <span class="font-mono font-medium text-[#1E2D72]">{{ data.codigo }}</span>
           </template>
         </Column>
         <Column field="nombre" header="Nombre" sortable style="min-width: 200px">
@@ -251,7 +251,7 @@ const deleteCentroCosto = async () => {
           :label="isEditing ? 'Actualizar' : 'Guardar'"
           @click="saveCentroCosto"
           :loading="submitting"
-          class="!bg-amber-600 !border-amber-600"
+          class="!bg-[#1E2D72] !border-[#1E2D72]"
         />
       </template>
     </Dialog>
@@ -259,7 +259,7 @@ const deleteCentroCosto = async () => {
     <!-- Dialog Confirmar Eliminación -->
     <Dialog v-model:visible="deleteDialogVisible" header="Confirmar Eliminación" modal :style="{ width: '400px' }">
       <div class="flex items-center gap-4">
-        <i class="pi pi-exclamation-triangle text-4xl text-amber-500"></i>
+        <i class="pi pi-exclamation-triangle text-4xl text-[#1A9A3B]"></i>
         <p>¿Está seguro que desea eliminar la obra / unidad <strong>{{ selectedCentroCosto?.nombre }}</strong>?</p>
       </div>
       <template #footer>

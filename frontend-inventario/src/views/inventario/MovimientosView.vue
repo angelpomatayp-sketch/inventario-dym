@@ -1083,7 +1083,7 @@ watch([selectedTipo, selectedEstado, fechaRango], () => {
           icon="pi pi-check"
           @click="saveMovimiento"
           :loading="loading"
-          class="!bg-amber-600 !border-amber-600"
+          class="!bg-[#1E2D72] !border-[#1E2D72]"
         />
       </template>
     </Dialog>

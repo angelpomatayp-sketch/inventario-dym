@@ -190,7 +190,7 @@ onMounted(() => {
         label="Nueva Familia"
         icon="pi pi-plus"
         @click="openNew"
-        class="!bg-amber-600 !border-amber-600 hover:!bg-amber-700"
+        class="!bg-[#1E2D72] !border-[#1E2D72] hover:!bg-[#162060]"
       />
     </div>
 
@@ -292,7 +292,7 @@ onMounted(() => {
         </div>
 
         <!-- Sección EPP -->
-        <div class="border rounded-lg p-4 bg-amber-50">
+        <div class="border rounded-lg p-4 bg-[#F0F2FA]">
           <div class="flex items-center gap-2 mb-3">
             <Checkbox v-model="formData.es_epp" :binary="true" inputId="esEpp" />
             <label for="esEpp" class="text-sm font-medium text-gray-700">
@@ -325,14 +325,14 @@ onMounted(() => {
 
       <template #footer>
         <Button label="Cancelar" severity="secondary" @click="dialogVisible = false" />
-        <Button :label="isEditing ? 'Actualizar' : 'Guardar'" @click="saveFamilia" class="!bg-amber-600 !border-amber-600" />
+        <Button :label="isEditing ? 'Actualizar' : 'Guardar'" @click="saveFamilia" class="!bg-[#1E2D72] !border-[#1E2D72]" />
       </template>
     </Dialog>
 
     <!-- Dialog Confirmar Eliminación -->
     <Dialog v-model:visible="deleteDialogVisible" header="Confirmar Eliminación" modal :style="{ width: '400px' }">
       <div class="flex items-center gap-4">
-        <i class="pi pi-exclamation-triangle text-4xl text-amber-500"></i>
+        <i class="pi pi-exclamation-triangle text-4xl text-[#1A9A3B]"></i>
         <div>
           <p>¿Está seguro que desea eliminar la familia <strong>{{ selectedFamilia?.nombre }}</strong>?</p>
           <p class="text-sm text-gray-500 mt-1">Esta acción no se puede deshacer.</p>

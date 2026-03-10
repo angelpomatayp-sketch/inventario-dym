@@ -395,7 +395,7 @@ onMounted(() => {
           label="Nuevo Proveedor"
           icon="pi pi-plus"
           @click="openNew"
-          class="!bg-amber-600 !border-amber-600 hover:!bg-amber-700"
+          class="!bg-[#1E2D72] !border-[#1E2D72] hover:!bg-[#162060]"
         />
       </div>
     </div>
@@ -410,9 +410,9 @@ onMounted(() => {
         <p class="text-sm text-gray-500">Proveedores Activos</p>
         <p class="text-2xl font-bold text-green-600">{{ estadisticas.activos }}</p>
       </div>
-      <div class="bg-white rounded-lg p-4 shadow-sm border-l-4 border-amber-500">
+      <div class="bg-white rounded-lg p-4 shadow-sm border-l-4 border-[#1A9A3B]">
         <p class="text-sm text-gray-500">Calificación Promedio</p>
-        <p class="text-2xl font-bold text-amber-600">
+        <p class="text-2xl font-bold text-[#1E2D72]">
           {{ estadisticas.promedioCalificacion }}
           <span class="text-sm font-normal text-gray-400">/ 5</span>
         </p>
@@ -471,7 +471,7 @@ onMounted(() => {
             icon="pi pi-search"
             label="Buscar"
             @click="aplicarFiltros"
-            class="!bg-amber-600 !border-amber-600"
+            class="!bg-[#1E2D72] !border-[#1E2D72]"
           />
           <Button
             icon="pi pi-times"
@@ -751,7 +751,7 @@ onMounted(() => {
           :label="isEditing ? 'Actualizar' : 'Guardar'"
           :loading="saving"
           @click="saveProveedor"
-          class="!bg-amber-600 !border-amber-600"
+          class="!bg-[#1E2D72] !border-[#1E2D72]"
         />
       </template>
     </Dialog>
@@ -840,7 +840,7 @@ onMounted(() => {
           label="Editar"
           icon="pi pi-pencil"
           @click="viewDialogVisible = false; editProveedor(selectedProveedor)"
-          class="!bg-amber-600 !border-amber-600"
+          class="!bg-[#1E2D72] !border-[#1E2D72]"
         />
       </template>
     </Dialog>
@@ -864,7 +864,7 @@ onMounted(() => {
 
         <div v-if="selectedProveedor.calificacion" class="bg-gray-50 rounded-lg p-3 text-center">
           <p class="text-xs text-gray-500">Calificación actual</p>
-          <p class="text-lg font-bold text-amber-600">
+          <p class="text-lg font-bold text-[#1E2D72]">
             {{ selectedProveedor.calificacion }} / 5
           </p>
           <p class="text-xs text-gray-400">
@@ -880,7 +880,7 @@ onMounted(() => {
           icon="pi pi-check"
           :loading="saving"
           @click="saveCalificacion"
-          class="!bg-amber-600 !border-amber-600"
+          class="!bg-[#1E2D72] !border-[#1E2D72]"
         />
       </template>
     </Dialog>
@@ -893,7 +893,7 @@ onMounted(() => {
       :style="{ width: '400px' }"
     >
       <div class="flex items-center gap-4">
-        <i class="pi pi-exclamation-triangle text-4xl text-amber-500"></i>
+        <i class="pi pi-exclamation-triangle text-4xl text-[#1A9A3B]"></i>
         <div>
           <p>¿Está seguro que desea eliminar al proveedor?</p>
           <p class="font-bold mt-1">{{ selectedProveedor?.razon_social }}</p>

@@ -559,7 +559,7 @@ watch(
     <Dialog v-model:visible="dialogAsignacion" header="Asignar EPP" :style="{ width: '550px', maxHeight: '90vh' }" :contentStyle="{ overflow: 'auto', maxHeight: 'calc(90vh - 120px)' }" :modal="true" :closable="true">
       <div class="space-y-4">
         <!-- Selección de Producto EPP -->
-        <div class="border rounded-lg p-4 bg-amber-50">
+        <div class="border rounded-lg p-4 bg-[#F0F2FA]">
           <label class="block text-sm font-medium text-gray-700 mb-1">
             <i class="pi pi-shield mr-1"></i>
             Producto EPP *
@@ -683,7 +683,7 @@ watch(
     <Dialog v-model:visible="dialogConfirmar" header="Confirmar Recepción de EPP" :style="{ width: '400px' }" modal>
       <template v-if="selectedAsignacion">
         <div class="text-center mb-4">
-          <i class="pi pi-shield text-5xl text-amber-500 mb-3"></i>
+          <i class="pi pi-shield text-5xl text-[#1A9A3B] mb-3"></i>
           <p class="text-lg font-semibold">{{ selectedAsignacion.producto?.nombre || selectedAsignacion.tipo_epp?.nombre }}</p>
           <p class="text-gray-500">Para: {{ selectedAsignacion.trabajador_persona?.nombre || selectedAsignacion.trabajador?.nombre }}</p>
         </div>
