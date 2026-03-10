@@ -153,9 +153,9 @@ const navigateTo = (path) => {
     <!-- Logo -->
     <div class="h-16 flex items-center justify-center border-b border-[#1976D2] px-2">
       <div v-if="!collapsed" class="flex items-center gap-2">
-        <img src="/logo-login.png" alt="CAP Pacifico" class="h-12 w-auto" />
+        <img src="/logo-login.png" alt="CAP Pacifico" class="h-12 w-auto" style="filter: drop-shadow(0 0 6px rgba(255,255,255,0.5));" />
       </div>
-      <img v-else src="/logo-login.png" alt="CAP Pacifico" class="h-10 w-auto" />
+      <img v-else src="/logo-login.png" alt="CAP Pacifico" class="h-10 w-auto" style="filter: drop-shadow(0 0 6px rgba(255,255,255,0.5));" />
     </div>
 
     <!-- Menu -->
