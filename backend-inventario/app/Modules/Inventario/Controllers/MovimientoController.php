@@ -86,8 +86,12 @@ class MovimientoController extends Controller
         }
 
         // Ordenamiento
-        $sortField = $request->get('sort_field', 'fecha');
-        $sortOrder = $request->get('sort_order', 'desc');
+        [$sortField, $sortOrder] = $this->sanitizarOrden(
+            ['fecha', 'numero', 'tipo', 'estado', 'created_at'],
+            'fecha',
+            (string) $request->get('sort_field', 'fecha'),
+            (string) $request->get('sort_order', 'desc')
+        );
         $query->orderBy($sortField, $sortOrder)->orderBy('id', 'desc');
 
         // Paginación
@@ -666,17 +670,21 @@ class MovimientoController extends Controller
         float $costoUnitario,
         Movimiento $movimiento
     ): void {
-        $stockAlmacen = StockAlmacen::firstOrCreate(
-            [
+        $stockAlmacen = StockAlmacen::where('empresa_id', $empresaId)
+            ->where('producto_id', $productoId)
+            ->where('almacen_id', $almacenId)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$stockAlmacen) {
+            $stockAlmacen = StockAlmacen::create([
                 'empresa_id' => $empresaId,
                 'producto_id' => $productoId,
                 'almacen_id' => $almacenId,
-            ],
-            [
                 'stock_actual' => 0,
                 'costo_promedio' => 0,
-            ]
-        );
+            ]);
+        }
 
         // Calcular nuevo costo promedio
         $valorActual = $stockAlmacen->stock_actual * $stockAlmacen->costo_promedio;
@@ -760,6 +768,7 @@ class MovimientoController extends Controller
                 $stockAlmacen = StockAlmacen::where('empresa_id', $empresaId)
                     ->where('producto_id', $productoId)
                     ->where('almacen_id', $movimiento->almacen_destino_id)
+                    ->lockForUpdate()
                     ->first();
 
                 if ($stockAlmacen) {
@@ -770,14 +779,21 @@ class MovimientoController extends Controller
                 break;
 
             case Movimiento::TIPO_SALIDA:
-                $stockAlmacen = StockAlmacen::firstOrCreate(
-                    [
+                $stockAlmacen = StockAlmacen::where('empresa_id', $empresaId)
+                    ->where('producto_id', $productoId)
+                    ->where('almacen_id', $movimiento->almacen_origen_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$stockAlmacen) {
+                    $stockAlmacen = StockAlmacen::create([
                         'empresa_id' => $empresaId,
                         'producto_id' => $productoId,
                         'almacen_id' => $movimiento->almacen_origen_id,
-                    ],
-                    ['stock_actual' => 0, 'costo_promedio' => $costoUnitario]
-                );
+                        'stock_actual' => 0,
+                        'costo_promedio' => $costoUnitario,
+                    ]);
+                }
 
                 $stockAlmacen->update([
                     'stock_actual' => $stockAlmacen->stock_actual + $cantidad,
@@ -787,14 +803,21 @@ class MovimientoController extends Controller
             case Movimiento::TIPO_TRANSFERENCIA:
                 // Si estaba en tránsito: solo devolver al origen
                 // Si estaba completado: devolver al origen y descontar del destino
-                $stockOrigen = StockAlmacen::firstOrCreate(
-                    [
+                $stockOrigen = StockAlmacen::where('empresa_id', $empresaId)
+                    ->where('producto_id', $productoId)
+                    ->where('almacen_id', $movimiento->almacen_origen_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$stockOrigen) {
+                    $stockOrigen = StockAlmacen::create([
                         'empresa_id' => $empresaId,
                         'producto_id' => $productoId,
                         'almacen_id' => $movimiento->almacen_origen_id,
-                    ],
-                    ['stock_actual' => 0, 'costo_promedio' => $costoUnitario]
-                );
+                        'stock_actual' => 0,
+                        'costo_promedio' => $costoUnitario,
+                    ]);
+                }
 
                 $stockOrigen->update([
                     'stock_actual' => $stockOrigen->stock_actual + $cantidad,
@@ -804,6 +827,7 @@ class MovimientoController extends Controller
                     $stockDestino = StockAlmacen::where('empresa_id', $empresaId)
                         ->where('producto_id', $productoId)
                         ->where('almacen_id', $movimiento->almacen_destino_id)
+                        ->lockForUpdate()
                         ->first();
 
                     if ($stockDestino) {

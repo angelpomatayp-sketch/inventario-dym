@@ -40,8 +40,12 @@ class CotizacionController extends Controller
             $query->where('proveedor_id', $request->proveedor_id);
         }
 
-        $sortField = $request->get('sort_field', 'fecha_solicitud');
-        $sortOrder = $request->get('sort_order', 'desc');
+        [$sortField, $sortOrder] = $this->sanitizarOrden(
+            ['fecha_solicitud', 'numero', 'estado', 'created_at'],
+            'fecha_solicitud',
+            (string) $request->get('sort_field', 'fecha_solicitud'),
+            (string) $request->get('sort_order', 'desc')
+        );
         $query->orderBy($sortField, $sortOrder);
 
         $perPage = $request->get('per_page', 15);

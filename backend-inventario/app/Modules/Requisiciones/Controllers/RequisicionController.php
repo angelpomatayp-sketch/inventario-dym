@@ -76,8 +76,12 @@ class RequisicionController extends Controller
         }
 
         // Ordenamiento
-        $sortField = $request->get('sort_field', 'fecha_solicitud');
-        $sortOrder = $request->get('sort_order', 'desc');
+        [$sortField, $sortOrder] = $this->sanitizarOrden(
+            ['fecha_solicitud', 'numero', 'estado', 'created_at'],
+            'fecha_solicitud',
+            (string) $request->get('sort_field', 'fecha_solicitud'),
+            (string) $request->get('sort_order', 'desc')
+        );
         $query->orderBy($sortField, $sortOrder)->orderBy('id', 'desc');
 
         // Paginacion

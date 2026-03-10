@@ -35,8 +35,12 @@ class FamiliaController extends Controller
             }
 
             // Ordenamiento
-            $sortField = $request->get('sort_field', 'nombre');
-            $sortOrder = $request->get('sort_order', 'asc');
+            [$sortField, $sortOrder] = $this->sanitizarOrden(
+                ['codigo', 'nombre', 'created_at'],
+                'nombre',
+                (string) $request->get('sort_field', 'nombre'),
+                (string) $request->get('sort_order', 'asc')
+            );
             $query->orderBy($sortField, $sortOrder);
 
             // Filtro por es_epp

@@ -85,8 +85,12 @@ class ProductoController extends Controller
         }
 
         // Ordenamiento
-        $sortField = $request->get('sort_field', 'nombre');
-        $sortOrder = $request->get('sort_order', 'asc');
+        [$sortField, $sortOrder] = $this->sanitizarOrden(
+            ['codigo', 'nombre', 'unidad_medida', 'familia_id', 'created_at'],
+            'nombre',
+            (string) $request->get('sort_field', 'nombre'),
+            (string) $request->get('sort_order', 'asc')
+        );
         $query->orderBy($sortField, $sortOrder);
 
         // Paginación

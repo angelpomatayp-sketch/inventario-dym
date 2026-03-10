@@ -79,8 +79,12 @@ class ValeSalidaController extends Controller
         }
 
         // Ordenamiento
-        $sortField = $request->get('sort_field', 'fecha');
-        $sortOrder = $request->get('sort_order', 'desc');
+        [$sortField, $sortOrder] = $this->sanitizarOrden(
+            ['fecha', 'numero', 'estado', 'created_at'],
+            'fecha',
+            (string) $request->get('sort_field', 'fecha'),
+            (string) $request->get('sort_order', 'desc')
+        );
         $query->orderBy($sortField, $sortOrder)->orderBy('id', 'desc');
 
         // Paginacion

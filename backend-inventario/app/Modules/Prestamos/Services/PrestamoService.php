@@ -786,17 +786,21 @@ class PrestamoService
         float $costoUnitario,
         Movimiento $movimiento
     ): void {
-        $stockAlmacen = StockAlmacen::firstOrCreate(
-            [
+        $stockAlmacen = StockAlmacen::where('empresa_id', $empresaId)
+            ->where('producto_id', $productoId)
+            ->where('almacen_id', $almacenId)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$stockAlmacen) {
+            $stockAlmacen = StockAlmacen::create([
                 'empresa_id' => $empresaId,
                 'producto_id' => $productoId,
                 'almacen_id' => $almacenId,
-            ],
-            [
                 'stock_actual' => 0,
                 'costo_promedio' => 0,
-            ]
-        );
+            ]);
+        }
 
         // Calcular nuevo costo promedio
         $valorActual = $stockAlmacen->stock_actual * $stockAlmacen->costo_promedio;

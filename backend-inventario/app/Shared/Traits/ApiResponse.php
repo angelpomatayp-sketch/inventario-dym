@@ -122,4 +122,21 @@ trait ApiResponse
 
         return min($value, $max);
     }
+
+    /**
+     * Sanitiza el campo y dirección de ordenamiento contra una lista blanca.
+     * Previene inyección SQL via sort_field/sort_order.
+     *
+     * @param array  $camposPermitidos Lista blanca de columnas válidas
+     * @param string $campoDefault     Columna por defecto si no es válida
+     * @param string $campo            Valor recibido del request
+     * @param string $orden            Valor recibido del request ('asc'|'desc')
+     * @return array [campo_sanitizado, orden_sanitizado]
+     */
+    protected function sanitizarOrden(array $camposPermitidos, string $campoDefault, string $campo, string $orden): array
+    {
+        $campoSanitizado = in_array($campo, $camposPermitidos, true) ? $campo : $campoDefault;
+        $ordenSanitizado = strtolower($orden) === 'desc' ? 'desc' : 'asc';
+        return [$campoSanitizado, $ordenSanitizado];
+    }
 }

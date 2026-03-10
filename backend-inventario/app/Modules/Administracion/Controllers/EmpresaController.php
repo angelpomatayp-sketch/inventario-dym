@@ -33,8 +33,12 @@ class EmpresaController extends Controller
         }
 
         // Ordenamiento
-        $sortField = $request->get('sort_field', 'razon_social');
-        $sortOrder = $request->get('sort_order', 'asc');
+        [$sortField, $sortOrder] = $this->sanitizarOrden(
+            ['razon_social', 'ruc', 'activo', 'created_at'],
+            'razon_social',
+            (string) $request->get('sort_field', 'razon_social'),
+            (string) $request->get('sort_order', 'asc')
+        );
         $query->orderBy($sortField, $sortOrder);
 
         // Paginación

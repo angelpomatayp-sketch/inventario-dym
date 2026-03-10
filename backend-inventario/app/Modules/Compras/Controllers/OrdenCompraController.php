@@ -58,8 +58,12 @@ class OrdenCompraController extends Controller
             $query->where('fecha_emision', '<=', $request->fecha_hasta);
         }
 
-        $sortField = $request->get('sort_field', 'fecha_emision');
-        $sortOrder = $request->get('sort_order', 'desc');
+        [$sortField, $sortOrder] = $this->sanitizarOrden(
+            ['fecha_emision', 'numero', 'estado', 'proveedor_id', 'created_at'],
+            'fecha_emision',
+            (string) $request->get('sort_field', 'fecha_emision'),
+            (string) $request->get('sort_order', 'desc')
+        );
         $query->orderBy($sortField, $sortOrder);
 
         $perPage = $request->get('per_page', 15);

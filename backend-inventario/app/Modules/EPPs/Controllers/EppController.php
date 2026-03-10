@@ -197,8 +197,12 @@ class EppController extends Controller
             });
         }
 
-        $sortField = $request->get('sort_field', 'fecha_entrega');
-        $sortOrder = $request->get('sort_order', 'desc');
+        [$sortField, $sortOrder] = $this->sanitizarOrden(
+            ['fecha_entrega', 'estado', 'created_at'],
+            'fecha_entrega',
+            (string) $request->get('sort_field', 'fecha_entrega'),
+            (string) $request->get('sort_order', 'desc')
+        );
         $query->orderBy($sortField, $sortOrder);
 
         $perPage = $this->resolvePerPage($request, 15, 100);

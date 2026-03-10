@@ -45,8 +45,12 @@ class ProveedorController extends Controller
         }
 
         // Ordenamiento
-        $sortField = $request->get('sort_field', 'razon_social');
-        $sortOrder = $request->get('sort_order', 'asc');
+        [$sortField, $sortOrder] = $this->sanitizarOrden(
+            ['razon_social', 'ruc', 'tipo_proveedor', 'created_at'],
+            'razon_social',
+            (string) $request->get('sort_field', 'razon_social'),
+            (string) $request->get('sort_order', 'asc')
+        );
         $query->orderBy($sortField, $sortOrder);
 
         // Si se pide sin paginación (para selects)
