@@ -241,8 +241,8 @@
         @foreach($vale->detalles as $i => $detalle)
         <tr>
             <td class="center">{{ $i + 1 }}</td>
-            <td>{{ $detalle->producto->nombre }}</td>
-            <td class="center">{{ $detalle->producto->unidad_medida }}</td>
+            <td>{{ $detalle->producto?->nombre ?? '-' }}</td>
+            <td class="center">{{ $detalle->producto?->unidad_medida ?? '-' }}</td>
             <td class="center">
                 {{ number_format((float)($detalle->cantidad_entregada ?: $detalle->cantidad_solicitada), 2) }}
             </td>

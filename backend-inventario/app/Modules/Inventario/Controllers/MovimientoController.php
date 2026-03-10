@@ -490,7 +490,7 @@ class MovimientoController extends Controller
                     'codigo_ingresado' => $codigo,
                     'nombre_ingresado' => $nombre,
                     'cantidad'         => is_numeric($cantidad) ? (float) $cantidad : null,
-                    'costo_unitario'   => is_numeric($costoUnitario) ? (float) $costoUnitario : null,
+                    'costo_unitario'   => is_numeric($costoUnitario) ? (float) $costoUnitario : 0.0,
                     'lote'             => $lote ?: null,
                     'fecha_vencimiento' => $fechaVencimiento ?: null,
                     'producto'         => null,
@@ -526,8 +526,8 @@ class MovimientoController extends Controller
                 if (!is_numeric($cantidad) || (float) $cantidad <= 0) {
                     $resultado['errores'][] = 'Cantidad inválida o vacía';
                 }
-                if (!is_numeric($costoUnitario) || (float) $costoUnitario < 0) {
-                    $resultado['errores'][] = 'Costo unitario inválido o vacío';
+                if ($costoUnitario !== null && $costoUnitario !== '' && (!is_numeric($costoUnitario) || (float) $costoUnitario < 0)) {
+                    $resultado['errores'][] = 'Costo unitario inválido (debe ser un número positivo)';
                 }
 
                 $resultado['valido'] = empty($resultado['errores']);
