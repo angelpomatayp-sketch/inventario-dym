@@ -484,19 +484,23 @@ class OrdenCompraController extends Controller
 
     private function actualizarStock(int $empresaId, int $almacenId, int $productoId, float $cantidad, float $costoUnitario): void
     {
-        $stock = StockAlmacen::firstOrCreate(
-            [
+        $stock = StockAlmacen::where('empresa_id', $empresaId)
+            ->where('almacen_id', $almacenId)
+            ->where('producto_id', $productoId)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$stock) {
+            $stock = StockAlmacen::create([
                 'empresa_id' => $empresaId,
                 'almacen_id' => $almacenId,
-                'producto_id' => $productoId
-            ],
-            [
+                'producto_id' => $productoId,
                 'stock_actual' => 0,
                 'costo_promedio' => 0,
                 'stock_minimo' => 0,
-                'stock_maximo' => 0
-            ]
-        );
+                'stock_maximo' => 0,
+            ]);
+        }
 
         // Calcular nuevo costo promedio
         $cantidadAnterior = $stock->stock_actual;
