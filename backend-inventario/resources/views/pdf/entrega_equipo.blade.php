@@ -187,7 +187,7 @@
     <tr>
         <td class="header-logo">
             @php
-                $logoPath = public_path('images/logo2.png');
+                $logoPath = public_path('images/LOGO2.png');
                 $logoData = file_exists($logoPath) ? base64_encode(file_get_contents($logoPath)) : null;
             @endphp
             @if($logoData)
