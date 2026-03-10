@@ -470,8 +470,17 @@ class ValeSalidaController extends Controller
             'requisicion',
         ]);
 
-        $pdf = Pdf::loadView('pdf.vale_salida', ['vale' => $valeSalida]);
-        $pdf->setPaper('A4', 'portrait');
+        try {
+            $pdf = Pdf::loadView('pdf.vale_salida', ['vale' => $valeSalida]);
+            $pdf->setPaper('A4', 'portrait');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Error generando PDF vale de salida', [
+                'vale_id' => $valeSalida->id,
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+            return response()->json(['message' => 'Error al generar el PDF: ' . $e->getMessage()], 500);
+        }
 
         $filename = 'vale-' . $valeSalida->numero . '.pdf';
 

@@ -193,7 +193,7 @@
 <table class="datos-table">
     <tr>
         <td class="lbl">Obra / Unidad</td>
-        <td class="val">{{ $vale->centroCosto->nombre ?? '-' }}</td>
+        <td class="val">{{ $vale->centroCosto?->nombre ?? '-' }}</td>
         <td class="lbl">Fecha de emisión</td>
         <td class="val">{{ \Carbon\Carbon::parse($vale->fecha)->format('d/m/Y') }}</td>
     </tr>
@@ -201,12 +201,12 @@
         <td class="lbl">Solicitante</td>
         <td class="val">{{ $vale->receptor_nombre }}</td>
         <td class="lbl">Responsable</td>
-        <td class="val">{{ $vale->despachador->nombre ?? '-' }}</td>
+        <td class="val">{{ $vale->despachador?->nombre ?? '-' }}</td>
     </tr>
     @if($vale->almacen)
     <tr>
         <td class="lbl">Almacén</td>
-        <td class="val">{{ $vale->almacen->nombre }}</td>
+        <td class="val">{{ $vale->almacen?->nombre ?? '-' }}</td>
         <td class="lbl">Estado</td>
         <td class="val"><span class="estado-{{ $estado }}">{{ $estado }}</span></td>
     </tr>
@@ -279,7 +279,7 @@
             <div class="firma-vb">Firma del Responsable:</div>
             <div class="firma-espacio"></div>
             <div class="firma-linea">
-                <div class="firma-nombre">{{ $vale->despachador->nombre ?? '' }}</div>
+                <div class="firma-nombre">{{ $vale->despachador?->nombre ?? '' }}</div>
                 <div class="firma-cargo">Responsable / Despachador</div>
             </div>
             <div class="firma-vb-abajo">V°B°</div>
