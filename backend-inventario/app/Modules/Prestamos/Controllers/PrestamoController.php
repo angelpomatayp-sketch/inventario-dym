@@ -525,17 +525,28 @@ class PrestamoController extends Controller
 
         try {
             $prestamo = $this->prestamoService->procesarDevolucion($prestamo, $validated);
-            $this->prestamoService->regularizarDevolucionInventarioSiFalta($prestamo->fresh(['equipo']));
-            return $this->success($prestamo, 'Devolución registrada correctamente');
         } catch (\Exception $e) {
             Log::error('Error al procesar devolución de préstamo', [
                 'empresa_id' => $request->user()->empresa_id,
                 'user_id' => $request->user()->id,
                 'prestamo_id' => $prestamo->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
-            return $this->error('Error interno al procesar la devolución', 500);
+            return $this->error('Error interno al procesar la devolución: ' . $e->getMessage(), 500);
         }
+
+        // Regularización de inventario fuera de la transacción principal (no debe bloquear la devolución)
+        try {
+            $this->prestamoService->regularizarDevolucionInventarioSiFalta($prestamo->fresh(['equipo']));
+        } catch (\Exception $e) {
+            Log::warning('Error en regularizarDevolucionInventarioSiFalta (devolución ya guardada)', [
+                'prestamo_id' => $prestamo->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return $this->success($prestamo, 'Devolución registrada correctamente');
     }
 
     /**
