@@ -198,9 +198,17 @@
     <table class="header-table">
         <tr>
             <td class="header-logo">
-                <div style="font-size:11px; font-weight:bold; color:#1565C0; line-height:1.4;">
-                    CONTRATISTAS<br>ASOCIADOS<br>PACIFICO S.R.L.
-                </div>
+                @php
+                    $logoPath = public_path('images/logo2.png');
+                    $logoData = file_exists($logoPath) ? base64_encode(file_get_contents($logoPath)) : null;
+                @endphp
+                @if($logoData)
+                    <img src="data:image/png;base64,{{ $logoData }}" style="max-width:120px; max-height:55px; display:block; margin:auto;">
+                @else
+                    <div style="font-size:11px; font-weight:bold; color:#1565C0; line-height:1.4;">
+                        CONTRATISTAS<br>ASOCIADOS<br>PACIFICO S.R.L.
+                    </div>
+                @endif
             </td>
             <td class="header-title">
                 <div class="formato-label">FORMATO</div>
