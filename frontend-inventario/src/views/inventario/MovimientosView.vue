@@ -212,23 +212,23 @@ const loadProductos = async () => {
 
 // ==================== IMPORTACIÓN EXCEL ====================
 
-const descargarPlantilla = () => {
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
-  const url = `${import.meta.env.VITE_API_URL || ''}/api/inventario/movimientos/plantilla-excel`
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', 'plantilla_entrada_inventario.xls')
-  // Usar fetch para incluir el token de auth
-  fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-    .then(r => r.blob())
-    .then(blob => {
-      const objectUrl = URL.createObjectURL(blob)
-      link.href = objectUrl
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      URL.revokeObjectURL(objectUrl)
+const descargarPlantilla = async () => {
+  try {
+    const response = await api.get('/inventario/movimientos/plantilla-excel', {
+      responseType: 'blob'
     })
+    const blob = new Blob([response.data], { type: 'application/vnd.ms-excel' })
+    const objectUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = objectUrl
+    link.setAttribute('download', 'plantilla_entrada_inventario.xls')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(objectUrl)
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo descargar la plantilla', life: 3000 })
+  }
 }
 
 const procesarExcel = async (event) => {
