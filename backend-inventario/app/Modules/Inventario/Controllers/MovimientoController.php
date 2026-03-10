@@ -463,9 +463,8 @@ class MovimientoController extends Controller
             'archivo.max'      => 'El archivo no puede superar 5 MB',
         ]);
 
-        $empresaId = $request->user()->empresa_id;
-
         try {
+            $empresaId = $request->user()->empresa_id;
             $spreadsheet = IOFactory::load($request->file('archivo')->getPathname());
             $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
 
@@ -544,7 +543,7 @@ class MovimientoController extends Controller
                 'con_errores' => $totalErrores,
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Error al procesar Excel de movimiento', ['error' => $e->getMessage()]);
             return $this->error('Error al procesar el archivo: ' . $e->getMessage(), 422);
         }
