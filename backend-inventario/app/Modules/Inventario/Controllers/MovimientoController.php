@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -439,12 +439,12 @@ class MovimientoController extends Controller
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        $writer = new Xlsx($spreadsheet);
+        $writer = new Xls($spreadsheet);
 
         return response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
-        }, 'plantilla_entrada_inventario.xlsx', [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }, 'plantilla_entrada_inventario.xls', [
+            'Content-Type' => 'application/vnd.ms-excel',
             'Cache-Control' => 'max-age=0',
         ]);
     }
@@ -456,10 +456,10 @@ class MovimientoController extends Controller
     public function previewExcel(Request $request): JsonResponse
     {
         $request->validate([
-            'archivo' => 'required|file|mimes:xlsx,xls|max:5120',
+            'archivo' => 'required|file|mimes:xls,application/vnd.ms-excel|max:5120',
         ], [
             'archivo.required' => 'Seleccione un archivo Excel',
-            'archivo.mimes'    => 'Solo se aceptan archivos .xlsx o .xls',
+            'archivo.mimes'    => 'Solo se aceptan archivos .xls (use la plantilla descargada)',
             'archivo.max'      => 'El archivo no puede superar 5 MB',
         ]);
 

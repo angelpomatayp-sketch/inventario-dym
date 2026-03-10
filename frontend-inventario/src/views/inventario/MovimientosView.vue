@@ -217,7 +217,7 @@ const descargarPlantilla = () => {
   const url = `${import.meta.env.VITE_API_URL || ''}/api/inventario/movimientos/plantilla-excel`
   const link = document.createElement('a')
   link.href = url
-  link.setAttribute('download', 'plantilla_entrada_inventario.xlsx')
+  link.setAttribute('download', 'plantilla_entrada_inventario.xls')
   // Usar fetch para incluir el token de auth
   fetch(url, { headers: { Authorization: `Bearer ${token}` } })
     .then(r => r.blob())
@@ -1104,7 +1104,7 @@ watch([selectedTipo, selectedEstado, fechaRango], () => {
               <input
                 type="file"
                 ref="inputArchivoExcel"
-                accept=".xlsx,.xls"
+                accept=".xls"
                 class="hidden"
                 @change="procesarExcel"
               />

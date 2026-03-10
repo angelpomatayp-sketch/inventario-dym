@@ -454,7 +454,7 @@ class ValeSalidaController extends Controller
     /**
      * Generar PDF imprimible del vale de salida.
      */
-    public function imprimirVale(Request $request, ValeSalida $valeSalida): StreamedResponse
+    public function imprimirVale(Request $request, ValeSalida $valeSalida): \Symfony\Component\HttpFoundation\Response
     {
         if ($valeSalida->empresa_id !== $request->user()->empresa_id) {
             abort(403, 'No autorizado');
