@@ -119,6 +119,7 @@ class PrestamoService
                 'fecha_devolucion_real' => $data['fecha_devolucion'] ?? now(),
                 'condicion_devolucion' => $condicion,
                 'recibido_por' => $data['recibido_por'],
+                'numero_guia_retorno' => $data['numero_guia_retorno'] ?? null,
                 'observaciones_devolucion' => $data['observaciones_devolucion'] ?? null,
             ]);
 

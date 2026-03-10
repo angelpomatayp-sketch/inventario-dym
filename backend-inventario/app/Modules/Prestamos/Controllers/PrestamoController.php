@@ -9,6 +9,7 @@ use App\Modules\Prestamos\Services\PrestamoService;
 use App\Modules\Inventario\Models\Producto;
 use App\Shared\Traits\ApiResponse;
 use App\Shared\Traits\FiltrosPorRol;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -84,6 +85,11 @@ class PrestamoController extends Controller
             'fecha_adquisicion' => ['nullable', 'date'],
             'producto_id' => ['nullable', Rule::exists('productos', 'id')->where(fn($q) => $q->where('empresa_id', $empresaId))],
             'notas' => ['nullable', 'string'],
+            'anio' => ['nullable', 'string', 'max:10'],
+            'numero_motor' => ['nullable', 'string', 'max:100'],
+            'dimensiones' => ['nullable', 'string', 'max:150'],
+            'color' => ['nullable', 'string', 'max:80'],
+            'situacion' => ['nullable', 'string', 'max:200'],
         ]);
 
         $validated['empresa_id'] = $empresaId;
@@ -132,6 +138,11 @@ class PrestamoController extends Controller
             'valor_referencial' => ['nullable', 'numeric', 'min:0'],
             'notas' => ['nullable', 'string'],
             'activo' => ['sometimes', 'boolean'],
+            'anio' => ['nullable', 'string', 'max:10'],
+            'numero_motor' => ['nullable', 'string', 'max:100'],
+            'dimensiones' => ['nullable', 'string', 'max:150'],
+            'color' => ['nullable', 'string', 'max:80'],
+            'situacion' => ['nullable', 'string', 'max:200'],
         ]);
 
         $equipo->update($validated);
@@ -429,6 +440,8 @@ class PrestamoController extends Controller
             'fecha_prestamo' => ['sometimes', 'date'],
             'fecha_devolucion_esperada' => ['required', 'date', 'after_or_equal:fecha_prestamo'],
             'motivo_prestamo' => ['nullable', 'string'],
+            'numero_requerimiento' => ['nullable', 'string', 'max:100'],
+            'numero_guia_ida' => ['nullable', 'string', 'max:100'],
             'observaciones_entrega' => ['nullable', 'string'],
         ]);
 
@@ -503,6 +516,7 @@ class PrestamoController extends Controller
         $validated = $request->validate([
             'condicion_devolucion' => ['required', Rule::in(['BUENO', 'REGULAR', 'MALO', 'PERDIDO'])],
             'fecha_devolucion' => ['sometimes', 'date'],
+            'numero_guia_retorno' => ['nullable', 'string', 'max:100'],
             'observaciones_devolucion' => ['nullable', 'string'],
         ]);
 
@@ -711,6 +725,45 @@ class PrestamoController extends Controller
         return $this->success([
             'prestamos_actualizados' => $actualizados,
             'notificaciones_generadas' => $notificaciones,
+        ]);
+    }
+
+    /**
+     * Generar PDF de entrega de equipo (FR-ALM-07).
+     */
+    public function imprimirPrestamo(Request $request, PrestamoEquipo $prestamo): \Symfony\Component\HttpFoundation\Response
+    {
+        if ($prestamo->empresa_id !== $request->user()->empresa_id) {
+            abort(403, 'No autorizado');
+        }
+
+        try {
+            $prestamo->load([
+                'equipo.almacen',
+                'trabajador',
+                'trabajadorUsuario',
+                'centroCosto',
+                'usuarioEntrega',
+                'usuarioRecepcion',
+            ]);
+
+            $pdf = Pdf::loadView('pdf.entrega_equipo', ['prestamo' => $prestamo]);
+            $pdf->setPaper('A4', 'portrait');
+            $pdfContent = $pdf->output();
+        } catch (\Throwable $e) {
+            Log::error('Error generando PDF prestamo', [
+                'prestamo_id' => $prestamo->id,
+                'error'       => $e->getMessage(),
+                'trace'       => $e->getTraceAsString(),
+            ]);
+            return response()->json(['message' => 'Error al generar el PDF: ' . $e->getMessage()], 500);
+        }
+
+        $filename = 'entrega-equipo-' . $prestamo->numero . '.pdf';
+
+        return response($pdfContent, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
         ]);
     }
 

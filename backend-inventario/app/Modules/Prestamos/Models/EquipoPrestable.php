@@ -35,6 +35,11 @@ class EquipoPrestable extends Model
         'notas',
         'imagen',
         'activo',
+        'anio',
+        'numero_motor',
+        'dimensiones',
+        'color',
+        'situacion',
     ];
 
     protected $casts = [

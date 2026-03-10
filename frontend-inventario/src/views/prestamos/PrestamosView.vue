@@ -296,6 +296,11 @@ const nuevoEquipo = () => {
     numero_serie: '',
     marca: '',
     modelo: '',
+    anio: '',
+    numero_motor: '',
+    color: '',
+    dimensiones: '',
+    situacion: '',
     tipo_control: 'INDIVIDUAL',
     cantidad_total: 1,
     almacen_id: null,
@@ -368,6 +373,8 @@ const nuevoPrestamo = async () => {
     fecha_prestamo: new Date(),
     fecha_devolucion_esperada: null,
     motivo_prestamo: '',
+    numero_requerimiento: '',
+    numero_guia_ida: '',
     observaciones_entrega: ''
   }
   dialogPrestamo.value = true
@@ -391,6 +398,8 @@ const guardarPrestamo = async () => {
       fecha_prestamo: prestamo.value.fecha_prestamo?.toISOString().split('T')[0],
       fecha_devolucion_esperada: prestamo.value.fecha_devolucion_esperada?.toISOString().split('T')[0],
       motivo_prestamo: prestamo.value.motivo_prestamo,
+      numero_requerimiento: prestamo.value.numero_requerimiento || null,
+      numero_guia_ida: prestamo.value.numero_guia_ida || null,
       observaciones_entrega: prestamo.value.observaciones_entrega
     }
 
@@ -407,12 +416,38 @@ const guardarPrestamo = async () => {
   }
 }
 
+const imprimirPrestamo = async (item) => {
+  try {
+    const response = await api.get(`/prestamos/${item.id}/imprimir`, { responseType: 'blob' })
+    if (response.data.type === 'application/json') {
+      const text = await response.data.text()
+      const json = JSON.parse(text)
+      toast.add({ severity: 'error', summary: 'Error PDF', detail: json.message || 'Error al generar PDF', life: 8000 })
+      return
+    }
+    const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  } catch (err) {
+    if (err.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text()
+        const json = JSON.parse(text)
+        toast.add({ severity: 'error', summary: 'Error PDF', detail: json.message || 'Error al generar PDF', life: 8000 })
+        return
+      } catch {}
+    }
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el PDF', life: 5000 })
+  }
+}
+
 const abrirDevolucion = (item) => {
   devolucion.value = {
     prestamo_id: item.id,
     prestamo: item,
     condicion_devolucion: 'BUENO',
     fecha_devolucion: new Date(),
+    numero_guia_retorno: '',
     observaciones_devolucion: ''
   }
   dialogDevolucion.value = true
@@ -424,6 +459,7 @@ const procesarDevolucion = async () => {
     const data = {
       condicion_devolucion: devolucion.value.condicion_devolucion,
       fecha_devolucion: devolucion.value.fecha_devolucion.toISOString().split('T')[0],
+      numero_guia_retorno: devolucion.value.numero_guia_retorno || null,
       observaciones_devolucion: devolucion.value.observaciones_devolucion
     }
 
@@ -617,7 +653,7 @@ onMounted(() => {
               <Tag :value="data.estado" :severity="getEstadoSeverity(data.estado)" />
             </template>
           </Column>
-          <Column header="Acciones" style="width: 200px">
+          <Column header="Acciones" style="width: 220px">
             <template #body="{ data }">
               <div class="flex gap-1">
                 <Button
@@ -635,6 +671,13 @@ onMounted(() => {
                   size="small"
                   v-tooltip="'Renovar'"
                   @click="abrirRenovacion(data)"
+                />
+                <Button
+                  icon="pi pi-print"
+                  severity="secondary"
+                  size="small"
+                  v-tooltip="'Imprimir FR-ALM-07'"
+                  @click="imprimirPrestamo(data)"
                 />
               </div>
             </template>
@@ -711,6 +754,26 @@ onMounted(() => {
         <div class="field">
           <label class="block text-sm font-medium mb-1">Modelo</label>
           <InputText v-model="equipo.modelo" class="w-full" />
+        </div>
+        <div class="field">
+          <label class="block text-sm font-medium mb-1">Año</label>
+          <InputText v-model="equipo.anio" class="w-full" placeholder="Ej: 2022" />
+        </div>
+        <div class="field">
+          <label class="block text-sm font-medium mb-1">Nº Motor</label>
+          <InputText v-model="equipo.numero_motor" class="w-full" />
+        </div>
+        <div class="field">
+          <label class="block text-sm font-medium mb-1">Color</label>
+          <InputText v-model="equipo.color" class="w-full" />
+        </div>
+        <div class="field">
+          <label class="block text-sm font-medium mb-1">Dimensiones</label>
+          <InputText v-model="equipo.dimensiones" class="w-full" placeholder="Ej: 30x20x10 cm" />
+        </div>
+        <div class="field col-span-2">
+          <label class="block text-sm font-medium mb-1">Situación del Equipo</label>
+          <InputText v-model="equipo.situacion" class="w-full" placeholder="Ej: Operativo, En uso, Con desgaste leve" />
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Tipo de Control *</label>
@@ -835,6 +898,16 @@ onMounted(() => {
             <DatePicker v-model="prestamo.fecha_devolucion_esperada" class="w-full" dateFormat="dd/mm/yy" :minDate="new Date()" />
           </div>
         </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium mb-1">Nº Requerimiento</label>
+            <InputText v-model="prestamo.numero_requerimiento" class="w-full" placeholder="Opcional" />
+          </div>
+          <div class="field">
+            <label class="block text-sm font-medium mb-1">Nº Guía Remisión (Ida)</label>
+            <InputText v-model="prestamo.numero_guia_ida" class="w-full" placeholder="Opcional" />
+          </div>
+        </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Motivo del Préstamo</label>
           <Textarea v-model="prestamo.motivo_prestamo" class="w-full" rows="2" />
@@ -865,6 +938,10 @@ onMounted(() => {
         <div class="field">
           <label class="block text-sm font-medium mb-1">Fecha Devolución</label>
           <DatePicker v-model="devolucion.fecha_devolucion" class="w-full" dateFormat="dd/mm/yy" />
+        </div>
+        <div class="field">
+          <label class="block text-sm font-medium mb-1">Nº Guía Remisión (Retorno)</label>
+          <InputText v-model="devolucion.numero_guia_retorno" class="w-full" placeholder="Opcional" />
         </div>
         <div class="field">
           <label class="block text-sm font-medium mb-1">Observaciones</label>

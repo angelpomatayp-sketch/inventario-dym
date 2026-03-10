@@ -305,6 +305,7 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
         Route::get('/{prestamo}', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'show']);
         Route::post('/{prestamo}/devolver', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'devolver']);
         Route::post('/{prestamo}/renovar', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'renovar']);
+        Route::get('/{prestamo}/imprimir', [\App\Modules\Prestamos\Controllers\PrestamoController::class, 'imprimirPrestamo']);
     });
 
 });
