@@ -1,6 +1,7 @@
 @extends('pdf.layout')
 
-@section('title', 'Reporte Kardex')
+@section('title', 'Kardex')
+@section('formato_codigo', 'FR-ALM-05')
 
 @section('content')
     <div class="info-box">

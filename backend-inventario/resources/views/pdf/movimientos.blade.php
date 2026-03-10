@@ -1,6 +1,7 @@
 @extends('pdf.layout')
 
 @section('title', 'Reporte de Movimientos')
+@section('formato_codigo', 'FR-ALM-06')
 
 @section('content')
     <div class="info-box">

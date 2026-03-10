@@ -19,29 +19,35 @@
             padding: 1.5cm 1cm 2.8cm 1cm;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #1e40af;
+        /* ── CABECERA FR-ALM ── */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1.5px solid #333;
+            margin-bottom: 8px;
         }
-
-        .header h1 {
-            font-size: 18px;
-            color: #1e40af;
-            margin-bottom: 5px;
+        .header-table td { vertical-align: middle; padding: 5px 8px; }
+        .header-logo  { width: 130px; border-right: 1.5px solid #333; }
+        .header-title { text-align: center; border-right: 1.5px solid #333; }
+        .header-title .formato-label {
+            font-size: 8px; color: #555;
+            text-transform: uppercase; letter-spacing: 1px;
         }
-
-        .header .empresa {
-            font-size: 14px;
-            font-weight: bold;
-            color: #374151;
+        .header-title .doc-title {
+            font-size: 14px; font-weight: bold;
+            color: #1E2D72; text-transform: uppercase; letter-spacing: 1.5px;
+            margin-top: 2px;
         }
-
-        .header .fecha {
-            font-size: 10px;
-            color: #6b7280;
-            margin-top: 5px;
+        .header-codigo { width: 140px; font-size: 9px; line-height: 2; }
+        .header-codigo table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+        .header-codigo td { padding: 0 2px; border: none; font-size: 9px; background: none; }
+        .header-codigo .lbl { font-weight: bold; white-space: nowrap; }
+        .header-fecha {
+            text-align: right;
+            font-size: 8.5px;
+            color: #555;
+            margin-bottom: 8px;
+            font-style: italic;
         }
 
         .info-box {
@@ -189,11 +195,30 @@
     @yield('styles')
 </head>
 <body>
-    <div class="header">
-        <h1>@yield('title')</h1>
-        <div class="empresa">{{ $empresa ?? 'CAP Pacifico S.R.L.' }}</div>
-        <div class="fecha">Generado: {{ now()->format('d/m/Y H:i:s') }}</div>
-    </div>
+    <table class="header-table">
+        <tr>
+            <td class="header-logo">
+                <div style="font-size:11px; font-weight:bold; color:#1E2D72; line-height:1.4;">
+                    CONTRATISTAS<br>ASOCIADOS<br>PACIFICO S.R.L.
+                </div>
+            </td>
+            <td class="header-title">
+                <div class="formato-label">FORMATO</div>
+                <div class="doc-title">@yield('title')</div>
+                @hasSection('subtitle')
+                <div style="font-size:9px; color:#374151; margin-top:2px;">@yield('subtitle')</div>
+                @endif
+            </td>
+            <td class="header-codigo">
+                <table>
+                    <tr><td class="lbl">Código:</td><td>@yield('formato_codigo', 'FR-ALM-05')</td></tr>
+                    <tr><td class="lbl">Versión:</td><td>00</td></tr>
+                    <tr><td class="lbl">Fecha:</td><td>01/04/2022</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <div class="header-fecha">Generado: {{ now()->format('d/m/Y H:i:s') }}</div>
 
     @yield('content')
 

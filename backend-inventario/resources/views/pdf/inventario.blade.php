@@ -1,6 +1,7 @@
 @extends('pdf.layout')
 
 @section('title', 'Reporte de Inventario')
+@section('formato_codigo', 'FR-ALM-05')
 
 @section('content')
     <div class="info-box">
