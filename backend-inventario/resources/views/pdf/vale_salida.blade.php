@@ -150,8 +150,6 @@
 <body>
 
 @php
-    $logoPath = public_path('images/logo-cap.png');
-    $logoBase64 = file_exists($logoPath) ? base64_encode(file_get_contents($logoPath)) : null;
     $maxFilas = 10;
     $filasActuales = count($vale->detalles);
     $filasVacias = max(0, $maxFilas - $filasActuales);
@@ -162,13 +160,9 @@
 <table class="header-table">
     <tr>
         <td class="header-logo">
-            @if($logoBase64)
-                <img src="data:image/png;base64,{{ $logoBase64 }}" style="height:48px; width:auto;" />
-            @else
-                <div style="font-size:11px; font-weight:bold; color:#1E2D72; line-height:1.3;">
-                    CONTRATISTAS<br>ASOCIADOS<br>PACIFICO S.R.L.
-                </div>
-            @endif
+            <div style="font-size:11px; font-weight:bold; color:#1E2D72; line-height:1.4;">
+                CONTRATISTAS<br>ASOCIADOS<br>PACIFICO S.R.L.
+            </div>
         </td>
         <td class="header-title">
             <div class="formato-label">FORMATO</div>

@@ -4,7 +4,7 @@ nixPkgs = ["php82", "php82Extensions.pdo", "php82Extensions.pdo_mysql", "php82Ex
 [phases.install]
 cmds = [
     "echo 'extension=zip' >> $(php -r 'echo php_ini_loaded_file();') || true",
-    "echo 'extension=gd' >> $(php -r 'echo php_ini_loaded_file();') || true",
+    "GD_SO=$(find /nix/store -maxdepth 6 -name 'gd.so' 2>/dev/null | head -1); [ -n \"$GD_SO\" ] && echo \"extension=$GD_SO\" >> $(php -r 'echo php_ini_loaded_file();') || true",
     "composer install --no-dev --optimize-autoloader --ignore-platform-reqs"
 ]
 
