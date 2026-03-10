@@ -35,7 +35,7 @@
         }
         .header-title .doc-title {
             font-size: 14px; font-weight: bold;
-            color: #1E2D72; text-transform: uppercase; letter-spacing: 1.5px;
+            color: #1565C0; text-transform: uppercase; letter-spacing: 1.5px;
             margin-top: 2px;
         }
         .header-codigo { width: 140px; font-size: 9px; line-height: 2; }
@@ -79,7 +79,7 @@
         }
 
         table th {
-            background-color: #1e40af;
+            background-color: #1565C0;
             color: white;
             padding: 8px 5px;
             text-align: left;
@@ -122,7 +122,7 @@
         }
 
         .text-primary {
-            color: #1e40af;
+            color: #1565C0;
         }
 
         .badge {
@@ -150,20 +150,20 @@
 
         .badge-info {
             background-color: #dbeafe;
-            color: #1e40af;
+            color: #1565C0;
         }
 
         .totals {
             margin-top: 20px;
             padding: 10px;
             background-color: #eff6ff;
-            border: 1px solid #1e40af;
+            border: 1px solid #1565C0;
             border-radius: 4px;
         }
 
         .totals h3 {
             font-size: 12px;
-            color: #1e40af;
+            color: #1565C0;
             margin-bottom: 10px;
         }
 
@@ -179,7 +179,7 @@
 
         .totals .total-value {
             font-weight: bold;
-            color: #1e40af;
+            color: #1565C0;
         }
 
         /* footer is rendered via PHP canvas script */
@@ -198,7 +198,7 @@
     <table class="header-table">
         <tr>
             <td class="header-logo">
-                <div style="font-size:11px; font-weight:bold; color:#1E2D72; line-height:1.4;">
+                <div style="font-size:11px; font-weight:bold; color:#1565C0; line-height:1.4;">
                     CONTRATISTAS<br>ASOCIADOS<br>PACIFICO S.R.L.
                 </div>
             </td>

@@ -58,7 +58,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-screen bg-gradient-to-br from-[#1A2660] to-[#0F1740] flex flex-col items-center justify-center p-4">
+  <div class="h-screen bg-gradient-to-br from-[#1565C0] to-[#0D47A1] flex flex-col items-center justify-center p-4">
     <div class="w-full max-w-md">
       <!-- Logo y título -->
       <div class="text-center mb-6">
@@ -132,7 +132,7 @@ onMounted(() => {
             label="Iniciar Sesión"
             :loading="loading"
             :disabled="loading"
-            class="w-full justify-center !bg-[#1E2D72] !border-[#1E2D72] hover:!bg-[#162060]"
+            class="w-full justify-center !bg-[#1565C0] !border-[#1565C0] hover:!bg-[#1976D2]"
           />
         </form>
       </div>

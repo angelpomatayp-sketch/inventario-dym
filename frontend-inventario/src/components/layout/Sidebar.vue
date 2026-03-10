@@ -144,14 +144,14 @@ const navigateTo = (path) => {
 
 <template>
   <aside
-    class="fixed left-0 top-0 h-full bg-[#1A2660] text-white transition-all duration-300 z-50 flex flex-col"
+    class="fixed left-0 top-0 h-full bg-[#1565C0] text-white transition-all duration-300 z-50 flex flex-col"
     :class="[
       isMobile ? 'w-72' : (collapsed ? 'w-16' : 'w-64'),
       isMobile ? (mobileOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'
     ]"
   >
     <!-- Logo -->
-    <div class="h-16 flex items-center justify-center border-b border-[#243080] px-2">
+    <div class="h-16 flex items-center justify-center border-b border-[#1976D2] px-2">
       <div v-if="!collapsed" class="flex items-center gap-2">
         <img src="/logo-login.png" alt="CAP Pacifico" class="h-12 w-auto" />
       </div>
@@ -166,9 +166,9 @@ const navigateTo = (path) => {
           <template v-if="item.children">
             <button
               @click="toggleSubmenu(item.label)"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-200 hover:bg-[#243080] hover:text-white transition-colors"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-200 hover:bg-[#1976D2] hover:text-white transition-colors"
               :class="{
-                'bg-[#243080] text-white': isParentActive(item),
+                'bg-[#1976D2] text-white': isParentActive(item),
                 'justify-center': collapsed
               }"
             >
@@ -188,7 +188,7 @@ const navigateTo = (path) => {
               <li v-for="child in item.children" :key="child.label">
                 <router-link
                   :to="child.to"
-                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-[#243080] hover:text-white transition-colors text-sm"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-[#1976D2] hover:text-white transition-colors text-sm"
                   :class="{ 'bg-[#1A9A3B] text-white': isActive(child.to) }"
                   @click="emit('navigate')"
                 >
@@ -203,7 +203,7 @@ const navigateTo = (path) => {
           <template v-else>
             <router-link
               :to="item.to"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-200 hover:bg-[#243080] hover:text-white transition-colors"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-200 hover:bg-[#1976D2] hover:text-white transition-colors"
               :class="{
                 'bg-[#1A9A3B] text-white': isActive(item.to),
                 'justify-center': collapsed
@@ -219,10 +219,10 @@ const navigateTo = (path) => {
     </nav>
 
     <!-- Footer del sidebar -->
-    <div class="p-3 border-t border-[#243080]">
+    <div class="p-3 border-t border-[#1976D2]">
       <button
         @click="emit('toggle')"
-        class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-300 hover:bg-[#243080] hover:text-white transition-colors"
+        class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-300 hover:bg-[#1976D2] hover:text-white transition-colors"
       >
         <i :class="['pi', collapsed ? 'pi-angle-double-right' : 'pi-angle-double-left']"></i>
         <span v-if="!collapsed" class="text-sm">Colapsar</span>
