@@ -153,9 +153,9 @@ const navigateTo = (path) => {
     <!-- Logo -->
     <div class="h-16 flex items-center justify-center border-b border-gray-700 px-2">
       <div v-if="!collapsed" class="flex items-center gap-2">
-        <img src="/logo-dym.png" alt="DYM SAC" class="h-12 w-auto" />
+        <img src="/logo-sidebar.png" alt="DYM SAC" class="h-12 w-auto" />
       </div>
-      <img v-else src="/logo-dym.png" alt="DYM SAC" class="h-10 w-auto" />
+      <img v-else src="/logo-sidebar.png" alt="DYM SAC" class="h-10 w-auto" />
     </div>
 
     <!-- Menu -->
