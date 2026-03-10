@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class PrestamoController extends Controller
 {
@@ -764,6 +765,54 @@ class PrestamoController extends Controller
         return response($pdfContent, 200, [
             'Content-Type'        => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Generar PDF de control de herramientas por trabajador (FR-ALM-03).
+     */
+    public function imprimirControlTrabajador(Request $request, int $trabajadorId): \Symfony\Component\HttpFoundation\Response
+    {
+        $empresaId = $request->user()->empresa_id;
+        $tipoReceptor = $request->get('tipo', 'trabajador');
+
+        try {
+            if ($tipoReceptor === 'usuario') {
+                $trabajador = \App\Modules\Administracion\Models\Usuario::where('empresa_id', $empresaId)
+                    ->with('centroCosto:id,nombre')
+                    ->findOrFail($trabajadorId);
+            } else {
+                $trabajador = \App\Modules\Administracion\Models\Trabajador::where('empresa_id', $empresaId)
+                    ->with('centroCosto:id,nombre')
+                    ->findOrFail($trabajadorId);
+            }
+
+            $prestamos = PrestamoEquipo::where('empresa_id', $empresaId)
+                ->where('trabajador_id', $trabajadorId)
+                ->with(['equipo:id,codigo,nombre'])
+                ->orderBy('fecha_prestamo', 'asc')
+                ->get();
+
+            $pdf = Pdf::loadView('pdf.control_herramientas', [
+                'trabajador' => $trabajador,
+                'prestamos'  => $prestamos,
+            ]);
+            $pdf->setPaper('A4', 'portrait');
+            $pdfContent = $pdf->output();
+        } catch (\Throwable $e) {
+            Log::error('Error generando PDF control herramientas', [
+                'trabajador_id' => $trabajadorId,
+                'error'         => $e->getMessage(),
+                'trace'         => $e->getTraceAsString(),
+            ]);
+            return response()->json(['message' => 'Error al generar el PDF: ' . $e->getMessage()], 500);
+        }
+
+        $nombreArchivo = 'control-herramientas-' . Str::slug($trabajador->nombre ?? 'trabajador') . '.pdf';
+
+        return response($pdfContent, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $nombreArchivo . '"',
         ]);
     }
 

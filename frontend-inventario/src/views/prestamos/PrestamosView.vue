@@ -441,6 +441,40 @@ const imprimirPrestamo = async (item) => {
   }
 }
 
+const imprimirControlTrabajador = async (item) => {
+  const trabajadorId = item.trabajador_id
+  const tipo = item.tipo_receptor || 'trabajador'
+  if (!trabajadorId) {
+    toast.add({ severity: 'warn', summary: 'Sin trabajador', detail: 'Este préstamo no tiene trabajador asociado', life: 4000 })
+    return
+  }
+  try {
+    const response = await api.get(`/prestamos/trabajador/${trabajadorId}/imprimir-control`, {
+      responseType: 'blob',
+      params: { tipo }
+    })
+    if (response.data.type === 'application/json') {
+      const text = await response.data.text()
+      const json = JSON.parse(text)
+      toast.add({ severity: 'error', summary: 'Error PDF', detail: json.message || 'Error al generar PDF', life: 8000 })
+      return
+    }
+    const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  } catch (err) {
+    if (err.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text()
+        const json = JSON.parse(text)
+        toast.add({ severity: 'error', summary: 'Error PDF', detail: json.message || 'Error al generar PDF', life: 8000 })
+        return
+      } catch {}
+    }
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el PDF de control', life: 5000 })
+  }
+}
+
 const abrirDevolucion = (item) => {
   devolucion.value = {
     prestamo_id: item.id,
@@ -676,8 +710,15 @@ onMounted(() => {
                   icon="pi pi-print"
                   severity="secondary"
                   size="small"
-                  v-tooltip="'Imprimir FR-ALM-07'"
+                  v-tooltip="'Imprimir FR-ALM-07 (Entrega Equipo)'"
                   @click="imprimirPrestamo(data)"
+                />
+                <Button
+                  icon="pi pi-list"
+                  severity="help"
+                  size="small"
+                  v-tooltip="'Imprimir FR-ALM-03 (Control Herramientas del trabajador)'"
+                  @click="imprimirControlTrabajador(data)"
                 />
               </div>
             </template>
