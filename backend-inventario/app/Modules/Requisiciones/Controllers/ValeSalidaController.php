@@ -460,17 +460,17 @@ class ValeSalidaController extends Controller
             abort(403, 'No autorizado');
         }
 
-        $valeSalida->load([
-            'empresa',
-            'detalles.producto',
-            'almacen',
-            'centroCosto',
-            'solicitante',
-            'despachador',
-            'requisicion',
-        ]);
-
         try {
+            $valeSalida->load([
+                'empresa',
+                'detalles.producto',
+                'almacen',
+                'centroCosto',
+                'solicitante',
+                'despachador',
+                'requisicion',
+            ]);
+
             $pdf = Pdf::loadView('pdf.vale_salida', ['vale' => $valeSalida]);
             $pdf->setPaper('A4', 'portrait');
             $pdfContent = $pdf->output();

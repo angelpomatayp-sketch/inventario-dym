@@ -463,10 +463,26 @@ const procesarEntrega = async () => {
 const imprimirVale = async (vale) => {
   try {
     const response = await api.get(`/vales-salida/${vale.id}/imprimir`, { responseType: 'blob' })
+    // Si el servidor devolvió JSON de error (blob con tipo JSON), mostrarlo
+    if (response.data.type === 'application/json') {
+      const text = await response.data.text()
+      const json = JSON.parse(text)
+      toast.add({ severity: 'error', summary: 'Error PDF', detail: json.message || 'Error al generar PDF', life: 8000 })
+      return
+    }
     const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
     window.open(url, '_blank')
     setTimeout(() => URL.revokeObjectURL(url), 60000)
   } catch (err) {
+    // Leer el blob de error para mostrar mensaje real del servidor
+    if (err.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text()
+        const json = JSON.parse(text)
+        toast.add({ severity: 'error', summary: 'Error PDF', detail: json.message || 'Error al generar PDF', life: 8000 })
+        return
+      } catch {}
+    }
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el PDF del vale', life: 5000 })
   }
 }
