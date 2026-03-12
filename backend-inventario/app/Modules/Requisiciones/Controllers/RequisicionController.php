@@ -207,7 +207,8 @@ class RequisicionController extends Controller
         $request->validate([
             'centro_costo_id' => 'required|exists:centros_costos,id',
             'almacen_id'      => 'nullable|exists:almacenes,id',
-            'fecha_requerida' => 'required|date|after_or_equal:today',
+            // Al editar se permite conservar una fecha ya existente aunque sea pasada
+            'fecha_requerida' => 'required|date',
             'prioridad'       => 'required|in:BAJA,NORMAL,ALTA,URGENTE',
             'motivo'          => 'required|string|max:500',
             'observaciones'   => 'nullable|string|max:1000',
@@ -485,47 +486,60 @@ class RequisicionController extends Controller
      */
     private function generarNumero(int $empresaId, ?int $centroCostoId, ?int $almacenId): string
     {
-        // Obtener nombre base para el prefijo
+        // --- Extraer nombre base (almacén tiene prioridad sobre centro de costo) ---
         $nombreBase = null;
-
         if ($almacenId) {
-            $nombreBase = \DB::table('almacenes')->where('id', $almacenId)->value('nombre');
+            $nombreBase = DB::table('almacenes')->where('id', $almacenId)->value('nombre');
         }
-
         if (!$nombreBase && $centroCostoId) {
-            $nombreBase = \DB::table('centros_costos')->where('id', $centroCostoId)->value('nombre');
+            $nombreBase = DB::table('centros_costos')->where('id', $centroCostoId)->value('nombre');
         }
 
-        // Limpiar y extraer prefijo: tomar la última palabra tras "-" si existe,
-        // si no, la primera palabra. Solo letras y números, máx 10 chars, mayúsculas.
+        // --- Bug fix: inicializar antes del if para evitar undefined y cadena vacía ---
+        // Toma la última parte con letras/números del nombre (ej. "UNIDAD - KOLPA" → "KOLPA")
+        $prefijoBruto = 'RQ';
         if ($nombreBase) {
-            $partes = preg_split('/[\s\-\/]+/', trim($nombreBase));
-            $partes = array_filter($partes); // quitar vacíos
-            // Preferir última parte con letras
-            $ultimo = end($partes);
-            $prefijoBruto = preg_replace('/[^A-Za-z0-9]/', '', $ultimo);
-            $prefijoBruto = strtoupper(substr($prefijoBruto, 0, 10));
+            $partes = array_values(array_filter(
+                preg_split('/[\s\-\/]+/', trim($nombreBase))
+            ));
+            foreach (array_reverse($partes) as $parte) {
+                $limpio = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $parte));
+                if ($limpio !== '') {
+                    $prefijoBruto = substr($limpio, 0, 10);
+                    break;
+                }
+            }
         }
 
-        $prefijo = ($prefijoBruto ?? 'RQ') . '-';
+        $prefijo  = $prefijoBruto . '-';
+        // md5 para que el nombre del lock no tenga caracteres especiales
+        $lockKey  = 'rq_num_' . md5($empresaId . '_' . $prefijo);
 
-        // Correlativo por empresa + prefijo (cada unidad tiene su propia secuencia)
-        $ultimoNumero = Requisicion::where('empresa_id', $empresaId)
-            ->where('numero', 'like', $prefijo . '%')
-            ->orderByRaw('CAST(SUBSTRING_INDEX(numero, "-", -1) AS UNSIGNED) DESC')
-            ->lockForUpdate()
-            ->value('numero');
+        // --- Bug fix: advisory lock de MySQL para eliminar race condition ---
+        // lockForUpdate() solo bloquea filas existentes; GET_LOCK bloquea por nombre
+        // aunque no existan registros aún (primer requerimiento del prefijo).
+        DB::select("SELECT GET_LOCK(?, 10) AS locked", [$lockKey]);
 
-        $secuencia = 1;
-        if ($ultimoNumero) {
-            $partesFinal = explode('-', $ultimoNumero);
-            $secuencia   = (int) end($partesFinal) + 1;
-        }
+        try {
+            $ultimoNumero = Requisicion::where('empresa_id', $empresaId)
+                ->where('numero', 'like', $prefijo . '%')
+                ->orderByRaw('CAST(SUBSTRING_INDEX(numero, "-", -1) AS UNSIGNED) DESC')
+                ->value('numero');
 
-        $numero = $prefijo . str_pad($secuencia, 3, '0', STR_PAD_LEFT);
-        while (Requisicion::where('empresa_id', $empresaId)->where('numero', $numero)->exists()) {
-            $secuencia++;
+            $secuencia = 1;
+            if ($ultimoNumero) {
+                $partesFinal = explode('-', $ultimoNumero);
+                $secuencia   = (int) end($partesFinal) + 1;
+            }
+
             $numero = $prefijo . str_pad($secuencia, 3, '0', STR_PAD_LEFT);
+            // Salvaguarda extra: si por alguna razón ya existe, incrementar
+            while (Requisicion::where('empresa_id', $empresaId)->where('numero', $numero)->exists()) {
+                $secuencia++;
+                $numero = $prefijo . str_pad($secuencia, 3, '0', STR_PAD_LEFT);
+            }
+        } finally {
+            DB::select("SELECT RELEASE_LOCK(?)", [$lockKey]);
         }
 
         return $numero;
