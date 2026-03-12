@@ -5,9 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Requerimiento {{ $requerimiento->numero }}</title>
     <style>
-        @page { size: A4 landscape; margin: 16mm 18mm; }
+        @page { size: A4 landscape; margin: 20mm 22mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: DejaVu Sans, sans-serif; font-size: 9px; color: #000; }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 9px; color: #000; margin: 20mm 22mm; }
 
         /* ---- HEADER ---- */
         .header-outer { width: 100%; border-collapse: collapse; border: 1.5px solid #1E2D72; margin-bottom: 0; }
