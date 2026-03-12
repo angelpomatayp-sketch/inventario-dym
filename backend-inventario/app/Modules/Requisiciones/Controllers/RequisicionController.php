@@ -117,7 +117,7 @@ class RequisicionController extends Controller
         try {
             DB::beginTransaction();
 
-            $numero = $this->generarNumero($empresaId);
+            $numero = $this->generarNumero($empresaId, $request->centro_costo_id, $request->almacen_id);
 
             $estado = $request->boolean('enviar_aprobacion')
                 ? Requisicion::ESTADO_PENDIENTE
@@ -460,7 +460,7 @@ class RequisicionController extends Controller
 
         try {
             $pdf = Pdf::loadView('pdf.requerimiento', ['requerimiento' => $requisicion]);
-            $pdf->setPaper('A4', 'portrait');
+            $pdf->setPaper('A4', 'landscape');
             $pdfContent = $pdf->output();
         } catch (\Throwable $e) {
             Log::error('Error generando PDF requerimiento', [
@@ -479,30 +479,53 @@ class RequisicionController extends Controller
     }
 
     /**
-     * Generar número de requerimiento.
+     * Generar número de requerimiento por unidad/almacén.
+     * Formato: KOLPA-001, KOLPA-002, LIMA-001, etc.
+     * El prefijo se extrae del nombre del almacén (si existe) o del centro de costo.
      */
-    private function generarNumero(int $empresaId): string
+    private function generarNumero(int $empresaId, ?int $centroCostoId, ?int $almacenId): string
     {
-        $año    = date('Y');
-        $mes    = date('m');
-        $prefijo = "RQ-{$año}{$mes}-";
+        // Obtener nombre base para el prefijo
+        $nombreBase = null;
 
+        if ($almacenId) {
+            $nombreBase = \DB::table('almacenes')->where('id', $almacenId)->value('nombre');
+        }
+
+        if (!$nombreBase && $centroCostoId) {
+            $nombreBase = \DB::table('centros_costos')->where('id', $centroCostoId)->value('nombre');
+        }
+
+        // Limpiar y extraer prefijo: tomar la última palabra tras "-" si existe,
+        // si no, la primera palabra. Solo letras y números, máx 10 chars, mayúsculas.
+        if ($nombreBase) {
+            $partes = preg_split('/[\s\-\/]+/', trim($nombreBase));
+            $partes = array_filter($partes); // quitar vacíos
+            // Preferir última parte con letras
+            $ultimo = end($partes);
+            $prefijoBruto = preg_replace('/[^A-Za-z0-9]/', '', $ultimo);
+            $prefijoBruto = strtoupper(substr($prefijoBruto, 0, 10));
+        }
+
+        $prefijo = ($prefijoBruto ?? 'RQ') . '-';
+
+        // Correlativo por empresa + prefijo (cada unidad tiene su propia secuencia)
         $ultimoNumero = Requisicion::where('empresa_id', $empresaId)
             ->where('numero', 'like', $prefijo . '%')
-            ->orderBy('numero', 'desc')
+            ->orderByRaw('CAST(SUBSTRING_INDEX(numero, "-", -1) AS UNSIGNED) DESC')
             ->lockForUpdate()
             ->value('numero');
 
         $secuencia = 1;
         if ($ultimoNumero) {
-            $partes    = explode('-', $ultimoNumero);
-            $secuencia = (int) end($partes) + 1;
+            $partesFinal = explode('-', $ultimoNumero);
+            $secuencia   = (int) end($partesFinal) + 1;
         }
 
-        $numero = $prefijo . str_pad($secuencia, 6, '0', STR_PAD_LEFT);
+        $numero = $prefijo . str_pad($secuencia, 3, '0', STR_PAD_LEFT);
         while (Requisicion::where('empresa_id', $empresaId)->where('numero', $numero)->exists()) {
             $secuencia++;
-            $numero = $prefijo . str_pad($secuencia, 6, '0', STR_PAD_LEFT);
+            $numero = $prefijo . str_pad($secuencia, 3, '0', STR_PAD_LEFT);
         }
 
         return $numero;

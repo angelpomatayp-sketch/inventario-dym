@@ -5,6 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Requerimiento {{ $requerimiento->numero }}</title>
     <style>
+        @page { size: A4 landscape; margin: 12mm 14mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 9px; color: #000; }
 
@@ -183,12 +184,7 @@
             <td class="col-it {{ $colorClass }}">{{ $index + 1 }}</td>
             <td class="col-cant {{ $colorClass }}">{{ rtrim(rtrim(number_format($detalle->cantidad_solicitada, 2), '0'), '.') }}</td>
             <td class="col-und {{ $colorClass }}">{{ strtoupper($detalle->producto?->unidad_medida ?? 'UND.') }}</td>
-            <td class="col-desc {{ $colorClass }}">
-                {{ strtoupper($detalle->producto?->nombre ?? '-') }}
-                @if($detalle->especificaciones)
-                    <br><span style="font-weight:normal; font-size:7.5px; color:#555;">{{ $detalle->especificaciones }}</span>
-                @endif
-            </td>
+            <td class="col-desc {{ $colorClass }}">{{ strtoupper($detalle->producto?->nombre ?? '-') }}</td>
             <td class="col-cap">
                 @if($detalle->cantidad_aprobada !== null)
                     {{ rtrim(rtrim(number_format($detalle->cantidad_aprobada, 2), '0'), '.') }}
@@ -201,7 +197,9 @@
                 @endif
             </td>
             <td class="col-fecha"></td>
-            <td class="col-obs {{ $colorClass }}">{{ strtoupper($detalle->observaciones ?? '') }}</td>
+            <td class="col-obs {{ $colorClass }}">
+                {{ strtoupper($detalle->especificaciones ?? $detalle->observaciones ?? '') }}
+            </td>
         </tr>
         @empty
         <tr class="row-item">
