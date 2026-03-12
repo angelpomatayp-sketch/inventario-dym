@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Requerimiento {{ $requerimiento->numero }}</title>
     <style>
-        @page { size: A4 landscape; margin: 12mm 14mm; }
+        @page { size: A4 landscape; margin: 16mm 18mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 9px; color: #000; }
 
