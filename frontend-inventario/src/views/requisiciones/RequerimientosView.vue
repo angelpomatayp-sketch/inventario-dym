@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/services/api'
+import requerimientosService from '@/services/requerimientosService'
 
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -104,10 +105,10 @@ const loadRequerimientos = async () => {
     if (selectedPrioridad.value)    params.prioridad         = selectedPrioridad.value
     if (showPendientesAprobar.value) params.pendientes_aprobar = true
 
-    const response = await api.get('/requerimientos', { params })
-    if (response.data.success) {
-      requerimientos.value = response.data.data || []
-      totalRecords.value   = response.data.meta?.total || requerimientos.value.length
+    const response = await requerimientosService.getAll(params)
+    if (response.success) {
+      requerimientos.value = response.data || []
+      totalRecords.value   = response.meta?.total || requerimientos.value.length
     }
   } catch (err) {
     console.error('Error al cargar requerimientos:', err)
@@ -137,8 +138,8 @@ const loadAlmacenes = async () => {
 
 const loadEstadisticas = async () => {
   try {
-    const response = await api.get('/requerimientos/estadisticas')
-    if (response.data.success) estadisticas.value = response.data.data
+    const response = await requerimientosService.getEstadisticas()
+    if (response.success) estadisticas.value = response.data
   } catch {}
 }
 
@@ -178,9 +179,9 @@ const openNewDialog = () => {
 
 const editRequerimiento = async (item) => {
   try {
-    const response = await api.get(`/requerimientos/${item.id}`)
-    if (response.data.success) {
-      const data = response.data.data
+    const response = await requerimientosService.getById(item.id)
+    if (response.success) {
+      const data = response.data
       formData.value = {
         id:              data.id,
         centro_costo_id: data.centro_costo_id,
@@ -206,9 +207,9 @@ const editRequerimiento = async (item) => {
 
 const viewRequerimiento = async (item) => {
   try {
-    const response = await api.get(`/requerimientos/${item.id}`)
-    if (response.data.success) {
-      selectedRequerimiento.value = response.data.data
+    const response = await requerimientosService.getById(item.id)
+    if (response.success) {
+      selectedRequerimiento.value = response.data
       viewDialogVisible.value     = true
     }
   } catch {
@@ -264,15 +265,12 @@ const saveRequerimiento = async (enviarAprobacion = false) => {
       }))
     }
 
-    let response
-    if (isEditing.value) {
-      response = await api.put(`/requerimientos/${formData.value.id}`, dataToSend)
-    } else {
-      response = await api.post('/requerimientos', dataToSend)
-    }
+    const response = isEditing.value
+      ? await requerimientosService.update(formData.value.id, dataToSend)
+      : await requerimientosService.create(dataToSend)
 
-    if (response.data.success) {
-      toast.add({ severity: 'success', summary: 'Éxito', detail: response.data.message || 'Requerimiento guardado correctamente', life: 3000 })
+    if (response.success) {
+      toast.add({ severity: 'success', summary: 'Éxito', detail: response.message || 'Requerimiento guardado correctamente', life: 3000 })
       dialogVisible.value = false
       loadRequerimientos()
       loadEstadisticas()
@@ -286,8 +284,8 @@ const saveRequerimiento = async (enviarAprobacion = false) => {
 
 const enviarAprobacion = async (item) => {
   try {
-    const response = await api.post(`/requerimientos/${item.id}/enviar-aprobacion`)
-    if (response.data.success) {
+    const response = await requerimientosService.enviarAprobacion(item.id)
+    if (response.success) {
       toast.add({ severity: 'success', summary: 'Éxito', detail: 'Requerimiento enviado a aprobación', life: 3000 })
       loadRequerimientos(); loadEstadisticas()
     }
@@ -310,10 +308,10 @@ const openRechazarDialog = (item) => {
 
 const aprobarRequerimiento = async () => {
   try {
-    const response = await api.post(`/requerimientos/${selectedRequerimiento.value.id}/aprobar`, {
+    const response = await requerimientosService.aprobar(selectedRequerimiento.value.id, {
       comentario: comentarioAprobacion.value || null
     })
-    if (response.data.success) {
+    if (response.success) {
       toast.add({ severity: 'success', summary: 'Aprobado', detail: 'Requerimiento aprobado', life: 3000 })
       aprobarDialogVisible.value = false
       loadRequerimientos(); loadEstadisticas()
@@ -328,10 +326,8 @@ const rechazarRequerimiento = async () => {
     toast.add({ severity: 'warn', summary: 'Validación', detail: 'Ingrese el motivo del rechazo', life: 4000 }); return
   }
   try {
-    const response = await api.post(`/requerimientos/${selectedRequerimiento.value.id}/rechazar`, {
-      comentario: comentarioAprobacion.value
-    })
-    if (response.data.success) {
+    const response = await requerimientosService.rechazar(selectedRequerimiento.value.id, comentarioAprobacion.value)
+    if (response.success) {
       toast.add({ severity: 'warn', summary: 'Rechazado', detail: 'Requerimiento rechazado', life: 3000 })
       rechazarDialogVisible.value = false
       loadRequerimientos(); loadEstadisticas()
@@ -344,8 +340,8 @@ const rechazarRequerimiento = async () => {
 const anularRequerimiento = async (item) => {
   if (!confirm('¿Está seguro de anular este requerimiento?')) return
   try {
-    const response = await api.post(`/requerimientos/${item.id}/anular`)
-    if (response.data.success) {
+    const response = await requerimientosService.anular(item.id)
+    if (response.success) {
       toast.add({ severity: 'warn', summary: 'Anulado', detail: 'Requerimiento anulado', life: 3000 })
       loadRequerimientos(); loadEstadisticas()
     }
@@ -356,7 +352,7 @@ const anularRequerimiento = async (item) => {
 
 const descargarPdf = async (item) => {
   try {
-    const response = await api.get(`/requerimientos/${item.id}/pdf`, { responseType: 'blob' })
+    const response = await requerimientosService.getPdf(item.id)
     if (response.data.type === 'application/json') {
       const text = await response.data.text()
       const json = JSON.parse(text)
