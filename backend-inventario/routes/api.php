@@ -125,9 +125,9 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
     });
 
     // -----------------------------------------------------------------
-    // MÓDULO: REQUISICIONES
+    // MÓDULO: REQUERIMIENTOS
     // -----------------------------------------------------------------
-    Route::prefix('requisiciones')->group(function () {
+    Route::prefix('requerimientos')->group(function () {
         Route::get('/', [\App\Modules\Requisiciones\Controllers\RequisicionController::class, 'index']);
         Route::post('/', [\App\Modules\Requisiciones\Controllers\RequisicionController::class, 'store']);
         Route::get('/estadisticas', [\App\Modules\Requisiciones\Controllers\RequisicionController::class, 'estadisticas']);
@@ -138,6 +138,7 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
         Route::post('/{requisicion}/aprobar', [\App\Modules\Requisiciones\Controllers\RequisicionController::class, 'aprobar']);
         Route::post('/{requisicion}/rechazar', [\App\Modules\Requisiciones\Controllers\RequisicionController::class, 'rechazar']);
         Route::post('/{requisicion}/anular', [\App\Modules\Requisiciones\Controllers\RequisicionController::class, 'anular']);
+        Route::get('/{requisicion}/pdf', [\App\Modules\Requisiciones\Controllers\RequisicionController::class, 'generarPdf']);
         Route::post('/{requisicion}/generar-vale', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'crearDesdeRequisicion']);
     });
 
@@ -218,7 +219,7 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
         Route::get('/movimientos/exportar-pdf', [\App\Modules\Reportes\Controllers\ReporteController::class, 'exportarMovimientosPdf']);
         Route::get('/consumo-centro-costo', [\App\Modules\Reportes\Controllers\ReporteController::class, 'consumoCentroCosto']);
         Route::get('/stock-bajo', [\App\Modules\Reportes\Controllers\ReporteController::class, 'stockBajo']);
-        Route::get('/requisiciones', [\App\Modules\Reportes\Controllers\ReporteController::class, 'requisiciones']);
+        Route::get('/requerimientos', [\App\Modules\Reportes\Controllers\ReporteController::class, 'requisiciones']);
         Route::get('/top-productos', [\App\Modules\Reportes\Controllers\ReporteController::class, 'topProductos']);
         Route::get('/dashboard', [\App\Modules\Reportes\Controllers\ReporteController::class, 'dashboard']);
         Route::get('/dashboard/graficos', [\App\Modules\Reportes\Controllers\ReporteController::class, 'dashboardGraficos']);

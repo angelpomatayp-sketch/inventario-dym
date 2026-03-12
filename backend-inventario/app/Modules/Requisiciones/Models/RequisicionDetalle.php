@@ -11,7 +11,7 @@ class RequisicionDetalle extends Model
 {
     use HasFactory;
 
-    protected $table = 'requisiciones_detalle';
+    protected $table = 'requerimientos_detalle';
 
     protected $fillable = [
         'requisicion_id',

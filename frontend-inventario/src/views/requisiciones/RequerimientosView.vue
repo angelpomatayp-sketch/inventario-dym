@@ -1,0 +1,803 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useToast } from 'primevue/usetoast'
+import { useAuthStore } from '@/stores/auth'
+import api from '@/services/api'
+
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea'
+import Select from 'primevue/select'
+import AutoComplete from 'primevue/autocomplete'
+import DatePicker from 'primevue/datepicker'
+import InputNumber from 'primevue/inputnumber'
+import Card from 'primevue/card'
+import Dialog from 'primevue/dialog'
+import Tag from 'primevue/tag'
+import Divider from 'primevue/divider'
+import Message from 'primevue/message'
+
+const toast     = useToast()
+const authStore = useAuthStore()
+
+// Roles
+const isAdmin      = computed(() => authStore.hasRole('super_admin'))
+const isAlmacenero = computed(() => authStore.hasRole('almacenero'))
+const puedeCrear   = computed(() => isAdmin.value || isAlmacenero.value)
+
+const almacenAsignado = computed(() => authStore.user?.almacen_id || null)
+
+// Estado
+const loading        = ref(false)
+const requerimientos = ref([])
+const totalRecords   = ref(0)
+
+// Filtros
+const searchQuery          = ref('')
+const selectedEstado       = ref(null)
+const selectedPrioridad    = ref(null)
+const showPendientesAprobar = ref(false)
+
+// Dialogos
+const dialogVisible        = ref(false)
+const viewDialogVisible    = ref(false)
+const aprobarDialogVisible = ref(false)
+const rechazarDialogVisible= ref(false)
+const isEditing            = ref(false)
+
+// Datos
+const selectedRequerimiento = ref(null)
+const centrosCosto          = ref([])
+const almacenes             = ref([])
+const productoSuggestions   = ref([])
+const estadisticas          = ref({})
+
+// Formulario
+const formData = ref({
+  centro_costo_id: null,
+  almacen_id:      null,
+  fecha_requerida: null,
+  prioridad:       'NORMAL',
+  motivo:          '',
+  observaciones:   '',
+  detalles:        []
+})
+
+const comentarioAprobacion = ref('')
+
+const estados = ref([
+  { label: 'Todos',      value: null },
+  { label: 'Borrador',   value: 'BORRADOR' },
+  { label: 'Pendiente',  value: 'PENDIENTE' },
+  { label: 'Aprobado',   value: 'APROBADA' },
+  { label: 'Rechazado',  value: 'RECHAZADA' },
+  { label: 'Parcial',    value: 'PARCIAL' },
+  { label: 'Completado', value: 'COMPLETADA' },
+  { label: 'Anulado',    value: 'ANULADA' }
+])
+
+const prioridades = ref([
+  { label: 'Todas',   value: null },
+  { label: 'Baja',    value: 'BAJA' },
+  { label: 'Normal',  value: 'NORMAL' },
+  { label: 'Alta',    value: 'ALTA' },
+  { label: 'Urgente', value: 'URGENTE' }
+])
+
+const prioridadesForm = ref([
+  { label: 'Baja',    value: 'BAJA' },
+  { label: 'Normal',  value: 'NORMAL' },
+  { label: 'Alta',    value: 'ALTA' },
+  { label: 'Urgente', value: 'URGENTE' }
+])
+
+// ======================== CARGA DE DATOS ========================
+
+const loadRequerimientos = async () => {
+  loading.value = true
+  try {
+    const params = {}
+    if (searchQuery.value)          params.search            = searchQuery.value
+    if (selectedEstado.value)       params.estado            = selectedEstado.value
+    if (selectedPrioridad.value)    params.prioridad         = selectedPrioridad.value
+    if (showPendientesAprobar.value) params.pendientes_aprobar = true
+
+    const response = await api.get('/requerimientos', { params })
+    if (response.data.success) {
+      requerimientos.value = response.data.data || []
+      totalRecords.value   = response.data.meta?.total || requerimientos.value.length
+    }
+  } catch (err) {
+    console.error('Error al cargar requerimientos:', err)
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los requerimientos', life: 5000 })
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadCentrosCosto = async () => {
+  try {
+    const response = await api.get('/administracion/centros-costo', { params: { all: true } })
+    if (response.data.success) {
+      centrosCosto.value = response.data.data.map(c => ({ label: c.nombre, value: c.id }))
+    }
+  } catch {}
+}
+
+const loadAlmacenes = async () => {
+  try {
+    const response = await api.get('/administracion/almacenes', { params: { all: true } })
+    if (response.data.success) {
+      almacenes.value = response.data.data.map(a => ({ label: a.nombre, value: a.id }))
+    }
+  } catch {}
+}
+
+const loadEstadisticas = async () => {
+  try {
+    const response = await api.get('/requerimientos/estadisticas')
+    if (response.data.success) estadisticas.value = response.data.data
+  } catch {}
+}
+
+const searchProductos = async (event) => {
+  try {
+    const almacenId = almacenAsignado.value || formData.value.almacen_id || null
+    if (!almacenId) { productoSuggestions.value = []; return }
+
+    const response = await api.get('/inventario/productos', {
+      params: { search: event.query, per_page: 10, almacen_id: almacenId, solo_con_stock: true }
+    })
+    if (response.data.success) {
+      productoSuggestions.value = response.data.data.map(p => ({
+        id: p.id, codigo: p.codigo, nombre: p.nombre,
+        unidad: p.unidad_medida, stock: p.stock_total || 0,
+        label: `${p.codigo} - ${p.nombre}`
+      }))
+    }
+  } catch { productoSuggestions.value = [] }
+}
+
+// ======================== ACCIONES ========================
+
+const openNewDialog = () => {
+  formData.value = {
+    centro_costo_id: null,
+    almacen_id:      almacenAsignado.value || null,
+    fecha_requerida: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    prioridad:       'NORMAL',
+    motivo:          '',
+    observaciones:   '',
+    detalles:        []
+  }
+  isEditing.value    = false
+  dialogVisible.value = true
+}
+
+const editRequerimiento = async (item) => {
+  try {
+    const response = await api.get(`/requerimientos/${item.id}`)
+    if (response.data.success) {
+      const data = response.data.data
+      formData.value = {
+        id:              data.id,
+        centro_costo_id: data.centro_costo_id,
+        almacen_id:      data.almacen_id,
+        fecha_requerida: new Date(data.fecha_requerida),
+        prioridad:       data.prioridad,
+        motivo:          data.motivo,
+        observaciones:   data.observaciones || '',
+        detalles:        data.detalles.map(d => ({
+          id:                  d.id,
+          producto:            { id: d.producto.id, codigo: d.producto.codigo, nombre: d.producto.nombre, unidad: d.producto.unidad_medida, label: `${d.producto.codigo} - ${d.producto.nombre}` },
+          cantidad_solicitada: parseFloat(d.cantidad_solicitada),
+          especificaciones:    d.especificaciones || ''
+        }))
+      }
+      isEditing.value     = true
+      dialogVisible.value = true
+    }
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar el requerimiento', life: 5000 })
+  }
+}
+
+const viewRequerimiento = async (item) => {
+  try {
+    const response = await api.get(`/requerimientos/${item.id}`)
+    if (response.data.success) {
+      selectedRequerimiento.value = response.data.data
+      viewDialogVisible.value     = true
+    }
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar el requerimiento', life: 5000 })
+  }
+}
+
+const addDetalle = () => {
+  formData.value.detalles.push({ producto: null, cantidad_solicitada: 1, especificaciones: '' })
+}
+
+const removeDetalle = (index) => {
+  formData.value.detalles.splice(index, 1)
+}
+
+const saveRequerimiento = async (enviarAprobacion = false) => {
+  if (!formData.value.centro_costo_id) {
+    toast.add({ severity: 'warn', summary: 'Validación', detail: 'Seleccione una obra / unidad', life: 4000 }); return
+  }
+  if (!formData.value.fecha_requerida) {
+    toast.add({ severity: 'warn', summary: 'Validación', detail: 'Seleccione la fecha requerida', life: 4000 }); return
+  }
+  if (!formData.value.motivo?.trim()) {
+    toast.add({ severity: 'warn', summary: 'Validación', detail: 'Ingrese el motivo del requerimiento', life: 4000 }); return
+  }
+  if (formData.value.detalles.length === 0) {
+    toast.add({ severity: 'warn', summary: 'Validación', detail: 'Agregue al menos un producto', life: 4000 }); return
+  }
+  for (let i = 0; i < formData.value.detalles.length; i++) {
+    const det = formData.value.detalles[i]
+    if (!det.producto?.id) {
+      toast.add({ severity: 'warn', summary: 'Validación', detail: `Seleccione un producto en la línea ${i + 1}`, life: 4000 }); return
+    }
+    if (!det.cantidad_solicitada || det.cantidad_solicitada <= 0) {
+      toast.add({ severity: 'warn', summary: 'Validación', detail: `Ingrese cantidad válida en la línea ${i + 1}`, life: 4000 }); return
+    }
+  }
+
+  loading.value = true
+  try {
+    const dataToSend = {
+      centro_costo_id:    formData.value.centro_costo_id,
+      almacen_id:         formData.value.almacen_id,
+      fecha_requerida:    formatDate(formData.value.fecha_requerida),
+      prioridad:          formData.value.prioridad,
+      motivo:             formData.value.motivo,
+      observaciones:      formData.value.observaciones || null,
+      enviar_aprobacion:  enviarAprobacion,
+      detalles:           formData.value.detalles.map(d => ({
+        producto_id:         d.producto.id,
+        cantidad_solicitada: d.cantidad_solicitada,
+        especificaciones:    d.especificaciones || null
+      }))
+    }
+
+    let response
+    if (isEditing.value) {
+      response = await api.put(`/requerimientos/${formData.value.id}`, dataToSend)
+    } else {
+      response = await api.post('/requerimientos', dataToSend)
+    }
+
+    if (response.data.success) {
+      toast.add({ severity: 'success', summary: 'Éxito', detail: response.data.message || 'Requerimiento guardado correctamente', life: 3000 })
+      dialogVisible.value = false
+      loadRequerimientos()
+      loadEstadisticas()
+    }
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.response?.data?.message || 'Error al guardar el requerimiento', life: 5000 })
+  } finally {
+    loading.value = false
+  }
+}
+
+const enviarAprobacion = async (item) => {
+  try {
+    const response = await api.post(`/requerimientos/${item.id}/enviar-aprobacion`)
+    if (response.data.success) {
+      toast.add({ severity: 'success', summary: 'Éxito', detail: 'Requerimiento enviado a aprobación', life: 3000 })
+      loadRequerimientos(); loadEstadisticas()
+    }
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.response?.data?.message || 'Error al enviar a aprobación', life: 5000 })
+  }
+}
+
+const openAprobarDialog = (item) => {
+  selectedRequerimiento.value = item
+  comentarioAprobacion.value  = ''
+  aprobarDialogVisible.value  = true
+}
+
+const openRechazarDialog = (item) => {
+  selectedRequerimiento.value  = item
+  comentarioAprobacion.value   = ''
+  rechazarDialogVisible.value  = true
+}
+
+const aprobarRequerimiento = async () => {
+  try {
+    const response = await api.post(`/requerimientos/${selectedRequerimiento.value.id}/aprobar`, {
+      comentario: comentarioAprobacion.value || null
+    })
+    if (response.data.success) {
+      toast.add({ severity: 'success', summary: 'Aprobado', detail: 'Requerimiento aprobado', life: 3000 })
+      aprobarDialogVisible.value = false
+      loadRequerimientos(); loadEstadisticas()
+    }
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.response?.data?.message || 'Error al aprobar', life: 5000 })
+  }
+}
+
+const rechazarRequerimiento = async () => {
+  if (!comentarioAprobacion.value?.trim()) {
+    toast.add({ severity: 'warn', summary: 'Validación', detail: 'Ingrese el motivo del rechazo', life: 4000 }); return
+  }
+  try {
+    const response = await api.post(`/requerimientos/${selectedRequerimiento.value.id}/rechazar`, {
+      comentario: comentarioAprobacion.value
+    })
+    if (response.data.success) {
+      toast.add({ severity: 'warn', summary: 'Rechazado', detail: 'Requerimiento rechazado', life: 3000 })
+      rechazarDialogVisible.value = false
+      loadRequerimientos(); loadEstadisticas()
+    }
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.response?.data?.message || 'Error al rechazar', life: 5000 })
+  }
+}
+
+const anularRequerimiento = async (item) => {
+  if (!confirm('¿Está seguro de anular este requerimiento?')) return
+  try {
+    const response = await api.post(`/requerimientos/${item.id}/anular`)
+    if (response.data.success) {
+      toast.add({ severity: 'warn', summary: 'Anulado', detail: 'Requerimiento anulado', life: 3000 })
+      loadRequerimientos(); loadEstadisticas()
+    }
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.response?.data?.message || 'Error al anular', life: 5000 })
+  }
+}
+
+const descargarPdf = async (item) => {
+  try {
+    const response = await api.get(`/requerimientos/${item.id}/pdf`, { responseType: 'blob' })
+    if (response.data.type === 'application/json') {
+      const text = await response.data.text()
+      const json = JSON.parse(text)
+      toast.add({ severity: 'error', summary: 'Error PDF', detail: json.message || 'Error al generar PDF', life: 8000 })
+      return
+    }
+    const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  } catch (err) {
+    if (err.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text()
+        const json = JSON.parse(text)
+        toast.add({ severity: 'error', summary: 'Error PDF', detail: json.message || 'Error al generar PDF', life: 8000 })
+        return
+      } catch {}
+    }
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el PDF', life: 5000 })
+  }
+}
+
+// ======================== HELPERS ========================
+
+const formatDate = (date) => {
+  if (!date) return null
+  return new Date(date).toISOString().split('T')[0]
+}
+
+const formatDateDisplay = (dateStr) => {
+  if (!dateStr) return '-'
+  return new Date(dateStr).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+const getEstadoSeverity = (estado) => {
+  const map = { BORRADOR: 'secondary', PENDIENTE: 'warn', APROBADA: 'success', RECHAZADA: 'danger', PARCIAL: 'info', COMPLETADA: 'success', ANULADA: 'secondary' }
+  return map[estado] || 'secondary'
+}
+
+const getPrioridadSeverity = (prioridad) => {
+  const map = { BAJA: 'secondary', NORMAL: 'info', ALTA: 'warn', URGENTE: 'danger' }
+  return map[prioridad] || 'info'
+}
+
+// Reglas de visibilidad por rol
+const canEdit = (item) => {
+  if (!['BORRADOR', 'RECHAZADA'].includes(item.estado)) return false
+  if (isAdmin.value) return true
+  if (isAlmacenero.value) return item.almacenero_id === authStore.user?.id
+  return false
+}
+
+const canEnviar = (item) => {
+  if (item.estado !== 'BORRADOR') return false
+  if (isAdmin.value) return true
+  if (isAlmacenero.value) return item.almacenero_id === authStore.user?.id
+  return false
+}
+
+const canApprove = (item) => {
+  return isAdmin.value && item.estado === 'PENDIENTE'
+}
+
+const canAnular = (item) => {
+  if (['ANULADA', 'COMPLETADA'].includes(item.estado)) return false
+  return isAdmin.value || (isAlmacenero.value && item.almacenero_id === authStore.user?.id)
+}
+
+const minDate = computed(() => new Date())
+
+onMounted(() => {
+  loadRequerimientos()
+  loadCentrosCosto()
+  loadAlmacenes()
+  loadEstadisticas()
+})
+</script>
+
+<template>
+  <div class="space-y-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Requerimientos</h1>
+        <p class="text-gray-600 text-sm mt-1">Solicitudes de materiales al almacén</p>
+      </div>
+      <Button
+        v-if="puedeCrear"
+        label="Nuevo Requerimiento"
+        icon="pi pi-plus"
+        class="!bg-[#1E2D72] !border-[#1E2D72]"
+        @click="openNewDialog"
+      />
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <Card class="!bg-blue-50">
+        <template #content>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-blue-700">{{ estadisticas.total || 0 }}</p>
+            <p class="text-sm text-blue-600">Total</p>
+          </div>
+        </template>
+      </Card>
+      <Card class="!bg-yellow-50">
+        <template #content>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-yellow-700">{{ estadisticas.pendientes || 0 }}</p>
+            <p class="text-sm text-yellow-600">Pendientes</p>
+          </div>
+        </template>
+      </Card>
+      <Card class="!bg-green-50">
+        <template #content>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-green-700">{{ estadisticas.aprobadas || 0 }}</p>
+            <p class="text-sm text-green-600">Aprobados</p>
+          </div>
+        </template>
+      </Card>
+      <Card class="!bg-purple-50">
+        <template #content>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-purple-700">{{ estadisticas.mis_pendientes || 0 }}</p>
+            <p class="text-sm text-purple-600">Mis Pendientes</p>
+          </div>
+        </template>
+      </Card>
+      <Card class="!bg-red-50">
+        <template #content>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-red-700">{{ estadisticas.urgentes || 0 }}</p>
+            <p class="text-sm text-red-600">Urgentes</p>
+          </div>
+        </template>
+      </Card>
+    </div>
+
+    <!-- Filtros -->
+    <Card>
+      <template #content>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <InputText v-model="searchQuery" placeholder="Buscar por número o motivo..." class="w-full" @keyup.enter="loadRequerimientos" />
+          </div>
+          <div>
+            <Select v-model="selectedEstado" :options="estados" optionLabel="label" optionValue="value" placeholder="Estado" class="w-full" @change="loadRequerimientos">
+              <template #value="slotProps">
+                <span v-if="slotProps.value !== null && slotProps.value !== undefined">{{ estados.find(e => e.value === slotProps.value)?.label }}</span>
+                <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+              </template>
+            </Select>
+          </div>
+          <div>
+            <Select v-model="selectedPrioridad" :options="prioridades" optionLabel="label" optionValue="value" placeholder="Prioridad" class="w-full" @change="loadRequerimientos">
+              <template #value="slotProps">
+                <span v-if="slotProps.value !== null && slotProps.value !== undefined">{{ prioridades.find(p => p.value === slotProps.value)?.label }}</span>
+                <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+              </template>
+            </Select>
+          </div>
+          <div class="flex gap-2">
+            <Button label="Buscar" icon="pi pi-search" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="loadRequerimientos" />
+            <Button icon="pi pi-refresh" severity="secondary" outlined @click="searchQuery = ''; selectedEstado = null; selectedPrioridad = null; loadRequerimientos()" />
+          </div>
+        </div>
+      </template>
+    </Card>
+
+    <!-- Tabla -->
+    <Card>
+      <template #content>
+        <DataTable :value="requerimientos" :loading="loading" :paginator="true" :rows="15" :rowsPerPageOptions="[10,15,25,50]" responsiveLayout="scroll" stripedRows class="text-sm">
+          <template #empty>
+            <div class="text-center py-8 text-gray-500">
+              <i class="pi pi-file-edit text-4xl mb-2"></i>
+              <p>No se encontraron requerimientos</p>
+            </div>
+          </template>
+
+          <Column field="numero" header="Número" style="width: 140px">
+            <template #body="{ data }">
+              <span class="font-mono text-blue-600 font-medium">{{ data.numero }}</span>
+            </template>
+          </Column>
+
+          <Column field="fecha_solicitud" header="Fecha" style="width: 100px">
+            <template #body="{ data }">{{ formatDateDisplay(data.fecha_solicitud) }}</template>
+          </Column>
+
+          <Column header="Almacenero" style="min-width: 150px">
+            <template #body="{ data }">{{ data.almacenero?.nombre || '-' }}</template>
+          </Column>
+
+          <Column field="centro_costo.nombre" header="Obra / Unidad" style="min-width: 120px" />
+
+          <Column field="motivo" header="Motivo" style="min-width: 200px">
+            <template #body="{ data }">
+              <span class="line-clamp-2">{{ data.motivo }}</span>
+            </template>
+          </Column>
+
+          <Column field="prioridad" header="Prioridad" style="width: 100px">
+            <template #body="{ data }">
+              <Tag :value="data.prioridad" :severity="getPrioridadSeverity(data.prioridad)" />
+            </template>
+          </Column>
+
+          <Column field="estado" header="Estado" style="width: 110px">
+            <template #body="{ data }">
+              <Tag :value="data.estado" :severity="getEstadoSeverity(data.estado)" />
+            </template>
+          </Column>
+
+          <Column field="detalles_count" header="Items" style="width: 70px" class="text-center">
+            <template #body="{ data }">
+              <span class="bg-gray-100 px-2 py-1 rounded text-sm">{{ data.detalles_count }}</span>
+            </template>
+          </Column>
+
+          <Column header="Acciones" style="width: 200px">
+            <template #body="{ data }">
+              <div class="flex gap-1 flex-wrap">
+                <!-- Ver -->
+                <Button icon="pi pi-eye" severity="info" text rounded size="small" @click="viewRequerimiento(data)" v-tooltip.top="'Ver detalle'" />
+                <!-- PDF -->
+                <Button icon="pi pi-file-pdf" severity="danger" text rounded size="small" @click="descargarPdf(data)" v-tooltip.top="'Descargar PDF'" />
+                <!-- Editar (almacenero dueño o admin) -->
+                <Button v-if="canEdit(data)" icon="pi pi-pencil" severity="secondary" text rounded size="small" @click="editRequerimiento(data)" v-tooltip.top="'Editar'" />
+                <!-- Enviar aprobación -->
+                <Button v-if="canEnviar(data)" icon="pi pi-send" severity="success" text rounded size="small" @click="enviarAprobacion(data)" v-tooltip.top="'Enviar a aprobación'" />
+                <!-- Aprobar (solo admin) -->
+                <Button v-if="canApprove(data)" icon="pi pi-check" severity="success" text rounded size="small" @click="openAprobarDialog(data)" v-tooltip.top="'Aprobar'" />
+                <!-- Rechazar (solo admin) -->
+                <Button v-if="canApprove(data)" icon="pi pi-times" severity="danger" text rounded size="small" @click="openRechazarDialog(data)" v-tooltip.top="'Rechazar'" />
+                <!-- Anular -->
+                <Button v-if="canAnular(data)" icon="pi pi-ban" severity="warn" text rounded size="small" @click="anularRequerimiento(data)" v-tooltip.top="'Anular'" />
+              </div>
+            </template>
+          </Column>
+        </DataTable>
+      </template>
+    </Card>
+
+    <!-- Dialog Crear/Editar -->
+    <Dialog v-model:visible="dialogVisible" :header="isEditing ? 'Editar Requerimiento' : 'Nuevo Requerimiento'" :modal="true" :style="{ width: '90vw', maxWidth: '900px', maxHeight: '90vh' }" :contentStyle="{ overflow: 'auto', maxHeight: 'calc(90vh - 120px)' }">
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Obra / Unidad *</label>
+            <Select v-model="formData.centro_costo_id" :options="centrosCosto" optionLabel="label" optionValue="value" placeholder="Seleccione" class="w-full">
+              <template #value="slotProps">
+                <span v-if="slotProps.value">{{ centrosCosto.find(c => c.value === slotProps.value)?.label }}</span>
+                <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+              </template>
+            </Select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Almacén</label>
+            <Select v-model="formData.almacen_id" :options="almacenes" optionLabel="label" optionValue="value" placeholder="Seleccione (opcional)" class="w-full" showClear>
+              <template #value="slotProps">
+                <span v-if="slotProps.value">{{ almacenes.find(a => a.value === slotProps.value)?.label }}</span>
+                <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+              </template>
+            </Select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Requerida *</label>
+            <DatePicker v-model="formData.fecha_requerida" dateFormat="dd/mm/yy" :minDate="minDate" placeholder="Seleccione fecha" class="w-full" showIcon />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Prioridad *</label>
+            <Select v-model="formData.prioridad" :options="prioridadesForm" optionLabel="label" optionValue="value" class="w-full">
+              <template #value="slotProps">
+                <span v-if="slotProps.value">{{ prioridadesForm.find(p => p.value === slotProps.value)?.label }}</span>
+                <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+              </template>
+            </Select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Motivo del Requerimiento *</label>
+          <Textarea v-model="formData.motivo" rows="2" class="w-full" placeholder="Describa el motivo del requerimiento..." />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+          <Textarea v-model="formData.observaciones" rows="2" class="w-full" placeholder="Observaciones adicionales (opcional)" />
+        </div>
+
+        <Divider />
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-sm font-medium text-gray-700">Productos Requeridos *</label>
+            <Button label="Agregar Producto" icon="pi pi-plus" size="small" severity="secondary" @click="addDetalle" />
+          </div>
+
+          <div v-if="formData.detalles.length === 0" class="text-center py-4 text-gray-500 border rounded">
+            <i class="pi pi-inbox text-2xl mb-2"></i>
+            <p>No hay productos agregados</p>
+          </div>
+
+          <div v-else class="space-y-2">
+            <div v-for="(detalle, index) in formData.detalles" :key="index" class="grid grid-cols-12 gap-2 items-end p-3 bg-gray-50 rounded">
+              <div class="col-span-5">
+                <label class="block text-xs text-gray-500 mb-1">Producto</label>
+                <AutoComplete v-model="detalle.producto" :suggestions="productoSuggestions" optionLabel="label" placeholder="Buscar producto..." class="w-full" @complete="searchProductos" />
+              </div>
+              <div class="col-span-2">
+                <label class="block text-xs text-gray-500 mb-1">Cantidad</label>
+                <InputNumber v-model="detalle.cantidad_solicitada" :min="0.01" :minFractionDigits="0" :maxFractionDigits="2" class="w-full" />
+              </div>
+              <div class="col-span-1 text-center">
+                <label class="block text-xs text-gray-500 mb-1">Und</label>
+                <span class="text-sm">{{ detalle.producto?.unidad || '-' }}</span>
+              </div>
+              <div class="col-span-3">
+                <label class="block text-xs text-gray-500 mb-1">Especificaciones</label>
+                <InputText v-model="detalle.especificaciones" placeholder="Opcional" class="w-full" />
+              </div>
+              <div class="col-span-1">
+                <Button icon="pi pi-trash" severity="danger" text rounded @click="removeDetalle(index)" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <Button label="Cancelar" severity="secondary" @click="dialogVisible = false" />
+        <Button label="Guardar Borrador" icon="pi pi-save" severity="secondary" outlined @click="saveRequerimiento(false)" :loading="loading" />
+        <Button label="Guardar y Enviar" icon="pi pi-send" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="saveRequerimiento(true)" :loading="loading" />
+      </template>
+    </Dialog>
+
+    <!-- Dialog Ver Detalle -->
+    <Dialog v-model:visible="viewDialogVisible" header="Detalle del Requerimiento" :modal="true" :style="{ width: '90vw', maxWidth: '800px', maxHeight: '90vh' }" :contentStyle="{ overflow: 'auto', maxHeight: 'calc(90vh - 120px)' }">
+      <div v-if="selectedRequerimiento" class="space-y-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
+          <div>
+            <p class="text-xs text-gray-500">Número</p>
+            <p class="font-mono font-semibold text-blue-600">{{ selectedRequerimiento.numero }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Estado</p>
+            <Tag :value="selectedRequerimiento.estado" :severity="getEstadoSeverity(selectedRequerimiento.estado)" />
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Prioridad</p>
+            <Tag :value="selectedRequerimiento.prioridad" :severity="getPrioridadSeverity(selectedRequerimiento.prioridad)" />
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Fecha Requerida</p>
+            <p class="font-medium">{{ formatDateDisplay(selectedRequerimiento.fecha_requerida) }}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs text-gray-500">Almacenero</p>
+            <p class="font-medium">{{ selectedRequerimiento.almacenero?.nombre }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Obra / Unidad</p>
+            <p class="font-medium">{{ selectedRequerimiento.centro_costo?.nombre }}</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-xs text-gray-500">Motivo</p>
+          <p>{{ selectedRequerimiento.motivo }}</p>
+        </div>
+
+        <div v-if="selectedRequerimiento.observaciones">
+          <p class="text-xs text-gray-500">Observaciones</p>
+          <p>{{ selectedRequerimiento.observaciones }}</p>
+        </div>
+
+        <div v-if="selectedRequerimiento.comentario_aprobacion" class="bg-blue-50 p-3 rounded">
+          <p class="text-xs text-blue-600">Comentario de {{ selectedRequerimiento.estado === 'APROBADA' ? 'Aprobación' : 'Rechazo' }}</p>
+          <p class="text-blue-800">{{ selectedRequerimiento.comentario_aprobacion }}</p>
+          <p class="text-xs text-blue-500 mt-1">Por: {{ selectedRequerimiento.aprobador?.nombre }} — {{ formatDateDisplay(selectedRequerimiento.fecha_aprobacion) }}</p>
+        </div>
+
+        <Divider />
+
+        <DataTable :value="selectedRequerimiento.detalles" size="small" stripedRows>
+          <Column field="producto.codigo" header="Código" style="width: 100px" />
+          <Column field="producto.nombre" header="Producto" />
+          <Column header="Solicitado" style="width: 100px" class="text-right">
+            <template #body="{ data }">{{ data.cantidad_solicitada }} {{ data.producto?.unidad_medida }}</template>
+          </Column>
+          <Column header="Aprobado" style="width: 100px" class="text-right">
+            <template #body="{ data }">
+              <span v-if="data.cantidad_aprobada !== null">{{ data.cantidad_aprobada }} {{ data.producto?.unidad_medida }}</span>
+              <span v-else class="text-gray-400">-</span>
+            </template>
+          </Column>
+          <Column header="Entregado" style="width: 100px" class="text-right">
+            <template #body="{ data }">{{ data.cantidad_entregada || 0 }} {{ data.producto?.unidad_medida }}</template>
+          </Column>
+        </DataTable>
+      </div>
+
+      <template #footer>
+        <Button label="Descargar PDF" icon="pi pi-file-pdf" severity="danger" outlined @click="descargarPdf(selectedRequerimiento)" />
+        <Button label="Cerrar" severity="secondary" @click="viewDialogVisible = false" />
+      </template>
+    </Dialog>
+
+    <!-- Dialog Aprobar (solo admin) -->
+    <Dialog v-model:visible="aprobarDialogVisible" header="Aprobar Requerimiento" :modal="true" :style="{ width: '450px' }">
+      <div class="space-y-4">
+        <Message severity="info" :closable="false">Se aprobarán todas las cantidades solicitadas</Message>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Comentario (opcional)</label>
+          <Textarea v-model="comentarioAprobacion" rows="3" class="w-full" placeholder="Comentario de aprobación..." />
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Cancelar" severity="secondary" @click="aprobarDialogVisible = false" />
+        <Button label="Aprobar" icon="pi pi-check" severity="success" @click="aprobarRequerimiento" />
+      </template>
+    </Dialog>
+
+    <!-- Dialog Rechazar (solo admin) -->
+    <Dialog v-model:visible="rechazarDialogVisible" header="Rechazar Requerimiento" :modal="true" :style="{ width: '450px' }">
+      <div class="space-y-4">
+        <Message severity="warn" :closable="false">El requerimiento será devuelto al almacenero</Message>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Motivo del rechazo *</label>
+          <Textarea v-model="comentarioAprobacion" rows="3" class="w-full" placeholder="Explique el motivo del rechazo..." />
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Cancelar" severity="secondary" @click="rechazarDialogVisible = false" />
+        <Button label="Rechazar" icon="pi pi-times" severity="danger" @click="rechazarRequerimiento" />
+      </template>
+    </Dialog>
+  </div>
+</template>

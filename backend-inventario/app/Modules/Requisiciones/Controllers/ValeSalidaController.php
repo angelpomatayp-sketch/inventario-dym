@@ -113,7 +113,7 @@ class ValeSalidaController extends Controller
             'fecha' => 'required|date',
             'requisicion_id' => [
                 'nullable',
-                Rule::exists('requisiciones', 'id')->where(fn($q) => $q->where('empresa_id', $empresaId)),
+                Rule::exists('requerimientos', 'id')->where(fn($q) => $q->where('empresa_id', $empresaId)),
             ],
             'receptor_id' => 'nullable|integer',
             'receptor_tipo' => 'nullable|in:trabajador,usuario',
@@ -127,7 +127,7 @@ class ValeSalidaController extends Controller
                 Rule::exists('productos', 'id')->where(fn($q) => $q->where('empresa_id', $empresaId)),
             ],
             'detalles.*.cantidad_solicitada' => 'required|numeric|min:0.01',
-            'detalles.*.requisicion_detalle_id' => 'nullable|exists:requisiciones_detalle,id',
+            'detalles.*.requisicion_detalle_id' => 'nullable|exists:requerimientos_detalle,id',
         ], [
             'almacen_id.required' => 'El almacen es requerido',
             'centro_costo_id.required' => 'El centro de costo es requerido',
@@ -226,7 +226,7 @@ class ValeSalidaController extends Controller
             'receptor_dni' => 'nullable|string|max:15',
             'observaciones' => 'nullable|string|max:1000',
             'detalles' => 'required|array|min:1',
-            'detalles.*.requisicion_detalle_id' => 'required|exists:requisiciones_detalle,id',
+            'detalles.*.requisicion_detalle_id' => 'required|exists:requerimientos_detalle,id',
             'detalles.*.cantidad' => 'required|numeric|min:0.01',
         ]);
 
@@ -254,7 +254,7 @@ class ValeSalidaController extends Controller
                 'requisicion_id' => $requisicion->id,
                 'almacen_id' => $request->almacen_id,
                 'centro_costo_id' => $requisicion->centro_costo_id,
-                'solicitante_id' => $requisicion->solicitante_id,
+                'solicitante_id' => $requisicion->almacenero_id,
                 'despachador_id' => $request->user()->id,
                 'receptor_id' => $receptor['receptor_id'],
                 'fecha' => now()->toDateString(),
@@ -526,7 +526,7 @@ class ValeSalidaController extends Controller
     {
         $empresaId = $request->user()->empresa_id;
 
-        $query = Requisicion::with(['detalles.producto', 'solicitante', 'centroCosto'])
+        $query = Requisicion::with(['detalles.producto', 'almacenero', 'centroCosto'])
             ->where('empresa_id', $empresaId)
             ->whereIn('estado', [Requisicion::ESTADO_APROBADA, Requisicion::ESTADO_PARCIAL])
             ->orderBy('fecha_solicitud', 'desc');

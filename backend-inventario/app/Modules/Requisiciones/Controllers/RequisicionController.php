@@ -7,6 +7,7 @@ use App\Modules\Requisiciones\Models\Requisicion;
 use App\Modules\Requisiciones\Models\RequisicionDetalle;
 use App\Shared\Traits\ApiResponse;
 use App\Shared\Traits\FiltrosPorRol;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,26 +18,26 @@ class RequisicionController extends Controller
     use ApiResponse, FiltrosPorRol;
 
     /**
-     * Listar requisiciones.
+     * Listar requerimientos.
      */
     public function index(Request $request): JsonResponse
     {
         $query = Requisicion::with([
-            'solicitante:id,nombre',
+            'almacenero:id,nombre',
             'centroCosto:id,nombre',
             'almacen:id,nombre',
             'aprobador:id,nombre',
         ])->withCount('detalles');
 
-        // Filtro por empresa (multi-tenancy)
         if ($request->user()->empresa_id) {
             $query->where('empresa_id', $request->user()->empresa_id);
         }
 
-        // Filtro por centro de costo según rol (asistentes/residentes/solicitantes solo ven su centro de costo)
-        $this->aplicarFiltroCentroCosto($query, $request);
+        // Almacenero solo ve sus propios requerimientos
+        if ($request->user()->hasAnyRole(['almacenero'])) {
+            $query->where('almacenero_id', $request->user()->id);
+        }
 
-        // Filtros
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -57,16 +58,6 @@ class RequisicionController extends Controller
             $query->where('centro_costo_id', $request->centro_costo_id);
         }
 
-        if ($request->filled('solicitante_id')) {
-            $query->where('solicitante_id', $request->solicitante_id);
-        }
-
-        // Filtro "mis requisiciones"
-        if ($request->boolean('mis_requisiciones')) {
-            $query->where('solicitante_id', $request->user()->id);
-        }
-
-        // Filtro "pendientes de aprobar"
         if ($request->boolean('pendientes_aprobar')) {
             $query->where('estado', Requisicion::ESTADO_PENDIENTE);
         }
@@ -75,7 +66,6 @@ class RequisicionController extends Controller
             $query->whereBetween('fecha_solicitud', [$request->fecha_inicio, $request->fecha_fin]);
         }
 
-        // Ordenamiento
         [$sortField, $sortOrder] = $this->sanitizarOrden(
             ['fecha_solicitud', 'numero', 'estado', 'created_at'],
             'fecha_solicitud',
@@ -84,114 +74,107 @@ class RequisicionController extends Controller
         );
         $query->orderBy($sortField, $sortOrder)->orderBy('id', 'desc');
 
-        // Paginacion
         $perPage = $this->resolvePerPage($request, 15, 100);
-        $requisiciones = $query->paginate($perPage);
+        $requerimientos = $query->paginate($perPage);
 
-        return $this->paginated($requisiciones);
+        return $this->paginated($requerimientos);
     }
 
     /**
-     * Crear requisicion.
+     * Crear requerimiento. Solo almaceneros y admin.
      */
     public function store(Request $request): JsonResponse
     {
+        if (!$request->user()->hasAnyRole(['almacenero', 'super_admin'])) {
+            return $this->error('Solo los almaceneros pueden crear requerimientos', 403);
+        }
+
         $request->validate([
             'centro_costo_id' => 'required|exists:centros_costos,id',
-            'almacen_id' => 'nullable|exists:almacenes,id',
+            'almacen_id'      => 'nullable|exists:almacenes,id',
             'fecha_requerida' => 'required|date|after_or_equal:today',
-            'prioridad' => 'required|in:BAJA,NORMAL,ALTA,URGENTE',
-            'motivo' => 'required|string|max:500',
-            'observaciones' => 'nullable|string|max:1000',
-            'detalles' => 'required|array|min:1',
-            'detalles.*.producto_id' => 'required|exists:productos,id',
+            'prioridad'       => 'required|in:BAJA,NORMAL,ALTA,URGENTE',
+            'motivo'          => 'required|string|max:500',
+            'observaciones'   => 'nullable|string|max:1000',
+            'detalles'        => 'required|array|min:1',
+            'detalles.*.producto_id'         => 'required|exists:productos,id',
             'detalles.*.cantidad_solicitada' => 'required|numeric|min:0.01',
-            'detalles.*.especificaciones' => 'nullable|string|max:500',
+            'detalles.*.especificaciones'    => 'nullable|string|max:500',
         ], [
-            'centro_costo_id.required' => 'El centro de costo es requerido',
-            'fecha_requerida.required' => 'La fecha requerida es obligatoria',
-            'fecha_requerida.after_or_equal' => 'La fecha requerida debe ser hoy o posterior',
-            'prioridad.required' => 'La prioridad es requerida',
-            'motivo.required' => 'El motivo es requerido',
-            'detalles.required' => 'Debe agregar al menos un producto',
-            'detalles.*.producto_id.required' => 'El producto es requerido',
-            'detalles.*.cantidad_solicitada.required' => 'La cantidad es requerida',
-            'detalles.*.cantidad_solicitada.min' => 'La cantidad debe ser mayor a 0',
+            'centro_costo_id.required'               => 'El centro de costo es requerido',
+            'fecha_requerida.required'               => 'La fecha requerida es obligatoria',
+            'fecha_requerida.after_or_equal'         => 'La fecha requerida debe ser hoy o posterior',
+            'prioridad.required'                     => 'La prioridad es requerida',
+            'motivo.required'                        => 'El motivo es requerido',
+            'detalles.required'                      => 'Debe agregar al menos un producto',
+            'detalles.*.producto_id.required'        => 'El producto es requerido',
+            'detalles.*.cantidad_solicitada.required'=> 'La cantidad es requerida',
+            'detalles.*.cantidad_solicitada.min'     => 'La cantidad debe ser mayor a 0',
         ]);
-
-        // Validar acceso por centro de costo (usuarios restringidos solo pueden crear para su centro de costo)
-        $centroCostoAsignado = $this->getCentroCostoAsignado($request);
-        if ($centroCostoAsignado && $request->centro_costo_id != $centroCostoAsignado) {
-            return $this->error('Solo puede crear requisiciones para su centro de costo asignado', 403);
-        }
 
         $empresaId = $request->user()->empresa_id;
 
         try {
             DB::beginTransaction();
 
-            // Generar numero de requisicion
             $numero = $this->generarNumero($empresaId);
 
-            // Determinar estado inicial
             $estado = $request->boolean('enviar_aprobacion')
                 ? Requisicion::ESTADO_PENDIENTE
                 : Requisicion::ESTADO_BORRADOR;
 
-            // Crear requisicion
-            $requisicion = Requisicion::create([
-                'empresa_id' => $empresaId,
-                'numero' => $numero,
-                'solicitante_id' => $request->user()->id,
+            $requerimiento = Requisicion::create([
+                'empresa_id'      => $empresaId,
+                'numero'          => $numero,
+                'almacenero_id'   => $request->user()->id,
                 'centro_costo_id' => $request->centro_costo_id,
-                'almacen_id' => $request->almacen_id,
+                'almacen_id'      => $request->almacen_id,
                 'fecha_solicitud' => now()->toDateString(),
                 'fecha_requerida' => $request->fecha_requerida,
-                'prioridad' => $request->prioridad,
-                'estado' => $estado,
-                'motivo' => $request->motivo,
-                'observaciones' => $request->observaciones,
+                'prioridad'       => $request->prioridad,
+                'estado'          => $estado,
+                'motivo'          => $request->motivo,
+                'observaciones'   => $request->observaciones,
             ]);
 
-            // Crear detalles
             foreach ($request->detalles as $detalle) {
                 RequisicionDetalle::create([
-                    'requisicion_id' => $requisicion->id,
-                    'producto_id' => $detalle['producto_id'],
+                    'requisicion_id'      => $requerimiento->id,
+                    'producto_id'         => $detalle['producto_id'],
                     'cantidad_solicitada' => $detalle['cantidad_solicitada'],
-                    'especificaciones' => $detalle['especificaciones'] ?? null,
+                    'especificaciones'    => $detalle['especificaciones'] ?? null,
                 ]);
             }
 
             DB::commit();
 
-            $requisicion->load(['detalles.producto', 'solicitante', 'centroCosto', 'almacen']);
+            $requerimiento->load(['detalles.producto', 'almacenero', 'centroCosto', 'almacen']);
 
             $mensaje = $estado === Requisicion::ESTADO_PENDIENTE
-                ? 'Requisicion creada y enviada a aprobacion'
-                : 'Requisicion guardada como borrador';
+                ? 'Requerimiento creado y enviado a aprobación'
+                : 'Requerimiento guardado como borrador';
 
-            return $this->created($requisicion, $mensaje);
+            return $this->created($requerimiento, $mensaje);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error al crear requisición', [
+            Log::error('Error al crear requerimiento', [
                 'empresa_id' => $empresaId,
-                'user_id' => $request->user()->id,
-                'error' => $e->getMessage(),
+                'user_id'    => $request->user()->id,
+                'error'      => $e->getMessage(),
             ]);
-            return $this->serverError('Error interno al crear la requisición');
+            return $this->serverError('Error interno al crear el requerimiento');
         }
     }
 
     /**
-     * Mostrar requisicion.
+     * Mostrar requerimiento.
      */
     public function show(Requisicion $requisicion): JsonResponse
     {
         $requisicion->load([
             'detalles.producto.familia',
-            'solicitante',
+            'almacenero',
             'centroCosto',
             'almacen',
             'aprobador',
@@ -202,118 +185,138 @@ class RequisicionController extends Controller
     }
 
     /**
-     * Actualizar requisicion.
+     * Actualizar requerimiento. Solo almaceneros (dueño) y admin.
      */
     public function update(Request $request, Requisicion $requisicion): JsonResponse
     {
+        $user = $request->user();
+
+        if (!$user->hasAnyRole(['almacenero', 'super_admin'])) {
+            return $this->error('No tiene permiso para editar requerimientos', 403);
+        }
+
+        // El almacenero solo puede editar sus propios requerimientos
+        if ($user->hasAnyRole(['almacenero']) && $requisicion->almacenero_id !== $user->id) {
+            return $this->error('Solo puede editar sus propios requerimientos', 403);
+        }
+
         if (!$requisicion->puedeEditarse()) {
-            return $this->error('Esta requisicion no puede ser editada en su estado actual', 422);
+            return $this->error('Este requerimiento no puede ser editado en su estado actual', 422);
         }
 
         $request->validate([
             'centro_costo_id' => 'required|exists:centros_costos,id',
-            'almacen_id' => 'nullable|exists:almacenes,id',
+            'almacen_id'      => 'nullable|exists:almacenes,id',
             'fecha_requerida' => 'required|date|after_or_equal:today',
-            'prioridad' => 'required|in:BAJA,NORMAL,ALTA,URGENTE',
-            'motivo' => 'required|string|max:500',
-            'observaciones' => 'nullable|string|max:1000',
-            'detalles' => 'required|array|min:1',
-            'detalles.*.producto_id' => 'required|exists:productos,id',
+            'prioridad'       => 'required|in:BAJA,NORMAL,ALTA,URGENTE',
+            'motivo'          => 'required|string|max:500',
+            'observaciones'   => 'nullable|string|max:1000',
+            'detalles'        => 'required|array|min:1',
+            'detalles.*.producto_id'         => 'required|exists:productos,id',
             'detalles.*.cantidad_solicitada' => 'required|numeric|min:0.01',
-            'detalles.*.especificaciones' => 'nullable|string|max:500',
+            'detalles.*.especificaciones'    => 'nullable|string|max:500',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Determinar estado
             $estado = $request->boolean('enviar_aprobacion')
                 ? Requisicion::ESTADO_PENDIENTE
                 : Requisicion::ESTADO_BORRADOR;
 
-            // Actualizar requisicion
             $requisicion->update([
-                'centro_costo_id' => $request->centro_costo_id,
-                'almacen_id' => $request->almacen_id,
-                'fecha_requerida' => $request->fecha_requerida,
-                'prioridad' => $request->prioridad,
-                'estado' => $estado,
-                'motivo' => $request->motivo,
-                'observaciones' => $request->observaciones,
-                // Limpiar datos de rechazo previo
-                'aprobado_por' => null,
-                'fecha_aprobacion' => null,
-                'comentario_aprobacion' => null,
+                'centro_costo_id'        => $request->centro_costo_id,
+                'almacen_id'             => $request->almacen_id,
+                'fecha_requerida'        => $request->fecha_requerida,
+                'prioridad'              => $request->prioridad,
+                'estado'                 => $estado,
+                'motivo'                 => $request->motivo,
+                'observaciones'          => $request->observaciones,
+                'aprobado_por'           => null,
+                'fecha_aprobacion'       => null,
+                'comentario_aprobacion'  => null,
             ]);
 
-            // Eliminar detalles anteriores y crear nuevos
             $requisicion->detalles()->delete();
 
             foreach ($request->detalles as $detalle) {
                 RequisicionDetalle::create([
-                    'requisicion_id' => $requisicion->id,
-                    'producto_id' => $detalle['producto_id'],
+                    'requisicion_id'      => $requisicion->id,
+                    'producto_id'         => $detalle['producto_id'],
                     'cantidad_solicitada' => $detalle['cantidad_solicitada'],
-                    'especificaciones' => $detalle['especificaciones'] ?? null,
+                    'especificaciones'    => $detalle['especificaciones'] ?? null,
                 ]);
             }
 
             DB::commit();
 
-            $requisicion->load(['detalles.producto', 'solicitante', 'centroCosto', 'almacen']);
+            $requisicion->load(['detalles.producto', 'almacenero', 'centroCosto', 'almacen']);
 
-            return $this->success($requisicion, 'Requisicion actualizada exitosamente');
+            return $this->success($requisicion, 'Requerimiento actualizado exitosamente');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error al actualizar requisición', [
-                'empresa_id' => $requisicion->empresa_id,
-                'user_id' => $request->user()->id,
-                'requisicion_id' => $requisicion->id,
-                'error' => $e->getMessage(),
+            Log::error('Error al actualizar requerimiento', [
+                'empresa_id'      => $requisicion->empresa_id,
+                'user_id'         => $request->user()->id,
+                'requerimiento_id'=> $requisicion->id,
+                'error'           => $e->getMessage(),
             ]);
-            return $this->serverError('Error interno al actualizar la requisición');
+            return $this->serverError('Error interno al actualizar el requerimiento');
         }
     }
 
     /**
-     * Enviar a aprobacion.
+     * Enviar a aprobación. Solo almaceneros (dueño) y admin.
      */
-    public function enviarAprobacion(Requisicion $requisicion): JsonResponse
+    public function enviarAprobacion(Request $request, Requisicion $requisicion): JsonResponse
     {
+        $user = $request->user();
+
+        if (!$user->hasAnyRole(['almacenero', 'super_admin'])) {
+            return $this->error('No tiene permiso para esta acción', 403);
+        }
+
+        if ($user->hasAnyRole(['almacenero']) && $requisicion->almacenero_id !== $user->id) {
+            return $this->error('Solo puede enviar sus propios requerimientos', 403);
+        }
+
         if ($requisicion->estado !== Requisicion::ESTADO_BORRADOR) {
-            return $this->error('Solo las requisiciones en borrador pueden enviarse a aprobacion', 422);
+            return $this->error('Solo los requerimientos en borrador pueden enviarse a aprobación', 422);
         }
 
         if ($requisicion->detalles()->count() === 0) {
-            return $this->error('La requisicion debe tener al menos un producto', 422);
+            return $this->error('El requerimiento debe tener al menos un producto', 422);
         }
 
         $requisicion->enviarAprobacion();
 
-        return $this->success($requisicion, 'Requisicion enviada a aprobacion');
+        return $this->success($requisicion, 'Requerimiento enviado a aprobación');
     }
 
     /**
-     * Aprobar requisicion.
+     * Aprobar requerimiento. Solo admin (super_admin).
      */
     public function aprobar(Request $request, Requisicion $requisicion): JsonResponse
     {
+        if (!$request->user()->hasAnyRole(['super_admin'])) {
+            return $this->error('Solo el administrador puede aprobar requerimientos', 403);
+        }
+
         if (!$requisicion->puedeAprobarse()) {
-            return $this->error('Esta requisicion no puede ser aprobada en su estado actual', 422);
+            return $this->error('Este requerimiento no puede ser aprobado en su estado actual', 422);
         }
 
         $request->validate([
-            'comentario' => 'nullable|string|max:500',
-            'cantidades_aprobadas' => 'nullable|array',
-            'cantidades_aprobadas.*.detalle_id' => 'required|exists:requisiciones_detalle,id',
-            'cantidades_aprobadas.*.cantidad' => 'required|numeric|min:0',
+            'comentario'                        => 'nullable|string|max:500',
+            'cantidades_aprobadas'              => 'nullable|array',
+            'cantidades_aprobadas.*.detalle_id' => 'required|exists:requerimientos_detalle,id',
+            'cantidades_aprobadas.*.cantidad'   => 'required|numeric|min:0',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Actualizar cantidades aprobadas si se especificaron
             if ($request->filled('cantidades_aprobadas')) {
                 foreach ($request->cantidades_aprobadas as $item) {
                     RequisicionDetalle::where('id', $item['detalle_id'])
@@ -321,7 +324,6 @@ class RequisicionController extends Controller
                         ->update(['cantidad_aprobada' => $item['cantidad']]);
                 }
             } else {
-                // Si no se especifican, aprobar todas las cantidades solicitadas
                 $requisicion->detalles()->update([
                     'cantidad_aprobada' => DB::raw('cantidad_solicitada')
                 ]);
@@ -331,27 +333,31 @@ class RequisicionController extends Controller
 
             DB::commit();
 
-            return $this->success($requisicion->fresh(), 'Requisicion aprobada exitosamente');
+            return $this->success($requisicion->fresh(), 'Requerimiento aprobado exitosamente');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error al aprobar requisición', [
-                'empresa_id' => $requisicion->empresa_id,
-                'user_id' => $request->user()->id,
-                'requisicion_id' => $requisicion->id,
-                'error' => $e->getMessage(),
+            Log::error('Error al aprobar requerimiento', [
+                'empresa_id'      => $requisicion->empresa_id,
+                'user_id'         => $request->user()->id,
+                'requerimiento_id'=> $requisicion->id,
+                'error'           => $e->getMessage(),
             ]);
-            return $this->serverError('Error interno al aprobar la requisición');
+            return $this->serverError('Error interno al aprobar el requerimiento');
         }
     }
 
     /**
-     * Rechazar requisicion.
+     * Rechazar requerimiento. Solo admin (super_admin).
      */
     public function rechazar(Request $request, Requisicion $requisicion): JsonResponse
     {
+        if (!$request->user()->hasAnyRole(['super_admin'])) {
+            return $this->error('Solo el administrador puede rechazar requerimientos', 403);
+        }
+
         if (!$requisicion->puedeAprobarse()) {
-            return $this->error('Esta requisicion no puede ser rechazada en su estado actual', 422);
+            return $this->error('Este requerimiento no puede ser rechazado en su estado actual', 422);
         }
 
         $request->validate([
@@ -362,71 +368,124 @@ class RequisicionController extends Controller
 
         $requisicion->rechazar($request->user()->id, $request->comentario);
 
-        return $this->success($requisicion, 'Requisicion rechazada');
+        return $this->success($requisicion, 'Requerimiento rechazado');
     }
 
     /**
-     * Anular requisicion.
+     * Anular requerimiento.
      */
     public function anular(Request $request, Requisicion $requisicion): JsonResponse
     {
-        if (!$requisicion->puedeAnularse()) {
-            return $this->error('Esta requisicion no puede ser anulada', 422);
+        $user = $request->user();
+
+        // Almacenero solo anula los suyos; admin puede anular cualquiera
+        if ($user->hasAnyRole(['almacenero']) && $requisicion->almacenero_id !== $user->id) {
+            return $this->error('Solo puede anular sus propios requerimientos', 403);
         }
 
-        $requisicion->anular($request->user()->id);
+        if (!$requisicion->puedeAnularse()) {
+            return $this->error('Este requerimiento no puede ser anulado', 422);
+        }
 
-        return $this->success($requisicion, 'Requisicion anulada exitosamente');
+        $requisicion->anular($user->id);
+
+        return $this->success($requisicion, 'Requerimiento anulado exitosamente');
     }
 
     /**
-     * Eliminar requisicion (solo borradores).
+     * Eliminar requerimiento (solo borradores).
      */
-    public function destroy(Requisicion $requisicion): JsonResponse
+    public function destroy(Request $request, Requisicion $requisicion): JsonResponse
     {
+        $user = $request->user();
+
+        if (!$user->hasAnyRole(['almacenero', 'super_admin'])) {
+            return $this->error('No tiene permiso para eliminar requerimientos', 403);
+        }
+
+        if ($user->hasAnyRole(['almacenero']) && $requisicion->almacenero_id !== $user->id) {
+            return $this->error('Solo puede eliminar sus propios requerimientos', 403);
+        }
+
         if ($requisicion->estado !== Requisicion::ESTADO_BORRADOR) {
-            return $this->error('Solo las requisiciones en borrador pueden eliminarse', 422);
+            return $this->error('Solo los requerimientos en borrador pueden eliminarse', 422);
         }
 
         $requisicion->detalles()->delete();
         $requisicion->delete();
 
-        return $this->success(null, 'Requisicion eliminada exitosamente');
+        return $this->success(null, 'Requerimiento eliminado exitosamente');
     }
 
     /**
-     * Obtener estadisticas de requisiciones.
+     * Estadísticas de requerimientos.
      */
     public function estadisticas(Request $request): JsonResponse
     {
         $empresaId = $request->user()->empresa_id;
+        $userId    = $request->user()->id;
+
+        $base = Requisicion::where('empresa_id', $empresaId);
+
+        // Almacenero solo ve sus propios stats
+        if ($request->user()->hasAnyRole(['almacenero'])) {
+            $base->where('almacenero_id', $userId);
+        }
 
         $stats = [
-            'total' => Requisicion::where('empresa_id', $empresaId)->count(),
-            'pendientes' => Requisicion::where('empresa_id', $empresaId)
-                ->where('estado', Requisicion::ESTADO_PENDIENTE)->count(),
-            'aprobadas' => Requisicion::where('empresa_id', $empresaId)
-                ->where('estado', Requisicion::ESTADO_APROBADA)->count(),
-            'mis_pendientes' => Requisicion::where('empresa_id', $empresaId)
-                ->where('solicitante_id', $request->user()->id)
-                ->where('estado', Requisicion::ESTADO_PENDIENTE)->count(),
-            'urgentes' => Requisicion::where('empresa_id', $empresaId)
-                ->where('prioridad', Requisicion::PRIORIDAD_URGENTE)
-                ->whereIn('estado', [Requisicion::ESTADO_PENDIENTE, Requisicion::ESTADO_APROBADA])
-                ->count(),
+            'total'        => (clone $base)->count(),
+            'pendientes'   => (clone $base)->where('estado', Requisicion::ESTADO_PENDIENTE)->count(),
+            'aprobadas'    => (clone $base)->where('estado', Requisicion::ESTADO_APROBADA)->count(),
+            'mis_pendientes'=> (clone $base)->where('almacenero_id', $userId)->where('estado', Requisicion::ESTADO_PENDIENTE)->count(),
+            'urgentes'     => (clone $base)->where('prioridad', Requisicion::PRIORIDAD_URGENTE)
+                                           ->whereIn('estado', [Requisicion::ESTADO_PENDIENTE, Requisicion::ESTADO_APROBADA])
+                                           ->count(),
         ];
 
         return $this->success($stats);
     }
 
     /**
-     * Generar numero de requisicion.
+     * Generar PDF del requerimiento.
+     */
+    public function generarPdf(Requisicion $requisicion): \Symfony\Component\HttpFoundation\Response
+    {
+        $requisicion->load([
+            'detalles.producto',
+            'almacenero',
+            'centroCosto',
+            'almacen',
+            'aprobador',
+        ]);
+
+        try {
+            $pdf = Pdf::loadView('pdf.requerimiento', ['requerimiento' => $requisicion]);
+            $pdf->setPaper('A4', 'portrait');
+            $pdfContent = $pdf->output();
+        } catch (\Throwable $e) {
+            Log::error('Error generando PDF requerimiento', [
+                'requerimiento_id' => $requisicion->id,
+                'error'            => $e->getMessage(),
+            ]);
+            return response()->json(['message' => 'Error al generar el PDF: ' . $e->getMessage()], 500);
+        }
+
+        $filename = 'requerimiento-' . $requisicion->numero . '.pdf';
+
+        return response($pdfContent, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Generar número de requerimiento.
      */
     private function generarNumero(int $empresaId): string
     {
-        $año = date('Y');
-        $mes = date('m');
-        $prefijo = "REQ-{$año}{$mes}-";
+        $año    = date('Y');
+        $mes    = date('m');
+        $prefijo = "RQ-{$año}{$mes}-";
 
         $ultimoNumero = Requisicion::where('empresa_id', $empresaId)
             ->where('numero', 'like', $prefijo . '%')
@@ -436,7 +495,7 @@ class RequisicionController extends Controller
 
         $secuencia = 1;
         if ($ultimoNumero) {
-            $partes = explode('-', $ultimoNumero);
+            $partes    = explode('-', $ultimoNumero);
             $secuencia = (int) end($partes) + 1;
         }
 

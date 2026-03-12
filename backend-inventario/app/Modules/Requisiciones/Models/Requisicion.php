@@ -19,7 +19,7 @@ class Requisicion extends Model implements Auditable
 {
     use HasFactory, SoftDeletes, PerteneceAEmpresa, AuditableTrait;
 
-    protected $table = 'requisiciones';
+    protected $table = 'requerimientos';
 
     // Estados
     const ESTADO_BORRADOR = 'BORRADOR';
@@ -39,7 +39,7 @@ class Requisicion extends Model implements Auditable
     protected $fillable = [
         'empresa_id',
         'numero',
-        'solicitante_id',
+        'almacenero_id',
         'centro_costo_id',
         'almacen_id',
         'fecha_solicitud',
@@ -72,9 +72,9 @@ class Requisicion extends Model implements Auditable
         return $this->belongsTo(Empresa::class, 'empresa_id');
     }
 
-    public function solicitante(): BelongsTo
+    public function almacenero(): BelongsTo
     {
-        return $this->belongsTo(Usuario::class, 'solicitante_id');
+        return $this->belongsTo(Usuario::class, 'almacenero_id');
     }
 
     public function centroCosto(): BelongsTo
@@ -119,9 +119,9 @@ class Requisicion extends Model implements Auditable
         return $query->whereBetween('fecha_solicitud', [$fechaInicio, $fechaFin]);
     }
 
-    public function scopeDelSolicitante($query, $usuarioId)
+    public function scopeDelAlmacenero($query, $usuarioId)
     {
-        return $query->where('solicitante_id', $usuarioId);
+        return $query->where('almacenero_id', $usuarioId);
     }
 
     public function scopeDelCentroCosto($query, $centroCostoId)

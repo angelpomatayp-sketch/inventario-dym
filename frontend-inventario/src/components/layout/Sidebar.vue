@@ -49,11 +49,11 @@ const menuItemsBase = [
     ]
   },
   {
-    label: 'Requisiciones',
+    label: 'Requerimientos',
     icon: 'pi-file-edit',
     children: [
-      { label: 'Solicitudes', icon: 'pi-file-edit', to: '/requisiciones', permission: 'requisiciones.ver' },
-      { label: 'Vales de Salida', icon: 'pi-sign-out', to: '/requisiciones/vales-salida', permission: 'vales_salida.ver' }
+      { label: 'Requerimientos', icon: 'pi-file-edit', to: '/requerimientos', permission: 'requisiciones.ver' },
+      { label: 'Vales de Salida', icon: 'pi-sign-out', to: '/requerimientos/vales-salida', permission: 'vales_salida.ver' }
     ]
   },
   {

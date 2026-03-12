@@ -11,7 +11,7 @@ const Movimientos = () => import('@/views/inventario/MovimientosView.vue')
 const Kardex = () => import('@/views/inventario/KardexView.vue')
 const Familias = () => import('@/views/inventario/FamiliasView.vue')
 const Unidades = () => import('@/views/inventario/UnidadesView.vue')
-const Requisiciones = () => import('@/views/requisiciones/RequisicionesView.vue')
+const Requerimientos = () => import('@/views/requisiciones/RequerimientosView.vue')
 const ValesSalida = () => import('@/views/requisiciones/ValesSalidaView.vue')
 const OrdenesCompra = () => import('@/views/compras/OrdenesCompraView.vue')
 const Cotizaciones = () => import('@/views/compras/CotizacionesView.vue')
@@ -68,18 +68,18 @@ const routes = [
         component: Unidades,
         meta: { title: 'Unidades de Medida', icon: 'pi-calculator', parent: 'Inventario' }
       },
-      // Requisiciones
+      // Requerimientos
       {
-        path: 'requisiciones',
-        name: 'requisiciones',
-        component: Requisiciones,
-        meta: { title: 'Requisiciones', icon: 'pi-file-edit', permission: 'requisiciones.ver' }
+        path: 'requerimientos',
+        name: 'requerimientos',
+        component: Requerimientos,
+        meta: { title: 'Requerimientos', icon: 'pi-file-edit', permission: 'requisiciones.ver' }
       },
       {
-        path: 'requisiciones/vales-salida',
+        path: 'requerimientos/vales-salida',
         name: 'vales-salida',
         component: ValesSalida,
-        meta: { title: 'Vales de Salida', icon: 'pi-sign-out', parent: 'Requisiciones' }
+        meta: { title: 'Vales de Salida', icon: 'pi-sign-out', parent: 'Requerimientos' }
       },
       // Compras
       {
