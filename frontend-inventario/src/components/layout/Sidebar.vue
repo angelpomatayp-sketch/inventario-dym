@@ -159,7 +159,7 @@ const navigateTo = (path) => {
     </div>
 
     <!-- Menu -->
-    <nav class="flex-1 overflow-y-auto py-4 px-2">
+    <nav class="flex-1 overflow-y-auto py-4 px-2" translate="no">
       <ul class="space-y-1">
         <li v-for="item in menuItems" :key="item.label">
           <!-- Item con hijos (submenu) -->
@@ -219,7 +219,7 @@ const navigateTo = (path) => {
     </nav>
 
     <!-- Footer del sidebar -->
-    <div class="p-3 border-t border-[#1976D2]">
+    <div class="p-3 border-t border-[#1976D2]" translate="no">
       <button
         @click="emit('toggle')"
         class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-300 hover:bg-[#1976D2] hover:text-white transition-colors"
