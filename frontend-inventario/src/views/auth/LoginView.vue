@@ -63,7 +63,7 @@ onMounted(() => {
       <!-- Logo y título -->
       <div class="text-center mb-6">
         <div class="inline-flex items-center justify-center mb-3">
-          <img src="/LOGO2.png" alt="CAP Pacifico" class="w-auto" style="height: 109px; filter: drop-shadow(0 0 18px rgba(255,255,255,1)) drop-shadow(0 0 35px rgba(255,255,255,0.75)) drop-shadow(0 4px 14px rgba(255,255,255,0.5));" />
+          <img src="/logopacifico.jpeg" alt="CAP Pacifico" class="w-auto" style="height: 109px; filter: drop-shadow(0 0 18px rgba(255,255,255,1)) drop-shadow(0 0 35px rgba(255,255,255,0.75)) drop-shadow(0 4px 14px rgba(255,255,255,0.5));" />
         </div>
         <h1 class="text-2xl font-bold text-white">Sistema de Inventario</h1>
         <p class="text-gray-400 mt-1">KardexOne</p>
