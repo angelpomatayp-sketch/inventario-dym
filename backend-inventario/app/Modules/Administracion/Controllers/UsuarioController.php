@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class UsuarioController extends Controller
 {
@@ -113,7 +114,7 @@ class UsuarioController extends Controller
     {
         $request->validate([
             'nombre' => 'required|string|max:255',
-            'email' => 'required|email|unique:usuarios,email',
+            'email' => ['required', 'email', Rule::unique('usuarios', 'email')->whereNull('deleted_at')],
             'password' => 'required|string|min:8|confirmed',
             'dni' => 'nullable|string|max:15',
             'telefono' => 'nullable|string|max:20',
@@ -209,7 +210,7 @@ class UsuarioController extends Controller
 
         $request->validate([
             'nombre' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:usuarios,email,' . $usuario->id,
+            'email' => ['sometimes', 'email', Rule::unique('usuarios', 'email')->ignore($usuario->id)->whereNull('deleted_at')],
             'dni' => 'nullable|string|max:15',
             'telefono' => 'nullable|string|max:20',
             'centro_costo_id' => 'nullable|exists:centros_costos,id',
