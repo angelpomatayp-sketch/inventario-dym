@@ -222,8 +222,13 @@ class UsuarioController extends Controller
         ]);
 
         $campos = $request->only([
-            'nombre', 'email', 'dni', 'telefono', 'centro_costo_id', 'almacen_id', 'activo'
+            'nombre', 'dni', 'telefono', 'centro_costo_id', 'almacen_id', 'activo'
         ]);
+
+        // Solo incluir email si realmente cambia, para evitar conflicto con el índice UNIQUE
+        if ($request->has('email') && $request->email !== $usuario->email) {
+            $campos['email'] = $request->email;
+        }
 
         if ($request->filled('password')) {
             $campos['password'] = $request->password;
