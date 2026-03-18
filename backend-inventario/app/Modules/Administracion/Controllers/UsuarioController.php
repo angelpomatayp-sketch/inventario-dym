@@ -261,6 +261,9 @@ class UsuarioController extends Controller
             return $this->error('No puedes eliminar tu propio usuario', 422);
         }
 
+        // Liberar el email del índice UNIQUE antes del soft-delete
+        $usuario->email = 'deleted_' . $usuario->id . '_' . time() . '@deleted.local';
+        $usuario->save();
         $usuario->delete();
 
         return $this->success(null, 'Usuario eliminado exitosamente');
