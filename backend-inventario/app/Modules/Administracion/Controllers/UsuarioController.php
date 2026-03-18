@@ -217,11 +217,18 @@ class UsuarioController extends Controller
             'roles' => 'sometimes|array|min:1',
             'roles.*' => 'string|exists:roles,name',
             'activo' => 'boolean',
+            'password' => 'sometimes|nullable|string|min:8|confirmed',
         ]);
 
-        $usuario->update($request->only([
+        $campos = $request->only([
             'nombre', 'email', 'dni', 'telefono', 'centro_costo_id', 'almacen_id', 'activo'
-        ]));
+        ]);
+
+        if ($request->filled('password')) {
+            $campos['password'] = $request->password;
+        }
+
+        $usuario->update($campos);
 
         // Actualizar roles si se proporcionan
         if ($request->has('roles')) {
