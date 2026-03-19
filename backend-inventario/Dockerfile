@@ -19,4 +19,4 @@ RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 EXPOSE ${PORT:-8000}
 
-CMD php artisan config:clear && php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan db:seed --class=RolesPermisosSeeder --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+CMD php artisan config:clear && php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan db:seed --class=RolesPermisosSeeder --force && php artisan db:seed --class=CatalogoProductosSeeder --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
