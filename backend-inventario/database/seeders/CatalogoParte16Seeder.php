@@ -9,7 +9,7 @@ use App\Modules\Administracion\Models\Empresa;
 
 class CatalogoParte16Seeder extends Seeder
 {
-    const START = 1485;
+    const START = 1486;
 
     public function run(): void
     {
