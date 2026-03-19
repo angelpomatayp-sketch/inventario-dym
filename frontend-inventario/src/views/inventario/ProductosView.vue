@@ -81,7 +81,7 @@ const unidades = ref([])
 const loadProductos = async () => {
   loading.value = true
   try {
-    const response = await api.get('/inventario/productos')
+    const response = await api.get('/inventario/productos', { params: { per_page: 2000 } })
     if (response.data.success) {
       // La API paginada devuelve items directamente en response.data.data
       const items = response.data.data || []
