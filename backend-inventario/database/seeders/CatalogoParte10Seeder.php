@@ -151,8 +151,8 @@ class CatalogoParte10Seeder extends Seeder
         foreach ($productos as $i => [$nombre, $unidad]) {
             $codigo = 'CAP-' . str_pad(self::START + $i, 4, '0', STR_PAD_LEFT);
             Producto::firstOrCreate(
-                ['empresa_id' => $eid, 'nombre' => $nombre],
-                ['familia_id' => $fid, 'codigo' => $codigo, 'unidad_medida' => $unidad, 'activo' => true, 'stock_minimo' => 0, 'stock_maximo' => 0]
+                ['empresa_id' => $eid, 'codigo' => $codigo],
+                ['nombre' => $nombre, 'familia_id' => $fid, 'unidad_medida' => $unidad, 'activo' => true, 'stock_minimo' => 0, 'stock_maximo' => 0]
             );
         }
         $this->command->info('Parte 10 — Ferretería 501-622: ' . count($productos) . ' productos.');

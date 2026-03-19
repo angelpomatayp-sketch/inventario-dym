@@ -135,8 +135,8 @@ class CatalogoParte14Seeder extends Seeder
             foreach ($prods as [$nombre, $unidad]) {
                 $codigo = 'CAP-' . str_pad($seq++, 4, '0', STR_PAD_LEFT);
                 Producto::firstOrCreate(
-                    ['empresa_id' => $eid, 'nombre' => $nombre],
-                    ['familia_id' => $fid, 'codigo' => $codigo, 'unidad_medida' => $unidad, 'activo' => true, 'stock_minimo' => 0, 'stock_maximo' => 0]
+                    ['empresa_id' => $eid, 'codigo' => $codigo],
+                    ['nombre' => $nombre, 'familia_id' => $fid, 'unidad_medida' => $unidad, 'activo' => true, 'stock_minimo' => 0, 'stock_maximo' => 0]
                 );
                 $total++;
             }
