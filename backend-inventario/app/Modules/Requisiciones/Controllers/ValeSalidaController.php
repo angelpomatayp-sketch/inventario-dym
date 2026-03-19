@@ -152,7 +152,7 @@ class ValeSalidaController extends Controller
             $receptor = $this->resolverReceptor($request, $empresaId, $request->centro_costo_id, $request->almacen_id);
 
             // Generar numero
-            $numero = $this->generarNumero($empresaId);
+            $numero = $this->generarNumero($empresaId, $request->almacen_id);
 
             // Crear vale
             $vale = ValeSalida::create([
@@ -246,7 +246,7 @@ class ValeSalidaController extends Controller
             DB::beginTransaction();
             $receptor = $this->resolverReceptor($request, $empresaId, $requisicion->centro_costo_id, $request->almacen_id);
 
-            $numero = $this->generarNumero($empresaId);
+            $numero = $this->generarNumero($empresaId, $request->almacen_id);
 
             $vale = ValeSalida::create([
                 'empresa_id' => $empresaId,
@@ -777,28 +777,46 @@ class ValeSalidaController extends Controller
     /**
      * Generar numero de vale.
      */
-    private function generarNumero(int $empresaId): string
+    private function generarNumero(int $empresaId, int $almacenId): string
     {
-        $año = date('Y');
-        $mes = date('m');
-        $prefijo = "VS-{$año}{$mes}-";
+        // Obtener nombre del almacén para generar el prefijo
+        $nombreAlmacen = DB::table('almacenes')->where('id', $almacenId)->value('nombre') ?? 'VS';
 
-        $ultimoNumero = ValeSalida::where('empresa_id', $empresaId)
-            ->where('numero', 'like', $prefijo . '%')
-            ->orderBy('numero', 'desc')
-            ->lockForUpdate()
-            ->value('numero');
-
-        $secuencia = 1;
-        if ($ultimoNumero) {
-            $partes = explode('-', $ultimoNumero);
-            $secuencia = (int) end($partes) + 1;
+        // Extraer última palabra alfanumérica del nombre como prefijo
+        $prefijoBruto = 'VS';
+        $partes = array_values(array_filter(preg_split('/[\s\-\/]+/', trim($nombreAlmacen))));
+        foreach (array_reverse($partes) as $parte) {
+            $limpio = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $parte));
+            if ($limpio !== '') {
+                $prefijoBruto = substr($limpio, 0, 10);
+                break;
+            }
         }
 
-        $numero = $prefijo . str_pad($secuencia, 6, '0', STR_PAD_LEFT);
-        while (ValeSalida::where('empresa_id', $empresaId)->where('numero', $numero)->exists()) {
-            $secuencia++;
-            $numero = $prefijo . str_pad($secuencia, 6, '0', STR_PAD_LEFT);
+        $prefijo = $prefijoBruto . '-';
+        $lockKey = 'vs_num_' . md5($empresaId . '_' . $almacenId);
+        DB::select("SELECT GET_LOCK(?, 10) AS locked", [$lockKey]);
+
+        try {
+            $ultimoNumero = ValeSalida::where('empresa_id', $empresaId)
+                ->where('almacen_id', $almacenId)
+                ->where('numero', 'like', $prefijo . '%')
+                ->orderBy('numero', 'desc')
+                ->value('numero');
+
+            $secuencia = 1;
+            if ($ultimoNumero) {
+                $parteNumero = substr($ultimoNumero, strlen($prefijo));
+                $secuencia = (int) $parteNumero + 1;
+            }
+
+            $numero = $prefijo . str_pad($secuencia, 4, '0', STR_PAD_LEFT);
+            while (ValeSalida::where('empresa_id', $empresaId)->where('numero', $numero)->exists()) {
+                $secuencia++;
+                $numero = $prefijo . str_pad($secuencia, 4, '0', STR_PAD_LEFT);
+            }
+        } finally {
+            DB::select("SELECT RELEASE_LOCK(?)", [$lockKey]);
         }
 
         return $numero;
