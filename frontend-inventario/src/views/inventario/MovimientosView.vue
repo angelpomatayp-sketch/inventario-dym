@@ -201,7 +201,7 @@ const loadCentrosCosto = async () => {
 
 const loadProductos = async () => {
   try {
-    const response = await api.get('/inventario/productos', { params: { per_page: 100 } })
+    const response = await api.get('/inventario/productos', { params: { per_page: 2000 } })
     if (response.data.success) {
       productos.value = response.data.data || []
     }
