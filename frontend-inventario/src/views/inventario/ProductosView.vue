@@ -675,8 +675,9 @@ const deleteProducto = async () => {
       <DataTable
         :value="filteredProductos"
         :loading="loading"
-        paginator
-        :rows="10"
+        scrollable
+        scrollHeight="65vh"
+        :virtualScrollerOptions="{ itemSize: 53 }"
         stripedRows
         :rowClass="(data) => data.tieneStockEnAlmacen && data.stockActual <= data.stockMinimo ? 'bg-[#F0F2FA]' : ''"
       >
