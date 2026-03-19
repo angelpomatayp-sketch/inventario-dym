@@ -188,7 +188,7 @@
 
 {{-- ═══════════ NÚMERO ═══════════ --}}
 <div class="numero-row">
-    <div class="numero-box">{{ $vale->numero }}</div>
+    <div class="numero-box">VS-{{ substr($vale->numero, strrpos($vale->numero, '-') + 1) }}</div>
 </div>
 
 {{-- ═══════════ DATOS GENERALES ═══════════ --}}
