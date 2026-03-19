@@ -27,14 +27,18 @@ class ProductoController extends Controller
         $almacenId = $request->filled('almacen_id') ? (int) $request->almacen_id : null;
         $soloConStock = $request->boolean('solo_con_stock');
 
-        $query = Producto::with([
-            'familia',
+        $query = Producto::select([
+            'id','empresa_id','familia_id','codigo','nombre','descripcion',
+            'unidad_medida','marca','modelo','ubicacion_fisica',
+            'stock_minimo','stock_maximo','activo',
+        ])->with([
+            'familia:id,nombre',
             'stockAlmacenes' => function ($q) use ($almacenId) {
                 if ($almacenId) {
                     $q->where('almacen_id', $almacenId);
                 }
             },
-            'stockAlmacenes.almacen'
+            'stockAlmacenes.almacen:id,nombre',
         ]);
 
         // Filtro por empresa (multi-tenancy)
