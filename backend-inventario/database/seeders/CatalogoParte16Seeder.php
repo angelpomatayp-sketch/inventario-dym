@@ -1,5 +1,5 @@
 <?php
-// Útiles de Escritorio 76-275 — CAP-1485 a CAP-1684
+// Útiles de Escritorio 76-275 — CAP-1490 a CAP-1689
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -9,7 +9,7 @@ use App\Modules\Administracion\Models\Empresa;
 
 class CatalogoParte16Seeder extends Seeder
 {
-    const START = 1486;
+    const START = 1490;
 
     public function run(): void
     {

@@ -1,5 +1,5 @@
 <?php
-// Materiales (44) + Materiales de seguridad 1-56 — CAP-1148 a CAP-1247
+// Materiales (44) + Materiales de seguridad 1-56 — CAP-1153 a CAP-1252
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -9,7 +9,7 @@ use App\Modules\Administracion\Models\Empresa;
 
 class CatalogoParte13Seeder extends Seeder
 {
-    const START = 1149;
+    const START = 1153;
 
     public function run(): void
     {

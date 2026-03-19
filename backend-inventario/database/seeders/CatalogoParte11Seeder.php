@@ -1,5 +1,5 @@
 <?php
-// Filtros y Aceites (103) — CAP-0949 a CAP-1051
+// Filtros y Aceites (103) — CAP-0954 a CAP-1056
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -9,7 +9,7 @@ use App\Modules\Administracion\Models\Empresa;
 
 class CatalogoParte11Seeder extends Seeder
 {
-    const START = 950;
+    const START = 954;
 
     public function run(): void
     {

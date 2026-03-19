@@ -1,5 +1,5 @@
 <?php
-// Tuberías 51-112 (62) + Útiles de Escritorio 1-75 — CAP-1348 a CAP-1484
+// Tuberías 51-112 (62) + Útiles de Escritorio 1-75 — CAP-1353 a CAP-1489
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -9,7 +9,7 @@ use App\Modules\Administracion\Models\Empresa;
 
 class CatalogoParte15Seeder extends Seeder
 {
-    const START = 1349;
+    const START = 1353;
 
     public function run(): void
     {

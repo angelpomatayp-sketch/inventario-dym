@@ -1,5 +1,5 @@
 <?php
-// Formatos (10) + Insumos médicos (86) — CAP-1052 a CAP-1147
+// Formatos (10) + Insumos médicos (86) — CAP-1057 a CAP-1152
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -9,7 +9,7 @@ use App\Modules\Administracion\Models\Empresa;
 
 class CatalogoParte12Seeder extends Seeder
 {
-    const START = 1053;
+    const START = 1057;
 
     public function run(): void
     {
