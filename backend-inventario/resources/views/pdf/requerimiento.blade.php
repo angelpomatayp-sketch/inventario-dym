@@ -29,7 +29,7 @@
         .numero-box { display: inline-table; border: 1.5px solid #000; padding: 3px 0; }
         .numero-box td { padding: 2px 10px; font-size: 9px; }
         .numero-box .n-label { font-weight: bold; }
-        .numero-box .n-value { font-weight: bold; font-size: 12px; min-width: 60px; text-align: center; }
+        .numero-box .n-value { font-weight: bold; font-size: 10px; min-width: 60px; text-align: center; }
 
         /* ---- DATOS ---- */
         .datos-row { width: 100%; border-collapse: collapse; margin-bottom: 0; }
