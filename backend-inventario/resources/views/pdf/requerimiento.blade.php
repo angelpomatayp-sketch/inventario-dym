@@ -17,10 +17,10 @@
         .cell-title .lbl-formato { font-size: 10px; font-weight: bold; letter-spacing: 1px; color: #000; }
         .cell-title .lbl-requerimiento { font-size: 13px; font-weight: bold; color: #000; margin-top: 4px; letter-spacing: 0.5px; }
         .cell-meta { width: 155px; padding: 5px 8px; font-size: 8.5px; vertical-align: middle; text-align: center; }
-        .cell-meta table { width: 100%; border-collapse: collapse; }
+        .cell-meta table { border-collapse: collapse; margin: 0 auto; }
         .cell-meta td { padding: 1.5px 4px; border: none; text-align: left; }
-        .cell-meta .mlabel { color: #444; }
-        .cell-meta .mvalue { font-weight: bold; color: #000; }
+        .cell-meta .mlabel { color: #000; font-weight: bold; }
+        .cell-meta .mvalue { font-weight: normal; color: #000; }
 
         /* ---- NÚMERO ---- */
         .numero-row { width: 100%; border-collapse: collapse; margin-top: 0; border: none; }
@@ -34,7 +34,7 @@
         /* ---- DATOS ---- */
         .datos-row { width: 100%; border-collapse: collapse; margin-bottom: 0; }
         .datos-row td { padding: 3px 6px; border: none; border-bottom: 1px solid #1E2D72; font-size: 8.5px; vertical-align: middle; }
-        .datos-row .dlabel { color: #555; font-weight: normal; font-size: 8px; }
+        .datos-row .dlabel { color: #1E2D72; font-weight: bold; font-size: 8.5px; }
         .datos-row .dvalue { font-weight: bold; color: #1E2D72; }
 
         /* ---- TABLA ITEMS ---- */
@@ -76,12 +76,11 @@
 
         /* ---- FIRMAS ---- */
         .firmas-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
-        .firmas-table td { width: 25%; text-align: left; padding: 0; vertical-align: top; border: 1px solid #555; }
-        .firma-inner { padding: 3px 5px; }
-        .firma-label { font-size: 8.5px; font-weight: bold; color: #000; margin-bottom: 2px; }
-        .firma-space { height: 32px; }
-        .firma-vb { font-size: 8px; color: #444; margin-top: 2px; }
-        .firma-nombre { font-size: 8px; color: #1E2D72; font-weight: bold; margin-top: 1px; }
+        .firmas-table td { width: 25%; padding: 0; }
+        .firma-label-cell { font-size: 8.5px; font-weight: bold; color: #1E2D72; padding: 2px 4px; border: none; text-align: left; }
+        .firma-box { border: 1px solid #555; height: 38px; vertical-align: bottom; text-align: left; padding: 3px 5px; }
+        .firma-vb { font-size: 8px; color: #1E2D72; }
+        .firma-nombre { font-size: 8px; color: #1E2D72; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -213,37 +212,27 @@
 {{-- ===== FIRMAS ===== --}}
 <table class="firmas-table">
     <tr>
-        <td>
-            <div class="firma-inner">
-                <div class="firma-label">Firma/Solicitante</div>
-                <div class="firma-space"></div>
-                <div class="firma-vb">V°B°</div>
-                <div class="firma-nombre">{{ strtoupper($almacenero?->nombre ?? '') }}</div>
-            </div>
+        <td class="firma-label-cell">Firma/Solicitante</td>
+        <td class="firma-label-cell">Aprobado por:</td>
+        <td class="firma-label-cell">Resp. Logística</td>
+        <td class="firma-label-cell">Autorizado por Gerencia :</td>
+    </tr>
+    <tr>
+        <td class="firma-box">
+            <div class="firma-vb">V°B°</div>
+            <div class="firma-nombre">{{ strtoupper($almacenero?->nombre ?? '') }}</div>
         </td>
-        <td>
-            <div class="firma-inner">
-                <div class="firma-label">Aprobado por:</div>
-                <div class="firma-space"></div>
-                <div class="firma-vb">V°B°</div>
-                <div class="firma-nombre">{{ strtoupper($aprobador?->nombre ?? '') }}</div>
-            </div>
+        <td class="firma-box">
+            <div class="firma-vb">V°B°</div>
+            <div class="firma-nombre">{{ strtoupper($aprobador?->nombre ?? '') }}</div>
         </td>
-        <td>
-            <div class="firma-inner">
-                <div class="firma-label">Resp. Logística</div>
-                <div class="firma-space"></div>
-                <div class="firma-vb">V°B°</div>
-                <div class="firma-nombre">&nbsp;</div>
-            </div>
+        <td class="firma-box">
+            <div class="firma-vb">V°B°</div>
+            <div class="firma-nombre">&nbsp;</div>
         </td>
-        <td>
-            <div class="firma-inner">
-                <div class="firma-label">Autorizado por Gerencia :</div>
-                <div class="firma-space"></div>
-                <div class="firma-vb">V°B°</div>
-                <div class="firma-nombre">&nbsp;</div>
-            </div>
+        <td class="firma-box">
+            <div class="firma-vb">V°B°</div>
+            <div class="firma-nombre">&nbsp;</div>
         </td>
     </tr>
 </table>
