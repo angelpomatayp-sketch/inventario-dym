@@ -13,9 +13,9 @@
         .header-outer { width: 100%; border-collapse: collapse; border: 1.5px solid #1E2D72; margin-bottom: 0; }
         .header-outer td { border: 1px solid #1E2D72; vertical-align: middle; }
         .cell-logo { width: 140px; padding: 6px 10px; text-align: center; }
-        .cell-title { text-align: center; padding: 8px 6px; }
-        .cell-title .lbl-formato { font-size: 10px; font-weight: bold; letter-spacing: 1px; color: #000; }
-        .cell-title .lbl-requerimiento { font-size: 13px; font-weight: bold; color: #000; margin-top: 4px; letter-spacing: 0.5px; }
+        .cell-title { text-align: center; padding: 0; }
+        .cell-title .lbl-formato { font-size: 10px; font-weight: bold; letter-spacing: 1px; color: #000; padding: 6px 6px 4px; border-bottom: 1px solid #1E2D72; display: block; }
+        .cell-title .lbl-requerimiento { font-size: 13px; font-weight: bold; color: #000; padding: 4px 6px 6px; letter-spacing: 0.5px; display: block; }
         .cell-meta { width: 155px; padding: 5px 8px; font-size: 8.5px; vertical-align: middle; text-align: center; }
         .cell-meta table { border-collapse: collapse; margin: 0 auto; }
         .cell-meta td { padding: 1.5px 4px; border: none; text-align: left; }
@@ -41,7 +41,7 @@
         .items-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         .items-table th {
             background: #fff;
-            color: #000;
+            color: #1E2D72;
             padding: 4px 4px;
             font-size: 8px;
             font-weight: bold;
@@ -53,6 +53,7 @@
             border: 1px solid #1E2D72;
             font-size: 8px;
             font-weight: bold;
+            color: #1E2D72;
             padding: 3px 4px;
         }
         .items-table td {
@@ -78,7 +79,7 @@
         .firmas-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
         .firmas-table td { width: 25%; padding: 0; }
         .firma-label-cell { font-size: 8.5px; font-weight: bold; color: #1E2D72; padding: 2px 4px; border: none; text-align: left; }
-        .firma-box { border: 1px solid #555; height: 38px; vertical-align: bottom; text-align: left; padding: 3px 5px; }
+        .firma-box { border: 1px solid #555; height: 60px; vertical-align: bottom; text-align: left; padding: 3px 5px; }
         .firma-vb { font-size: 8px; color: #1E2D72; }
         .firma-nombre { font-size: 8px; color: #1E2D72; font-weight: bold; }
     </style>
@@ -104,7 +105,7 @@
     <tr>
         <td class="cell-logo">
             @if($logoData)
-                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:91px; max-height:43px; display:block; margin:auto;">
+                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:119px; max-height:50px; display:block; margin:auto;">
             @else
                 <div style="font-size:10px; font-weight:bold; color:#1E2D72; text-align:center; line-height:1.4;">
                     CONTRATISTAS ASOCIADOS<br>CAP PACIFICO S.R.L.<br>
