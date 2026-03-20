@@ -58,20 +58,11 @@ const menuItemsBase = [
       { label: 'Préstamos', icon: 'pi-sync', to: '/prestamos', permission: 'prestamos.ver' }
     ]
   },
-  {
-    label: 'Compras',
-    icon: 'pi-shopping-cart',
-    children: [
-      { label: 'Órdenes de Compra', icon: 'pi-shopping-cart', to: '/compras/ordenes', permission: 'ordenes_compra.ver' },
-      { label: 'Cotizaciones', icon: 'pi-file', to: '/compras/cotizaciones', permission: 'cotizaciones.ver' }
-    ]
-  },
-  {
-    label: 'Proveedores',
-    icon: 'pi-truck',
-    to: '/proveedores',
-    permission: 'proveedores.ver'
-  },
+  // { label: 'Compras', icon: 'pi-shopping-cart', children: [
+  //   { label: 'Órdenes de Compra', icon: 'pi-shopping-cart', to: '/compras/ordenes', permission: 'ordenes_compra.ver' },
+  //   { label: 'Cotizaciones', icon: 'pi-file', to: '/compras/cotizaciones', permission: 'cotizaciones.ver' }
+  // ] },
+  // { label: 'Proveedores', icon: 'pi-truck', to: '/proveedores', permission: 'proveedores.ver' },
   {
     label: 'Reportes',
     icon: 'pi-chart-bar',

@@ -81,16 +81,12 @@ const estados = ref([
 
 const prioridades = ref([
   { label: 'Todas',   value: null },
-  { label: 'Baja',    value: 'BAJA' },
   { label: 'Normal',  value: 'NORMAL' },
-  { label: 'Alta',    value: 'ALTA' },
   { label: 'Urgente', value: 'URGENTE' }
 ])
 
 const prioridadesForm = ref([
-  { label: 'Baja',    value: 'BAJA' },
   { label: 'Normal',  value: 'NORMAL' },
-  { label: 'Alta',    value: 'ALTA' },
   { label: 'Urgente', value: 'URGENTE' }
 ])
 
