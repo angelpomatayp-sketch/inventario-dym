@@ -191,7 +191,7 @@ class NotificacionService
         $requisicionesPendientes = Requisicion::where('empresa_id', $empresaId)
             ->where('estado', 'PENDIENTE')
             ->where('created_at', '<=', now()->subHours(24)) // Más de 24h sin aprobar
-            ->with(['solicitante:id,nombre', 'centroCosto:id,nombre'])
+            ->with(['almacenero:id,nombre', 'centroCosto:id,nombre'])
             ->get();
 
         $count = 0;
@@ -211,7 +211,7 @@ class NotificacionService
                     'usuario_id' => null,
                     'tipo' => Notificacion::TIPO_REQUISICION_PENDIENTE,
                     'titulo' => "Requisición pendiente: {$requisicion->numero}",
-                    'mensaje' => "La requisición {$requisicion->numero} de {$requisicion->solicitante?->nombre} lleva {$horasPendiente} horas pendiente de aprobación",
+                    'mensaje' => "La requisición {$requisicion->numero} de {$requisicion->almacenero?->nombre} lleva {$horasPendiente} horas pendiente de aprobación",
                     'icono' => 'pi-file-edit',
                     'severidad' => $horasPendiente > 48 ? Notificacion::SEVERIDAD_DANGER : Notificacion::SEVERIDAD_WARN,
                     'entidad_tipo' => 'requisiciones',
