@@ -13,7 +13,7 @@
       <TabList>
         <Tab value="0">Kardex Valorizado</Tab>
         <Tab value="1">Inventario Valorizado</Tab>
-        <Tab value="2">Stock Bajo</Tab>
+        <Tab value="2">Stock Crítico</Tab>
         <Tab value="3">Consumo por Área</Tab>
         <Tab value="4">Top Productos</Tab>
         <Tab value="5">Movimientos</Tab>
@@ -324,7 +324,7 @@
         </div>
       </TabPanel>
 
-      <!-- Tab Stock Bajo -->
+      <!-- Tab Stock Crítico -->
       <TabPanel value="2">
         <div class="grid">
           <div class="col-12">
@@ -340,7 +340,7 @@
             </Card>
           </div>
 
-          <!-- Totales Stock Bajo -->
+          <!-- Totales Stock Crítico -->
           <div class="col-12" v-if="stockBajoData.totales">
             <div class="grid">
               <div class="col-12 md:col-3">
@@ -367,7 +367,7 @@
                 <Card class="bg-yellow-50">
                   <template #content>
                     <div class="text-center">
-                      <div class="text-500 mb-1">Stock Bajo</div>
+                      <div class="text-500 mb-1">Stock Crítico</div>
                       <div class="text-2xl font-bold text-yellow-600">{{ stockBajoData.totales.bajos }}</div>
                     </div>
                   </template>
@@ -386,7 +386,7 @@
             </div>
           </div>
 
-          <!-- Tabla Stock Bajo -->
+          <!-- Tabla Stock Crítico -->
           <div class="col-12">
             <DataTable
               :value="stockBajoData.productos"
@@ -1097,7 +1097,7 @@ const exportarInventarioPdf = async () => {
   }
 }
 
-// Cargar Stock Bajo
+// Cargar Stock Crítico
 const cargarStockBajo = async () => {
   loadingStockBajo.value = true
   try {
