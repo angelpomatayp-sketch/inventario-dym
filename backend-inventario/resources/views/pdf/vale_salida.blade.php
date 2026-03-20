@@ -21,7 +21,7 @@
             border: 1.5px solid #333;
             margin-bottom: 6px;
         }
-        .header-table td { vertical-align: middle; padding: 5px 10px; }
+        .header-table td { vertical-align: middle; padding: 4px 10px; }
         .header-logo  { width: 130px; border-right: 1.5px solid #333; }
         .header-title { text-align: center; border-right: 1.5px solid #333; }
         .header-title .formato-label {
@@ -33,9 +33,9 @@
             font-size: 15px; font-weight: bold;
             color: #000; text-transform: uppercase; letter-spacing: 2px;
         }
-        .header-codigo { width: 140px; font-size: 9px; line-height: 2; }
-        .header-codigo table { width: 100%; border-collapse: collapse; margin: 0; }
-        .header-codigo td { padding: 0 2px; border: none; font-size: 9px; }
+        .header-codigo { width: 140px; font-size: 9px; line-height: 2; text-align: center; }
+        .header-codigo table { width: 100%; border-collapse: collapse; margin: 0 auto; }
+        .header-codigo td { padding: 0 2px; border: none; font-size: 9px; text-align: center; }
         .header-codigo .lbl { font-weight: bold; white-space: nowrap; }
 
         /* ── NÚMERO DEL VALE ── */
@@ -144,7 +144,7 @@
                 $logoData = (extension_loaded('gd') && file_exists($logoPath)) ? base64_encode(file_get_contents($logoPath)) : null;
             @endphp
             @if($logoData)
-                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:106px; max-height:48px; display:block; margin:auto;">
+                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:106px; max-height:43px; display:block; margin:auto;">
             @else
                 <div style="font-size:11px; font-weight:bold; color:#1E2D72; line-height:1.4;">
                     CONTRATISTAS<br>ASOCIADOS<br>PACIFICO S.R.L.
