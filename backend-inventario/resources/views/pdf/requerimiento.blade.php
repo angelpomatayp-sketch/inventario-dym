@@ -16,9 +16,9 @@
         .cell-title { text-align: center; padding: 8px 6px; }
         .cell-title .lbl-formato { font-size: 10px; font-weight: bold; letter-spacing: 1px; color: #000; }
         .cell-title .lbl-requerimiento { font-size: 13px; font-weight: bold; color: #000; margin-top: 4px; letter-spacing: 0.5px; }
-        .cell-meta { width: 155px; padding: 5px 8px; font-size: 8.5px; vertical-align: top; }
+        .cell-meta { width: 155px; padding: 5px 8px; font-size: 8.5px; vertical-align: middle; text-align: center; }
         .cell-meta table { width: 100%; border-collapse: collapse; }
-        .cell-meta td { padding: 1.5px 2px; }
+        .cell-meta td { padding: 1.5px 4px; border: none; text-align: left; }
         .cell-meta .mlabel { color: #444; }
         .cell-meta .mvalue { font-weight: bold; color: #000; }
 
@@ -38,7 +38,7 @@
         .datos-row .dvalue { font-weight: bold; color: #1E2D72; }
 
         /* ---- TABLA ITEMS ---- */
-        .items-table { width: 100%; border-collapse: collapse; margin-top: 0; }
+        .items-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         .items-table th {
             background: #fff;
             color: #000;
@@ -64,7 +64,7 @@
         .items-table .col-it    { width: 22px;  text-align: center; }
         .items-table .col-cant  { width: 35px;  text-align: center; }
         .items-table .col-und   { width: 40px;  text-align: center; }
-        .items-table .col-desc  { width: auto; text-align: center; }
+        .items-table .col-desc  { width: auto; text-align: left; padding-left: 6px; }
         .items-table .col-cap   { width: 52px;  text-align: center; }
         .items-table .col-pend  { width: 52px;  text-align: center; }
         .items-table .col-fecha { width: 52px;  text-align: center; }
@@ -76,9 +76,10 @@
 
         /* ---- FIRMAS ---- */
         .firmas-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
-        .firmas-table td { width: 25%; text-align: center; padding: 4px 6px; vertical-align: bottom; }
+        .firmas-table td { width: 25%; text-align: left; padding: 0; vertical-align: top; border: 1px solid #555; }
+        .firma-inner { padding: 3px 5px; }
         .firma-label { font-size: 8.5px; font-weight: bold; color: #000; margin-bottom: 2px; }
-        .firma-space { height: 36px; border: 1px solid #555; margin: 0 10px; }
+        .firma-space { height: 32px; }
         .firma-vb { font-size: 8px; color: #444; margin-top: 2px; }
         .firma-nombre { font-size: 8px; color: #1E2D72; font-weight: bold; margin-top: 1px; }
     </style>
@@ -104,7 +105,7 @@
     <tr>
         <td class="cell-logo">
             @if($logoData)
-                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:90px; max-height:42px; display:block; margin:auto;">
+                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:91px; max-height:43px; display:block; margin:auto;">
             @else
                 <div style="font-size:10px; font-weight:bold; color:#1E2D72; text-align:center; line-height:1.4;">
                     CONTRATISTAS ASOCIADOS<br>CAP PACIFICO S.R.L.<br>
@@ -213,28 +214,36 @@
 <table class="firmas-table">
     <tr>
         <td>
-            <div class="firma-label">Firma/Solicitante</div>
-            <div class="firma-space"></div>
-            <div class="firma-vb">V°B°</div>
-            <div class="firma-nombre">{{ strtoupper($almacenero?->nombre ?? '') }}</div>
+            <div class="firma-inner">
+                <div class="firma-label">Firma/Solicitante</div>
+                <div class="firma-space"></div>
+                <div class="firma-vb">V°B°</div>
+                <div class="firma-nombre">{{ strtoupper($almacenero?->nombre ?? '') }}</div>
+            </div>
         </td>
         <td>
-            <div class="firma-label">Aprobado por:</div>
-            <div class="firma-space"></div>
-            <div class="firma-vb">V°B°</div>
-            <div class="firma-nombre">{{ strtoupper($aprobador?->nombre ?? '') }}</div>
+            <div class="firma-inner">
+                <div class="firma-label">Aprobado por:</div>
+                <div class="firma-space"></div>
+                <div class="firma-vb">V°B°</div>
+                <div class="firma-nombre">{{ strtoupper($aprobador?->nombre ?? '') }}</div>
+            </div>
         </td>
         <td>
-            <div class="firma-label">Resp. Logística</div>
-            <div class="firma-space"></div>
-            <div class="firma-vb">V°B°</div>
-            <div class="firma-nombre">&nbsp;</div>
+            <div class="firma-inner">
+                <div class="firma-label">Resp. Logística</div>
+                <div class="firma-space"></div>
+                <div class="firma-vb">V°B°</div>
+                <div class="firma-nombre">&nbsp;</div>
+            </div>
         </td>
         <td>
-            <div class="firma-label">Autorizado por Gerencia :</div>
-            <div class="firma-space"></div>
-            <div class="firma-vb">V°B°</div>
-            <div class="firma-nombre">&nbsp;</div>
+            <div class="firma-inner">
+                <div class="firma-label">Autorizado por Gerencia :</div>
+                <div class="firma-space"></div>
+                <div class="firma-vb">V°B°</div>
+                <div class="firma-nombre">&nbsp;</div>
+            </div>
         </td>
     </tr>
 </table>
