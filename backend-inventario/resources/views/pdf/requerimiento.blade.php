@@ -15,7 +15,7 @@
         .cell-logo { width: 140px; padding: 6px 10px; text-align: center; }
         .cell-title { text-align: center; padding: 8px 6px; }
         .cell-title .lbl-formato { font-size: 10px; font-weight: bold; letter-spacing: 1px; color: #000; }
-        .cell-title .lbl-requerimiento { font-size: 13px; font-weight: bold; color: #1E2D72; margin-top: 4px; letter-spacing: 0.5px; }
+        .cell-title .lbl-requerimiento { font-size: 13px; font-weight: bold; color: #000; margin-top: 4px; letter-spacing: 0.5px; }
         .cell-meta { width: 155px; padding: 5px 8px; font-size: 8.5px; vertical-align: top; }
         .cell-meta table { width: 100%; border-collapse: collapse; }
         .cell-meta td { padding: 1.5px 2px; }
@@ -28,7 +28,7 @@
         .numero-right { text-align: right; }
         .numero-box { display: inline-table; border: 1.5px solid #000; padding: 3px 0; }
         .numero-box td { padding: 2px 10px; font-size: 9px; }
-        .numero-box .n-label { font-weight: bold; border-right: 1.5px solid #000; }
+        .numero-box .n-label { font-weight: bold; }
         .numero-box .n-value { font-weight: bold; font-size: 12px; min-width: 60px; text-align: center; }
 
         /* ---- DATOS ---- */
@@ -71,8 +71,8 @@
         .items-table .col-obs   { width: 130px; text-align: center; }
 
         .row-item td { height: 38px; }
-        .c-blue   { color: #1E2D72; font-weight: bold; }
-        .c-orange { color: #C8871A; font-weight: bold; }
+        .c-blue   { color: #000; font-weight: bold; }
+        .c-orange { color: #000; font-weight: bold; }
 
         /* ---- FIRMAS ---- */
         .firmas-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
@@ -96,7 +96,7 @@
     $aprobador   = $requerimiento->aprobador ?? null;
     $fechaDoc    = \Carbon\Carbon::parse($requerimiento->fecha_solicitud)->format('d/m/Y');
     $lugar       = $centroCosto?->nombre ?? '';
-    $referencia  = $requerimiento->motivo ?? '';
+    $referencia  = $centroCosto?->descripcion ?? '';
 @endphp
 
 {{-- ===== HEADER ===== --}}
@@ -225,13 +225,13 @@
             <div class="firma-nombre">{{ strtoupper($aprobador?->nombre ?? '') }}</div>
         </td>
         <td>
-            <div class="firma-label">Autorizado por Gerencia :</div>
+            <div class="firma-label">Resp. Logística</div>
             <div class="firma-space"></div>
             <div class="firma-vb">V°B°</div>
             <div class="firma-nombre">&nbsp;</div>
         </td>
         <td>
-            <div class="firma-label">Resp. Logística</div>
+            <div class="firma-label">Autorizado por Gerencia :</div>
             <div class="firma-space"></div>
             <div class="firma-vb">V°B°</div>
             <div class="firma-nombre">&nbsp;</div>
