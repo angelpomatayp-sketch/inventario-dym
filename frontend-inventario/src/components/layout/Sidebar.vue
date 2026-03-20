@@ -132,7 +132,7 @@ const navigateTo = (path) => {
     ]"
   >
     <!-- Logo -->
-    <div class="h-16 flex items-center justify-center border-b border-[#1976D2] px-2">
+    <div class="h-16 flex items-center justify-center border-b border-[#1976D2] px-2 bg-white">
       <div v-if="!collapsed" class="flex items-center gap-2">
         <img src="/logopacifico.jpeg" alt="CAP Pacifico" class="h-12 w-auto" />
       </div>
