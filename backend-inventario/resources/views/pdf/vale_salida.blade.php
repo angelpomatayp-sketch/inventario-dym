@@ -25,13 +25,13 @@
         .header-logo  { width: 130px; border-right: 1.5px solid #333; }
         .header-title { text-align: center; border-right: 1.5px solid #333; }
         .header-title .formato-label {
-            font-size: 8px; color: #555;
+            font-size: 8px; color: #000; font-weight: bold;
             text-transform: uppercase; letter-spacing: 1px;
+            border-bottom: 1px solid #333; display: block; padding-bottom: 3px; margin-bottom: 3px;
         }
         .header-title .doc-title {
             font-size: 15px; font-weight: bold;
-            color: #1E2D72; text-transform: uppercase; letter-spacing: 2px;
-            margin-top: 2px;
+            color: #000; text-transform: uppercase; letter-spacing: 2px;
         }
         .header-codigo { width: 140px; font-size: 9px; line-height: 2; }
         .header-codigo table { width: 100%; border-collapse: collapse; margin: 0; }
@@ -57,19 +57,18 @@
         .datos-table {
             width: 100%;
             border-collapse: collapse;
-            border: 1px solid #999;
             margin-bottom: 10px;
         }
         .datos-table td {
-            padding: 5px 8px;
-            border: 1px solid #bbb;
+            padding: 4px 8px;
+            border: none;
+            border-bottom: 1px solid #333;
             font-size: 10px;
             vertical-align: middle;
         }
         .datos-table .lbl {
             font-weight: bold;
-            background-color: #f0f2fa;
-            color: #1E2D72;
+            color: #000;
             width: 105px;
             white-space: nowrap;
         }
@@ -83,13 +82,13 @@
             border: 1.5px solid #333;
         }
         table.items th {
-            background-color: #2E7D32;
-            color: white;
+            background-color: #66BB6A;
+            color: #000;
             padding: 5px 7px;
             font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border: 1px solid #1B5E20;
+            border: 1px solid #43A047;
         }
         table.items th.center, table.items td.center { text-align: center; }
         table.items td {
@@ -107,44 +106,12 @@
         .estado-ANULADO   { background:#e5e7eb; color:#374151; padding:2px 7px; border-radius:3px; font-weight:bold; font-size:9px; }
 
         /* ── FIRMAS ── */
-        .firmas-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 18px;
-        }
-        .firmas-table td {
-            width: 33.33%;
-            text-align: center;
-            padding: 0 12px;
-            vertical-align: top;
-        }
-        .firma-vb {
-            font-size: 9px; font-weight: bold;
-            color: #1E2D72; margin-bottom: 4px;
-            text-align: left;
-        }
-        .firma-espacio { height: 55px; }
-        .firma-linea {
-            border-top: 1px solid #333;
-            padding-top: 5px;
-        }
-        .firma-nombre { font-weight: bold; font-size: 10px; color: #1f2937; }
-        .firma-cargo  { font-size: 8.5px; color: #6b7280; margin-top: 2px; }
-        .firma-vb-abajo {
-            font-size: 9px; font-weight: bold; color: #555;
-            margin-top: 5px;
-        }
-
-        /* ── NOTA LEGAL ── */
-        .nota-legal {
-            margin-top: 14px;
-            padding: 6px 10px;
-            border: 1px solid #ccc;
-            font-size: 8.5px;
-            color: #555;
-            background-color: #fafafa;
-            line-height: 1.5;
-        }
+        .firmas-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+        .firmas-table td { width: 33.33%; padding: 0; }
+        .firma-label-cell { font-size: 8.5px; font-weight: bold; color: #1E2D72; padding: 2px 4px; border: none; text-align: left; }
+        .firma-box { border: 1px solid #555; height: 60px; vertical-align: bottom; text-align: left; padding: 3px 5px; }
+        .firma-vb { font-size: 8px; color: #1E2D72; }
+        .firma-nombre { font-size: 8px; color: #1E2D72; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -268,41 +235,25 @@
 {{-- ═══════════ FIRMAS ═══════════ --}}
 <table class="firmas-table">
     <tr>
-        <td>
-            <div class="firma-vb">Firma del Solicitante:</div>
-            <div class="firma-espacio"></div>
-            <div class="firma-linea">
-                <div class="firma-nombre">{{ $vale->receptor_nombre }}</div>
-                <div class="firma-cargo">Solicitante</div>
-            </div>
-            <div class="firma-vb-abajo">V°B°</div>
+        <td class="firma-label-cell">Firma del Solicitante:</td>
+        <td class="firma-label-cell">Firma del Responsable:</td>
+        <td class="firma-label-cell">Autorizado por:</td>
+    </tr>
+    <tr>
+        <td class="firma-box">
+            <div class="firma-vb">V°B°</div>
+            <div class="firma-nombre">{{ strtoupper($vale->receptor_nombre ?? '') }}</div>
         </td>
-        <td>
-            <div class="firma-vb">Firma del Responsable:</div>
-            <div class="firma-espacio"></div>
-            <div class="firma-linea">
-                <div class="firma-nombre">{{ $vale->despachador?->nombre ?? '' }}</div>
-                <div class="firma-cargo">Responsable / Despachador</div>
-            </div>
-            <div class="firma-vb-abajo">V°B°</div>
+        <td class="firma-box">
+            <div class="firma-vb">V°B°</div>
+            <div class="firma-nombre">{{ strtoupper($vale->despachador?->nombre ?? '') }}</div>
         </td>
-        <td>
-            <div class="firma-vb">Autorizado por:</div>
-            <div class="firma-espacio"></div>
-            <div class="firma-linea">
-                <div class="firma-nombre">CONTRATISTAS ASOCIADOS PACIFICO SRL</div>
-                <div class="firma-cargo">Residente de Obra</div>
-            </div>
-            <div class="firma-vb-abajo">V°B°</div>
+        <td class="firma-box">
+            <div class="firma-vb">V°B°</div>
+            <div class="firma-nombre">&nbsp;</div>
         </td>
     </tr>
 </table>
-
-{{-- ═══════════ NOTA LEGAL ═══════════ --}}
-<div class="nota-legal">
-    Cualquier daño, deterioro, pérdida u otro se responsabiliza el personal a cargo de los materiales, equipos
-    y otros sujeto a descuento, salvo estos cumplan su ciclo de vida.
-</div>
 
 <script type="text/php">
     if (isset($pdf)) {
