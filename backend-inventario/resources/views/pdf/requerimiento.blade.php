@@ -33,8 +33,8 @@
 
         /* ---- DATOS ---- */
         .datos-row { width: 100%; border-collapse: collapse; margin-bottom: 0; }
-        .datos-row td { padding: 3px 6px; border: 1px solid #1E2D72; font-size: 8.5px; vertical-align: middle; }
-        .datos-row .dlabel { color: #1E2D72; font-weight: bold; }
+        .datos-row td { padding: 3px 6px; border: none; border-bottom: 1px solid #1E2D72; font-size: 8.5px; vertical-align: middle; }
+        .datos-row .dlabel { color: #555; font-weight: normal; font-size: 8px; }
         .datos-row .dvalue { font-weight: bold; color: #1E2D72; }
 
         /* ---- TABLA ITEMS ---- */
@@ -72,13 +72,13 @@
 
         .row-item td { height: 38px; }
         .c-blue   { color: #000; font-weight: bold; }
-        .c-orange { color: #000; font-weight: bold; }
+        .c-orange { color: #C8871A; font-weight: bold; }
 
         /* ---- FIRMAS ---- */
         .firmas-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
         .firmas-table td { width: 25%; text-align: center; padding: 4px 6px; vertical-align: bottom; }
         .firma-label { font-size: 8.5px; font-weight: bold; color: #000; margin-bottom: 2px; }
-        .firma-space { height: 36px; border-bottom: 1px solid #555; margin: 0 10px; }
+        .firma-space { height: 36px; border: 1px solid #555; margin: 0 10px; }
         .firma-vb { font-size: 8px; color: #444; margin-top: 2px; }
         .firma-nombre { font-size: 8px; color: #1E2D72; font-weight: bold; margin-top: 1px; }
     </style>
@@ -104,7 +104,7 @@
     <tr>
         <td class="cell-logo">
             @if($logoData)
-                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:118px; max-height:52px; display:block; margin:auto;">
+                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:90px; max-height:42px; display:block; margin:auto;">
             @else
                 <div style="font-size:10px; font-weight:bold; color:#1E2D72; text-align:center; line-height:1.4;">
                     CONTRATISTAS ASOCIADOS<br>CAP PACIFICO S.R.L.<br>
