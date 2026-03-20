@@ -53,7 +53,9 @@ const menuItemsBase = [
     icon: 'pi-file-edit',
     children: [
       { label: 'Requerimientos', icon: 'pi-file-edit', to: '/requerimientos', permission: 'requisiciones.ver' },
-      { label: 'Vales de Salida', icon: 'pi-sign-out', to: '/requerimientos/vales-salida', permission: 'vales_salida.ver' }
+      { label: 'Vales de Salida', icon: 'pi-sign-out', to: '/requerimientos/vales-salida', permission: 'vales_salida.ver' },
+      { label: 'EPPs', icon: 'pi-shield', to: '/epps', permission: 'epps.ver' },
+      { label: 'Préstamos', icon: 'pi-sync', to: '/prestamos', permission: 'prestamos.ver' }
     ]
   },
   {
@@ -69,18 +71,6 @@ const menuItemsBase = [
     icon: 'pi-truck',
     to: '/proveedores',
     permission: 'proveedores.ver'
-  },
-  {
-    label: 'EPPs',
-    icon: 'pi-shield',
-    to: '/epps',
-    permission: 'epps.ver'
-  },
-  {
-    label: 'Préstamos',
-    icon: 'pi-sync',
-    to: '/prestamos',
-    permission: 'prestamos.ver'
   },
   {
     label: 'Reportes',
@@ -132,7 +122,7 @@ const isActive = (path) => {
 
 const isParentActive = (item) => {
   if (item.children) {
-    return item.children.some(child => route.path === child.to)
+    return item.children.some(child => route.path.startsWith(child.to))
   }
   return false
 }
