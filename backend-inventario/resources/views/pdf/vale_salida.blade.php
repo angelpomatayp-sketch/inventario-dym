@@ -21,7 +21,7 @@
             border: 1.5px solid #333;
             margin-bottom: 6px;
         }
-        .header-table td { vertical-align: middle; padding: 6px 10px; }
+        .header-table td { vertical-align: middle; padding: 5px 10px; }
         .header-logo  { width: 130px; border-right: 1.5px solid #333; }
         .header-title { text-align: center; border-right: 1.5px solid #333; }
         .header-title .formato-label {
@@ -108,10 +108,22 @@
         /* ── FIRMAS ── */
         .firmas-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
         .firmas-table td { width: 33.33%; padding: 0; }
-        .firma-label-cell { font-size: 8.5px; font-weight: bold; color: #1E2D72; padding: 2px 4px; border: none; text-align: left; }
+        .firma-label-cell { font-size: 8.5px; font-weight: bold; color: #000; padding: 2px 4px; border: none; text-align: left; }
         .firma-box { border: 1px solid #555; height: 60px; vertical-align: bottom; text-align: left; padding: 3px 5px; }
-        .firma-vb { font-size: 8px; color: #1E2D72; }
-        .firma-nombre { font-size: 8px; color: #1E2D72; font-weight: bold; }
+        .firma-vb { font-size: 8px; color: #000; }
+        .firma-nombre { font-size: 8px; color: #000; font-weight: bold; }
+
+        /* ── NOTA LEGAL ── */
+        .nota-legal {
+            margin-top: 14px;
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 8.5px;
+            color: #555;
+            background-color: #fafafa;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -132,7 +144,7 @@
                 $logoData = (extension_loaded('gd') && file_exists($logoPath)) ? base64_encode(file_get_contents($logoPath)) : null;
             @endphp
             @if($logoData)
-                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:120px; max-height:55px; display:block; margin:auto;">
+                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:106px; max-height:48px; display:block; margin:auto;">
             @else
                 <div style="font-size:11px; font-weight:bold; color:#1E2D72; line-height:1.4;">
                     CONTRATISTAS<br>ASOCIADOS<br>PACIFICO S.R.L.
@@ -254,6 +266,12 @@
         </td>
     </tr>
 </table>
+
+{{-- ═══════════ NOTA LEGAL ═══════════ --}}
+<div class="nota-legal">
+    Cualquier daño, deterioro, pérdida u otro se responsabiliza el personal a cargo de los materiales, equipos
+    y otros sujeto a descuento, salvo estos cumplan su ciclo de vida.
+</div>
 
 <script type="text/php">
     if (isset($pdf)) {
