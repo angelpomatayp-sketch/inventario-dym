@@ -5,9 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Kardex EPP - {{ $trabajador->nombre }}</title>
     <style>
-        @page { size: A4 portrait; margin: 15mm 15mm 15mm 15mm; }
+        @page { size: A4 portrait; margin: 20mm 18mm 20mm 18mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'DejaVu Sans', sans-serif; font-size: 7.5px; color: #000; }
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 7.5px; color: #000; margin: 20mm 18mm; }
 
         /* ── CABECERA ── */
         .header-table { width: 100%; border-collapse: collapse; border: 1px solid #1565C0; }
@@ -43,8 +43,8 @@
         .val-emp td { color: #000; font-weight: normal; text-align: center;
                       padding: 1px 6px 3px 6px; font-size: 7.5px; min-height: 12px; }
 
-        /* Valores trabajador: azul negrita */
-        .val-trab td { color: #1565C0; font-weight: bold; text-align: left;
+        /* Valores trabajador: negro sin negrita */
+        .val-trab td { color: #000; font-weight: normal; text-align: left;
                        padding: 1px 6px 3px 6px; font-size: 7.5px; min-height: 12px; }
 
         /* ── TABLA EPP ── */
@@ -136,9 +136,9 @@
         <td colspan="3" class="sec-hdr">DATOS DEL EMPLEADOR</td>
     </tr>
     <tr class="lbl-row">
-        <td style="width:220px;">RAZON SOCIAL</td>
-        <td style="width:70px;">RUC</td>
-        <td>ACTIVIDAD ECONOMICA</td>
+        <td style="width:57%;">RAZON SOCIAL</td>
+        <td style="width:17%;">RUC</td>
+        <td style="width:26%;">ACTIVIDAD ECONOMICA</td>
     </tr>
     <tr class="val-emp">
         <td>CONTRATISTAS ASOCIADOS PACIFICO S.R.L.</td>
@@ -146,12 +146,12 @@
         <td>CIERRE DE MINAS Y PASIVOS AMBIENTALES</td>
     </tr>
     <tr class="lbl-row">
-        <td colspan="2">DOMICILIO</td>
-        <td>Nº DE TRABAJADORES</td>
+        <td colspan="2" style="width:74%;">DOMICILIO</td>
+        <td style="width:26%;">Nº DE TRABAJADORES</td>
     </tr>
     <tr class="val-emp">
         <td colspan="2">AV. DANIEL ALCIDES CARRION Nº2164</td>
-        <td>{{ $numTrabajadores }}</td>
+        <td style="text-align:center;">{{ $numTrabajadores }}</td>
     </tr>
 </table>
 
@@ -161,17 +161,17 @@
         <td colspan="3" class="sec-hdr">DATOS DEL TRABAJADOR</td>
     </tr>
     <tr class="lbl-row">
-        <td colspan="2" style="width:240px; text-align:left; padding-left:8px;">APELLIDOS Y NOMBRES:</td>
-        <td>DNI</td>
+        <td colspan="2" style="width:79%; text-align:left; padding-left:8px;">APELLIDOS Y NOMBRES:</td>
+        <td style="width:21%;">DNI</td>
     </tr>
     <tr class="val-trab">
         <td colspan="2">{{ strtoupper($trabajador->nombre) }}</td>
         <td>{{ $trabajador->dni ?? '' }}</td>
     </tr>
     <tr class="lbl-row">
-        <td style="width:120px;">PUESTO DE TRABAJO</td>
-        <td style="width:90px;">FECHA DE INGRESO</td>
-        <td>LUGAR DE TRABAJO</td>
+        <td style="width:42%;">PUESTO DE TRABAJO</td>
+        <td style="width:26%;">FECHA DE INGRESO</td>
+        <td style="width:32%;">LUGAR DE TRABAJO</td>
     </tr>
     <tr class="val-trab">
         <td>{{ strtoupper($trabajador->cargo ?? '') }}</td>
