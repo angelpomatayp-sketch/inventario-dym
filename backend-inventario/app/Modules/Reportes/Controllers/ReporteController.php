@@ -799,26 +799,27 @@ class ReporteController extends Controller
             ? Almacen::where('empresa_id', $empresaId)->where('id', $almacenAsignado)->value('centro_costo_id')
             : null;
 
-        // 1. Consumo mensual (últimos 6 meses)
+        // 1. Consumo mensual (últimos 6 meses) — una sola query con GROUP BY mes
+        $desde6Meses = now()->subMonths(5)->startOfMonth();
+        $rawConsumo = DB::table('vales_salida as v')
+            ->join('vales_salida_detalle as vd', 'v.id', '=', 'vd.vale_salida_id')
+            ->where('v.empresa_id', $empresaId)
+            ->where('v.estado', 'ENTREGADO')
+            ->where('v.fecha', '>=', $desde6Meses)
+            ->when($almacenAsignado, fn($q) => $q->where('v.almacen_id', $almacenAsignado))
+            ->selectRaw('YEAR(v.fecha) as anio, MONTH(v.fecha) as mes_num, COALESCE(SUM(vd.cantidad_entregada * vd.costo_unitario), 0) as total')
+            ->groupByRaw('YEAR(v.fecha), MONTH(v.fecha)')
+            ->get()
+            ->keyBy(fn($r) => $r->anio . '-' . $r->mes_num);
+
         $consumoMensual = collect();
         for ($i = 5; $i >= 0; $i--) {
             $mes = now()->subMonths($i);
-            $inicioMes = $mes->copy()->startOfMonth();
-            $finMes = $mes->copy()->endOfMonth();
-
-            $consumo = DB::table('vales_salida as v')
-                ->join('vales_salida_detalle as vd', 'v.id', '=', 'vd.vale_salida_id')
-                ->where('v.empresa_id', $empresaId)
-                ->where('v.estado', 'ENTREGADO')
-                ->whereBetween('v.fecha', [$inicioMes, $finMes])
-                ->selectRaw('COALESCE(SUM(vd.cantidad_entregada * vd.costo_unitario), 0) as total')
-                ->when($almacenAsignado, fn($q) => $q->where('v.almacen_id', $almacenAsignado))
-                ->value('total') ?? 0;
-
+            $key = $mes->year . '-' . $mes->month;
             $consumoMensual->push([
                 'mes' => $mes->translatedFormat('M Y'),
                 'mes_corto' => $mes->translatedFormat('M'),
-                'valor' => round($consumo, 2),
+                'valor' => round($rawConsumo->get($key)?->total ?? 0, 2),
             ]);
         }
 
