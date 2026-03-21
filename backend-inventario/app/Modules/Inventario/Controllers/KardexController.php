@@ -145,16 +145,31 @@ class KardexController extends Controller
             ->orderBy('id')
             ->get();
 
+        // Pre-cargar saldos iniciales en una sola query (evita N+1)
+        $productoIds = $kardex->pluck('producto_id')->unique()->values();
+        $saldosInicialesMap = collect();
+        if ($productoIds->isNotEmpty()) {
+            // Obtener el ID más reciente (por fecha DESC, id DESC) antes del período por producto
+            $latestIds = Kardex::where('empresa_id', $empresaId)
+                ->whereIn('producto_id', $productoIds)
+                ->where('fecha', '<', $fechaInicio)
+                ->selectRaw('producto_id, MAX(id) as last_id')
+                ->groupBy('producto_id')
+                ->pluck('last_id', 'producto_id');
+
+            if ($latestIds->isNotEmpty()) {
+                $saldosInicialesMap = Kardex::whereIn('id', $latestIds->values())
+                    ->get()
+                    ->keyBy('producto_id');
+            }
+        }
+
         // Agrupar por producto
-        $reportePorProducto = $kardex->groupBy('producto_id')->map(function ($movimientos, $productoId) use ($fechaInicio) {
+        $reportePorProducto = $kardex->groupBy('producto_id')->map(function ($movimientos, $productoId) use ($saldosInicialesMap) {
             $producto = $movimientos->first()->producto;
 
-            // Obtener saldo inicial (último registro antes del período)
-            $saldoInicial = Kardex::where('producto_id', $productoId)
-                ->where('fecha', '<', $fechaInicio)
-                ->orderBy('fecha', 'desc')
-                ->orderBy('id', 'desc')
-                ->first();
+            // Obtener saldo inicial del mapa pre-cargado (sin query adicional)
+            $saldoInicial = $saldosInicialesMap->get($productoId);
 
             $saldoInicialCantidad = $saldoInicial ? $saldoInicial->saldo_cantidad : 0;
             $saldoInicialValor = $saldoInicial ? $saldoInicial->saldo_costo_total : 0;

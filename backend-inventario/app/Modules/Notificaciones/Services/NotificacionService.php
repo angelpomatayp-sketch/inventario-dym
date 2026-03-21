@@ -63,17 +63,17 @@ class NotificacionService
             )
             ->get();
 
+        // Bulk-check qué productos ya tienen notificación reciente (1 query)
+        $yaNotificados = Notificacion::where('empresa_id', $empresaId)
+            ->where('tipo', Notificacion::TIPO_STOCK_BAJO)
+            ->where('entidad_tipo', 'productos')
+            ->where('created_at', '>=', now()->subDay())
+            ->pluck('entidad_id')
+            ->flip();
+
         $count = 0;
         foreach ($productosStockBajo as $producto) {
-            // Verificar si ya existe notificación reciente (últimas 24h)
-            $existente = Notificacion::where('empresa_id', $empresaId)
-                ->where('tipo', Notificacion::TIPO_STOCK_BAJO)
-                ->where('entidad_tipo', 'productos')
-                ->where('entidad_id', $producto->id)
-                ->where('created_at', '>=', now()->subDay())
-                ->exists();
-
-            if (!$existente) {
+            if (!isset($yaNotificados[$producto->id])) {
                 $severidad = $producto->stock_actual <= 0
                     ? Notificacion::SEVERIDAD_DANGER
                     : Notificacion::SEVERIDAD_WARN;
@@ -112,16 +112,16 @@ class NotificacionService
             ->with(['trabajador:id,nombre', 'tipoEpp:id,nombre'])
             ->get();
 
+        $yaNotificadosVencidos = Notificacion::where('empresa_id', $empresaId)
+            ->where('tipo', Notificacion::TIPO_EPP_VENCIMIENTO)
+            ->where('entidad_tipo', 'asignaciones_epp')
+            ->where('created_at', '>=', now()->subDay())
+            ->pluck('entidad_id')
+            ->flip();
+
         $count = 0;
         foreach ($eppsVencidos as $epp) {
-            $existente = Notificacion::where('empresa_id', $empresaId)
-                ->where('tipo', Notificacion::TIPO_EPP_VENCIMIENTO)
-                ->where('entidad_tipo', 'asignaciones_epp')
-                ->where('entidad_id', $epp->id)
-                ->where('created_at', '>=', now()->subDay())
-                ->exists();
-
-            if (!$existente) {
+            if (!isset($yaNotificadosVencidos[$epp->id])) {
                 Notificacion::create([
                     'empresa_id' => $empresaId,
                     'usuario_id' => null,
@@ -152,16 +152,16 @@ class NotificacionService
             ->with(['trabajador:id,nombre', 'tipoEpp:id,nombre'])
             ->get();
 
+        $yaNotificadosPorVencer = Notificacion::where('empresa_id', $empresaId)
+            ->where('tipo', Notificacion::TIPO_EPP_POR_VENCER)
+            ->where('entidad_tipo', 'asignaciones_epp')
+            ->where('created_at', '>=', now()->subDay())
+            ->pluck('entidad_id')
+            ->flip();
+
         $count = 0;
         foreach ($eppsPorVencer as $epp) {
-            $existente = Notificacion::where('empresa_id', $empresaId)
-                ->where('tipo', Notificacion::TIPO_EPP_POR_VENCER)
-                ->where('entidad_tipo', 'asignaciones_epp')
-                ->where('entidad_id', $epp->id)
-                ->where('created_at', '>=', now()->subDay())
-                ->exists();
-
-            if (!$existente) {
+            if (!isset($yaNotificadosPorVencer[$epp->id])) {
                 $diasRestantes = now()->diffInDays($epp->fecha_vencimiento);
 
                 Notificacion::create([
@@ -194,16 +194,16 @@ class NotificacionService
             ->with(['almacenero:id,nombre', 'centroCosto:id,nombre'])
             ->get();
 
+        $yaNotificadasReq = Notificacion::where('empresa_id', $empresaId)
+            ->where('tipo', Notificacion::TIPO_REQUISICION_PENDIENTE)
+            ->where('entidad_tipo', 'requisiciones')
+            ->where('created_at', '>=', now()->subDay())
+            ->pluck('entidad_id')
+            ->flip();
+
         $count = 0;
         foreach ($requisicionesPendientes as $requisicion) {
-            $existente = Notificacion::where('empresa_id', $empresaId)
-                ->where('tipo', Notificacion::TIPO_REQUISICION_PENDIENTE)
-                ->where('entidad_tipo', 'requisiciones')
-                ->where('entidad_id', $requisicion->id)
-                ->where('created_at', '>=', now()->subDay())
-                ->exists();
-
-            if (!$existente) {
+            if (!isset($yaNotificadasReq[$requisicion->id])) {
                 $horasPendiente = now()->diffInHours($requisicion->created_at);
 
                 Notificacion::create([
@@ -236,16 +236,16 @@ class NotificacionService
             ->with(['equipo:id,nombre,codigo', 'trabajador:id,nombre'])
             ->get();
 
+        $yaNotificadosVencidosPrestamo = Notificacion::where('empresa_id', $empresaId)
+            ->where('tipo', 'PRESTAMO_VENCIDO')
+            ->where('entidad_tipo', 'prestamos_equipos')
+            ->where('created_at', '>=', now()->subDay())
+            ->pluck('entidad_id')
+            ->flip();
+
         $count = 0;
         foreach ($prestamosVencidos as $prestamo) {
-            $existente = Notificacion::where('empresa_id', $empresaId)
-                ->where('tipo', 'PRESTAMO_VENCIDO')
-                ->where('entidad_tipo', 'prestamos_equipos')
-                ->where('entidad_id', $prestamo->id)
-                ->where('created_at', '>=', now()->subDay())
-                ->exists();
-
-            if (!$existente) {
+            if (!isset($yaNotificadosVencidosPrestamo[$prestamo->id])) {
                 $diasAtraso = now()->diffInDays($prestamo->fecha_devolucion_esperada);
 
                 Notificacion::create([
@@ -278,16 +278,16 @@ class NotificacionService
             ->with(['equipo:id,nombre,codigo', 'trabajador:id,nombre'])
             ->get();
 
+        $yaNotificadosPorVencerPrestamo = Notificacion::where('empresa_id', $empresaId)
+            ->where('tipo', 'PRESTAMO_POR_VENCER')
+            ->where('entidad_tipo', 'prestamos_equipos')
+            ->where('created_at', '>=', now()->subDay())
+            ->pluck('entidad_id')
+            ->flip();
+
         $count = 0;
         foreach ($prestamosPorVencer as $prestamo) {
-            $existente = Notificacion::where('empresa_id', $empresaId)
-                ->where('tipo', 'PRESTAMO_POR_VENCER')
-                ->where('entidad_tipo', 'prestamos_equipos')
-                ->where('entidad_id', $prestamo->id)
-                ->where('created_at', '>=', now()->subDay())
-                ->exists();
-
-            if (!$existente) {
+            if (!isset($yaNotificadosPorVencerPrestamo[$prestamo->id])) {
                 $diasRestantes = now()->diffInDays($prestamo->fecha_devolucion_esperada);
 
                 Notificacion::create([
@@ -307,6 +307,22 @@ class NotificacionService
         }
 
         return $count;
+    }
+
+    /**
+     * Contar notificaciones no leídas agrupadas por tipo (usa SQL GROUP BY, sin cargar registros)
+     */
+    public function contarPorTipoParaUsuario(Usuario $usuario): array
+    {
+        $query = Notificacion::where('empresa_id', $usuario->empresa_id)
+            ->paraUsuario($usuario->id)
+            ->noLeidas()
+            ->selectRaw('tipo, COUNT(*) as total')
+            ->groupBy('tipo');
+
+        $this->aplicarFiltroNotificacionesPorAlmacen($query, $usuario);
+
+        return $query->get()->pluck('total', 'tipo')->toArray();
     }
 
     /**

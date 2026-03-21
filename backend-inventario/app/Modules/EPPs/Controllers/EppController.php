@@ -680,44 +680,44 @@ class EppController extends Controller
         $empresaId = $request->user()->empresa_id;
         $almacenAsignado = $this->getAlmacenAsignado($request);
 
-        $baseAsignaciones = AsignacionEpp::where('empresa_id', $empresaId);
+        // Una sola query con agregados condicionales (reemplaza 6 COUNT separadas)
+        $limite30 = now()->addDays(30)->toDateTimeString();
+        $ahora    = now()->toDateTimeString();
+
+        $baseQuery = DB::table('asignaciones_epp')
+            ->where('empresa_id', $empresaId);
         if ($almacenAsignado) {
-            $baseAsignaciones->where('almacen_id', $almacenAsignado);
+            $baseQuery->where('almacen_id', $almacenAsignado);
         }
 
+        $conteos = (clone $baseQuery)
+            ->selectRaw("
+                COUNT(CASE WHEN estado IN ('VIGENTE','POR_VENCER') THEN 1 END) as total_asignaciones,
+                COUNT(CASE WHEN estado = 'VIGENTE' THEN 1 END) as vigentes,
+                COUNT(CASE WHEN estado = 'POR_VENCER' THEN 1 END) as por_vencer,
+                COUNT(CASE WHEN estado = 'VENCIDO' THEN 1 END) as vencidos,
+                COUNT(CASE WHEN estado = 'VIGENTE' AND fecha_vencimiento <= ? AND fecha_vencimiento > ? THEN 1 END) as proximos_vencer
+            ", [$limite30, $ahora])
+            ->first();
+
         $stats = [
-            'total_asignaciones' => (clone $baseAsignaciones)
-                ->whereIn('estado', ['VIGENTE', 'POR_VENCER'])
-                ->count(),
-            'vigentes' => (clone $baseAsignaciones)
-                ->where('estado', 'VIGENTE')
-                ->count(),
-            'por_vencer' => (clone $baseAsignaciones)
-                ->where('estado', 'POR_VENCER')
-                ->count(),
-            'vencidos' => (clone $baseAsignaciones)
-                ->where('estado', 'VENCIDO')
-                ->count(),
-            'tipos_epp' => TipoEpp::where('empresa_id', $empresaId)
-                ->where('activo', true)
-                ->count(),
+            'total_asignaciones' => $conteos->total_asignaciones ?? 0,
+            'vigentes'           => $conteos->vigentes ?? 0,
+            'por_vencer'         => $conteos->por_vencer ?? 0,
+            'vencidos'           => $conteos->vencidos ?? 0,
+            'proximos_vencer'    => $conteos->proximos_vencer ?? 0,
+            'tipos_epp'          => TipoEpp::where('empresa_id', $empresaId)->where('activo', true)->count(),
         ];
 
-        // Por vencer en los próximos 30 días
-        $stats['proximos_vencer'] = (clone $baseAsignaciones)
-            ->where('estado', 'VIGENTE')
-            ->where('fecha_vencimiento', '<=', now()->addDays(30))
-            ->where('fecha_vencimiento', '>', now())
-            ->count();
-
-        // Por categoría
-        $queryPorCategoria = AsignacionEpp::where('asignaciones_epp.empresa_id', $empresaId)
-            ->whereIn('estado', ['VIGENTE', 'POR_VENCER'])
-            ->join('tipos_epp', 'asignaciones_epp.tipo_epp_id', '=', 'tipos_epp.id')
-            ->selectRaw('tipos_epp.categoria, count(*) as total')
-            ->groupBy('tipos_epp.categoria');
+        // Por categoría (requiere JOIN, se mantiene separada)
+        $queryPorCategoria = DB::table('asignaciones_epp as ae')
+            ->join('tipos_epp as te', 'te.id', '=', 'ae.tipo_epp_id')
+            ->where('ae.empresa_id', $empresaId)
+            ->whereIn('ae.estado', ['VIGENTE', 'POR_VENCER'])
+            ->selectRaw('te.categoria, COUNT(*) as total')
+            ->groupBy('te.categoria');
         if ($almacenAsignado) {
-            $queryPorCategoria->where('asignaciones_epp.almacen_id', $almacenAsignado);
+            $queryPorCategoria->where('ae.almacen_id', $almacenAsignado);
         }
         $stats['por_categoria'] = $queryPorCategoria->get();
 
@@ -758,11 +758,13 @@ class EppController extends Controller
     {
         $actualizados = 0;
 
-        // Marcar como POR_VENCER
-        $porVencer = AsignacionEpp::where('estado', 'VIGENTE')
-            ->whereRaw('DATEDIFF(fecha_vencimiento, NOW()) <= (SELECT dias_alerta_vencimiento FROM tipos_epp WHERE tipos_epp.id = asignaciones_epp.tipo_epp_id)')
-            ->where('fecha_vencimiento', '>', now())
-            ->update(['estado' => 'POR_VENCER']);
+        // Marcar como POR_VENCER (JOIN en lugar de subconsulta correlacionada por fila)
+        $porVencer = DB::table('asignaciones_epp as ae')
+            ->join('tipos_epp as te', 'te.id', '=', 'ae.tipo_epp_id')
+            ->where('ae.estado', 'VIGENTE')
+            ->whereRaw('DATEDIFF(ae.fecha_vencimiento, NOW()) <= te.dias_alerta_vencimiento')
+            ->where('ae.fecha_vencimiento', '>', now())
+            ->update(['ae.estado' => 'POR_VENCER']);
 
         // Marcar como VENCIDO
         $vencidos = AsignacionEpp::whereIn('estado', ['VIGENTE', 'POR_VENCER'])

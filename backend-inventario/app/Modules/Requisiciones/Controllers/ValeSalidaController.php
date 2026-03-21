@@ -649,12 +649,13 @@ class ValeSalidaController extends Controller
             'entregados_hoy' => ValeSalida::where('empresa_id', $empresaId)
                 ->where('estado', ValeSalida::ESTADO_ENTREGADO)
                 ->whereDate('fecha', today())->count(),
-            'valor_mes' => ValeSalidaDetalle::whereHas('valeSalida', function ($q) use ($empresaId) {
-                $q->where('empresa_id', $empresaId)
-                  ->whereMonth('fecha', now()->month)
-                  ->whereYear('fecha', now()->year)
-                  ->where('estado', ValeSalida::ESTADO_ENTREGADO);
-            })->sum('costo_total'),
+            'valor_mes' => DB::table('vales_salida_detalle as vsd')
+                ->join('vales_salida as vs', 'vs.id', '=', 'vsd.vale_salida_id')
+                ->where('vs.empresa_id', $empresaId)
+                ->whereMonth('vs.fecha', now()->month)
+                ->whereYear('vs.fecha', now()->year)
+                ->where('vs.estado', ValeSalida::ESTADO_ENTREGADO)
+                ->sum('vsd.costo_total'),
         ];
 
         return $this->success($stats);

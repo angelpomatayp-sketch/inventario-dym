@@ -129,14 +129,15 @@ class NotificacionController extends Controller
         $usuario = $request->user();
         $empresaId = $usuario->empresa_id;
 
-        // Primero generamos las notificaciones automáticas
-        $this->notificacionService->generarNotificacionesAutomaticas($empresaId);
+        // Generar notificaciones automáticas máximo una vez cada 30 minutos por empresa
+        $cacheKey = "notif_generadas_{$empresaId}";
+        if (!cache()->has($cacheKey)) {
+            $this->notificacionService->generarNotificacionesAutomaticas($empresaId);
+            cache()->put($cacheKey, true, now()->addMinutes(30));
+        }
 
-        // Contamos por tipo
-        $notificaciones = $this->notificacionService->obtenerNotificacionesParaUsuario($usuario, true, 1000);
-        $resumen = $notificaciones
-            ->groupBy('tipo')
-            ->map(fn($grupo) => $grupo->count());
+        // Contar por tipo usando SQL GROUP BY (sin cargar registros en memoria)
+        $resumen = $this->notificacionService->contarPorTipoParaUsuario($usuario);
 
         $totalNoLeidas = $this->notificacionService->contarNoLeidasParaUsuario($usuario);
 

@@ -472,6 +472,13 @@ class MovimientoController extends Controller
             $spreadsheet = IOFactory::load($request->file('archivo')->getPathname());
             $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
 
+            // Pre-cargar todos los productos de la empresa en un solo query (evita N+1)
+            $todosProductos = Producto::where('empresa_id', $empresaId)
+                ->select('id', 'codigo', 'nombre', 'unidad_medida')
+                ->get();
+            $productosPorCodigo = $todosProductos->keyBy('codigo');
+            $productosPorNombre = $todosProductos->keyBy(fn($p) => strtolower($p->nombre));
+
             $resultados  = [];
             $totalValidos = 0;
             $totalErrores = 0;
@@ -502,17 +509,13 @@ class MovimientoController extends Controller
                     'valido'           => false,
                 ];
 
-                // Buscar producto: primero por código, luego por nombre exacto (case-insensitive)
+                // Buscar producto en los mapas pre-cargados (sin queries adicionales)
                 $producto = null;
                 if ($codigo !== '') {
-                    $producto = Producto::where('empresa_id', $empresaId)
-                        ->where('codigo', $codigo)
-                        ->first();
+                    $producto = $productosPorCodigo->get($codigo);
                 }
                 if (!$producto && $nombre !== '') {
-                    $producto = Producto::where('empresa_id', $empresaId)
-                        ->whereRaw('LOWER(nombre) = LOWER(?)', [$nombre])
-                        ->first();
+                    $producto = $productosPorNombre->get(strtolower($nombre));
                 }
 
                 if (!$producto) {
