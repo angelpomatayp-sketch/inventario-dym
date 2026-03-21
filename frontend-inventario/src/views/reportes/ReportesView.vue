@@ -10,7 +10,7 @@
 
     <!-- Tabs de Reportes -->
     <Tabs v-model:value="activeTab" class="reportes-tabs">
-      <TabList>
+      <TabList translate="no">
         <Tab value="0">Kardex Valorizado</Tab>
         <Tab value="1">Inventario Valorizado</Tab>
         <Tab value="2">Stock Crítico</Tab>
