@@ -130,6 +130,13 @@ class TrabajadorController extends Controller
             'success' => true,
             'message' => 'Trabajador actualizado exitosamente.',
             'data' => $trabajador->load('centroCosto:id,codigo,nombre'),
+            '_debug' => [
+                'id'          => $trabajador->id,
+                'nombre_attr' => $trabajador->getAttribute('nombre'),
+                'attr_count'  => count($trabajador->getAttributes()),
+                'validated'   => $validated,
+                'req_nombre'  => $request->input('nombre'),
+            ],
         ]);
     }
 
