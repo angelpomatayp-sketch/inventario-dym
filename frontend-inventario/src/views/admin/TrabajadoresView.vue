@@ -159,7 +159,8 @@ const saveTrabajador = async () => {
         const idx = trabajadores.value.findIndex(t => t.id === formData.value.id)
         if (idx !== -1) trabajadores.value[idx] = actualizado
       }
-      toast.add({ severity: 'success', summary: 'Éxito', detail: `Actualizado: ${actualizado?.nombre ?? '(sin nombre)'}`, life: 6000 })
+      const debugInfo = `keys:${Object.keys(res.data||{}).join('|')} / data:${JSON.stringify(actualizado).slice(0,80)}`
+      toast.add({ severity: 'success', summary: 'Éxito', detail: debugInfo, life: 15000 })
     } else {
       await api.post('/administracion/trabajadores', dataToSend)
       toast.add({ severity: 'success', summary: 'Éxito', detail: 'Trabajador registrado', life: 3000 })
