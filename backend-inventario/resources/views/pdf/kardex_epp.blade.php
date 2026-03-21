@@ -17,9 +17,8 @@
         .cell-title .lbl-formato { font-size: 7px; font-weight: bold; letter-spacing: 1px;
             border-bottom: 1px solid #000; display: block; padding-bottom: 2px; margin-bottom: 3px; }
         .cell-title .lbl-titulo { font-size: 9px; font-weight: bold; text-transform: uppercase; display: block; }
-        .cell-meta { width: 125px; font-size: 7.5px; padding: 4px 8px; }
-        .cell-meta table { width: 100%; border-collapse: collapse; }
-        .cell-meta td { padding: 1px 2px; border: none; }
+        .cell-meta { width: 125px; font-size: 7.5px; padding: 4px 8px; text-align: center; vertical-align: middle; }
+        .cell-meta div { line-height: 1.9; }
         .cell-meta .mlabel { font-weight: bold; }
 
         /* ── NÚMERO ── */
@@ -75,8 +74,9 @@
         .col-fecha { width: 42px;  text-align: center; }
         .col-firma { width: 28px;  text-align: center; }
         .col-obs   { width: 55px;  text-align: left;   padding-left: 3px; }
-        /* Filas de datos EPP: fondo celeste */
-        .epp-data td { background-color: #E3F2FD; }
+        /* Filas de datos EPP: fondo blanco, solo descripción celeste */
+        .epp-data td { background-color: #fff; }
+        .epp-data .col-desc { background-color: #E3F2FD; }
 
         /* ── RESPONSABLE ── */
         .resp-table { width: 100%; border-collapse: collapse; border: 1px solid #000; border-top: none; }
@@ -115,11 +115,9 @@
             <span class="lbl-titulo">Registro de Entrega de Equipos de Protección Personal</span>
         </td>
         <td class="cell-meta">
-            <table>
-                <tr><td class="mlabel">Código:</td><td>FR-ALM-02</td></tr>
-                <tr><td class="mlabel">Versión:</td><td>00</td></tr>
-                <tr><td class="mlabel">Fecha:</td><td>01/04/2022</td></tr>
-            </table>
+            <div><span class="mlabel">Código:</span> FR-ALM-02</div>
+            <div><span class="mlabel">Versión:</span> 00</div>
+            <div><span class="mlabel">Fecha:</span> 01/04/2022</div>
         </td>
     </tr>
 </table>
@@ -211,7 +209,7 @@
     <tbody>
         @forelse($filas as $fila)
         <tr class="epp-data">
-            <td class="col-desc" style="background-color:#fff;">{{ $fila['descripcion'] }}</td>
+            <td class="col-desc">{{ $fila['descripcion'] }}</td>
             <td class="col-und">{{ $fila['unidad'] }}</td>
             @for($s = 0; $s < 3; $s++)
             <td class="col-fecha">{{ isset($fila['slots'][$s]) ? $fila['slots'][$s]['fecha'] : '' }}</td>
