@@ -35,13 +35,17 @@
         .sec-hdr { background-color: #BBDEFB; text-align: center; font-weight: bold;
                    font-size: 7.5px; letter-spacing: 0.5px; padding: 3px 4px; }
 
-        /* Fila de etiquetas (negrita, centrada, sin padding inferior) */
+        /* Fila de etiquetas (negrita, centrada) */
         .lbl-row td { font-weight: bold; text-align: center; padding: 3px 6px 1px 6px;
-                      font-size: 7px; text-transform: uppercase; }
+                      font-size: 7.5px; text-transform: uppercase; }
 
-        /* Fila de valores (color azul, centrada) */
-        .val-row td { color: #1565C0; font-weight: bold; text-align: center;
+        /* Valores empresa: negro sin negrita */
+        .val-emp td { color: #000; font-weight: normal; text-align: center;
                       padding: 1px 6px 3px 6px; font-size: 7.5px; min-height: 12px; }
+
+        /* Valores trabajador: azul negrita */
+        .val-trab td { color: #1565C0; font-weight: bold; text-align: left;
+                       padding: 1px 6px 3px 6px; font-size: 7.5px; min-height: 12px; }
 
         /* ── TABLA EPP ── */
         .epp-table { width: 100%; border-collapse: collapse; border: 1px solid #1565C0; border-top: none; }
@@ -132,11 +136,11 @@
         <td colspan="3" class="sec-hdr">DATOS DEL EMPLEADOR</td>
     </tr>
     <tr class="lbl-row">
-        <td style="width:185px;">RAZON SOCIAL</td>
-        <td style="width:80px;">RUC</td>
+        <td style="width:220px;">RAZON SOCIAL</td>
+        <td style="width:70px;">RUC</td>
         <td>ACTIVIDAD ECONOMICA</td>
     </tr>
-    <tr class="val-row">
+    <tr class="val-emp">
         <td>CONTRATISTAS ASOCIADOS PACIFICO S.R.L.</td>
         <td>20487244423</td>
         <td>CIERRE DE MINAS Y PASIVOS AMBIENTALES</td>
@@ -145,7 +149,7 @@
         <td colspan="2">DOMICILIO</td>
         <td>Nº DE TRABAJADORES</td>
     </tr>
-    <tr class="val-row">
+    <tr class="val-emp">
         <td colspan="2">AV. DANIEL ALCIDES CARRION Nº2164</td>
         <td>{{ $numTrabajadores }}</td>
     </tr>
@@ -157,19 +161,19 @@
         <td colspan="3" class="sec-hdr">DATOS DEL TRABAJADOR</td>
     </tr>
     <tr class="lbl-row">
-        <td colspan="2" style="width:260px; text-align:left; padding-left:8px;">APELLIDOS Y NOMBRES:</td>
+        <td colspan="2" style="width:240px; text-align:left; padding-left:8px;">APELLIDOS Y NOMBRES:</td>
         <td>DNI</td>
     </tr>
-    <tr class="val-row">
-        <td colspan="2" style="text-align:left; padding-left:8px;">{{ strtoupper($trabajador->nombre) }}</td>
+    <tr class="val-trab">
+        <td colspan="2">{{ strtoupper($trabajador->nombre) }}</td>
         <td>{{ $trabajador->dni ?? '' }}</td>
     </tr>
     <tr class="lbl-row">
-        <td style="width:130px;">PUESTO DE TRABAJO</td>
-        <td style="width:100px;">FECHA DE INGRESO</td>
+        <td style="width:120px;">PUESTO DE TRABAJO</td>
+        <td style="width:90px;">FECHA DE INGRESO</td>
         <td>LUGAR DE TRABAJO</td>
     </tr>
-    <tr class="val-row">
+    <tr class="val-trab">
         <td>{{ strtoupper($trabajador->cargo ?? '') }}</td>
         <td>{{ $fechaIngreso }}</td>
         <td>{{ strtoupper($centroCosto?->nombre ?? '') }}</td>
