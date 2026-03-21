@@ -108,8 +108,16 @@ class TrabajadorController extends Controller
     /**
      * Actualizar trabajador.
      */
-    public function update(Request $request, Trabajador $trabajador): JsonResponse
+    public function update(Request $request, int $id): JsonResponse
     {
+        $empresaId = $request->user()->empresa_id;
+
+        $trabajador = Trabajador::withoutGlobalScopes()
+            ->where('id', $id)
+            ->where('empresa_id', $empresaId)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
+
         $validated = $request->validate([
             'centro_costo_id' => ['nullable', 'exists:centros_costos,id'],
             'nombre' => ['sometimes', 'required', 'string', 'max:255'],
@@ -123,20 +131,12 @@ class TrabajadorController extends Controller
         ]);
 
         $trabajador->update($validated);
-
         $trabajador->refresh();
 
         return response()->json([
             'success' => true,
             'message' => 'Trabajador actualizado exitosamente.',
             'data' => $trabajador->load('centroCosto:id,codigo,nombre'),
-            '_debug' => [
-                'id'          => $trabajador->id,
-                'nombre_attr' => $trabajador->getAttribute('nombre'),
-                'attr_count'  => count($trabajador->getAttributes()),
-                'validated'   => $validated,
-                'req_nombre'  => $request->input('nombre'),
-            ],
         ]);
     }
 
