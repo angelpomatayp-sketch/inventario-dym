@@ -69,7 +69,7 @@
             height: 14px;
         }
         .th-grupo { background-color: #90CAF9; }
-        .col-desc  { width: 110px; text-align: left;   padding-left: 4px; }
+        .col-desc  { width: 1.55cm; text-align: left;   padding-left: 4px; }
         .col-und   { width: 22px;  text-align: center; }
         .col-fecha { width: 42px;  text-align: center; }
         .col-firma { width: 28px;  text-align: center; }
