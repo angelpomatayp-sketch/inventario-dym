@@ -10,12 +10,12 @@
         body { font-family: 'DejaVu Sans', sans-serif; font-size: 7.5px; color: #000; margin: 20mm 18mm; }
 
         /* ── CABECERA ── */
-        .header-table { width: 100%; border-collapse: collapse; border: 1px solid #1565C0; }
-        .header-table td { vertical-align: middle; border: 1px solid #1565C0; }
+        .header-table { width: 100%; border-collapse: collapse; border: 1px solid #000; }
+        .header-table td { vertical-align: middle; border: 1px solid #000; }
         .cell-logo { width: 110px; text-align: center; padding: 4px 6px; }
         .cell-title { text-align: center; padding: 4px 8px; }
         .cell-title .lbl-formato { font-size: 7px; font-weight: bold; letter-spacing: 1px;
-            border-bottom: 1px solid #1565C0; display: block; padding-bottom: 2px; margin-bottom: 3px; }
+            border-bottom: 1px solid #000; display: block; padding-bottom: 2px; margin-bottom: 3px; }
         .cell-title .lbl-titulo { font-size: 9px; font-weight: bold; text-transform: uppercase; display: block; }
         .cell-meta { width: 125px; font-size: 7.5px; padding: 4px 8px; }
         .cell-meta table { width: 100%; border-collapse: collapse; }
@@ -24,12 +24,12 @@
 
         /* ── NÚMERO ── */
         .numero-wrap { width: 100%; border-collapse: collapse; }
-        .numero-wrap td { padding: 2px 0; border-left: 1px solid #1565C0; border-right: 1px solid #1565C0; }
-        .numero-box { float: right; border: 1px solid #1565C0; padding: 1px 10px; font-size: 7.5px; font-weight: bold; }
+        .numero-wrap td { padding: 2px 0; border-left: 1px solid #000; border-right: 1px solid #000; }
+        .numero-box { float: right; border: 1px solid #000; padding: 1px 10px; font-size: 7.5px; font-weight: bold; }
 
         /* ── TABLAS DE SECCIÓN ── */
-        .sec { width: 100%; border-collapse: collapse; border: 1px solid #1565C0; border-top: none; }
-        .sec td { border: 1px solid #1565C0; font-size: 7.5px; }
+        .sec { width: 100%; border-collapse: collapse; border: 1px solid #000; border-top: none; }
+        .sec td { border: 1px solid #000; font-size: 7.5px; }
 
         /* Fila de encabezado de sección */
         .sec-hdr { background-color: #BBDEFB; text-align: center; font-weight: bold;
@@ -43,15 +43,18 @@
         .val-emp td { color: #000; font-weight: normal; text-align: center;
                       padding: 1px 6px 3px 6px; font-size: 7.5px; min-height: 12px; }
 
-        /* Valores trabajador: negro sin negrita */
-        .val-trab td { color: #000; font-weight: normal; text-align: left;
+        /* Valores trabajador: negro sin negrita, centrado */
+        .val-trab td { color: #000; font-weight: normal; text-align: center;
                        padding: 1px 6px 3px 6px; font-size: 7.5px; min-height: 12px; }
 
+        /* Espacio entre secciones */
+        .sec-gap { height: 4px; }
+
         /* ── TABLA EPP ── */
-        .epp-table { width: 100%; border-collapse: collapse; border: 1px solid #1565C0; border-top: none; }
+        .epp-table { width: 100%; border-collapse: collapse; border: 1px solid #000; }
         .epp-table th {
             background-color: #BBDEFB;
-            border: 1px solid #1565C0;
+            border: 1px solid #000;
             padding: 2px 2px;
             font-size: 6.5px;
             font-weight: bold;
@@ -60,7 +63,7 @@
             vertical-align: middle;
         }
         .epp-table td {
-            border: 1px solid #1565C0;
+            border: 1px solid #000;
             padding: 1px 3px;
             font-size: 7px;
             vertical-align: middle;
@@ -72,11 +75,12 @@
         .col-fecha { width: 42px;  text-align: center; }
         .col-firma { width: 28px;  text-align: center; }
         .col-obs   { width: 55px;  text-align: left;   padding-left: 3px; }
-        .desc-blue { color: #1565C0; font-weight: bold; }
+        /* Filas de datos EPP: fondo celeste */
+        .epp-data td { background-color: #E3F2FD; }
 
         /* ── RESPONSABLE ── */
-        .resp-table { width: 100%; border-collapse: collapse; border: 1px solid #1565C0; border-top: none; }
-        .resp-table td { border: 1px solid #1565C0; font-size: 7.5px; }
+        .resp-table { width: 100%; border-collapse: collapse; border: 1px solid #000; border-top: none; }
+        .resp-table td { border: 1px solid #000; font-size: 7.5px; }
         .resp-lbl { font-weight: bold; text-align: center; padding: 3px 6px 1px; font-size: 7px; text-transform: uppercase; }
         .resp-val { height: 20px; }
     </style>
@@ -101,7 +105,7 @@
             @if($logoData)
                 <img src="data:image/png;base64,{{ $logoData }}" style="max-width:95px; max-height:38px; display:block; margin:auto;">
             @else
-                <div style="font-size:8px; font-weight:bold; color:#1565C0; text-align:center; line-height:1.4;">
+                <div style="font-size:8px; font-weight:bold; color:#000; text-align:center; line-height:1.4;">
                     CONTRATISTAS ASOCIADOS<br>CAP PACIFICO S.R.L.
                 </div>
             @endif
@@ -155,6 +159,9 @@
     </tr>
 </table>
 
+{{-- espacio --}}
+<div class="sec-gap"></div>
+
 {{-- ═══ DATOS DEL TRABAJADOR ═══ --}}
 <table class="sec">
     <tr>
@@ -180,6 +187,9 @@
     </tr>
 </table>
 
+{{-- espacio --}}
+<div class="sec-gap"></div>
+
 {{-- ═══ TABLA EPP ═══ --}}
 <table class="epp-table">
     <thead>
@@ -200,8 +210,8 @@
     </thead>
     <tbody>
         @forelse($filas as $fila)
-        <tr>
-            <td class="col-desc {{ $fila['descripcion'] ? 'desc-blue' : '' }}">{{ $fila['descripcion'] }}</td>
+        <tr class="epp-data">
+            <td class="col-desc">{{ $fila['descripcion'] }}</td>
             <td class="col-und">{{ $fila['unidad'] }}</td>
             @for($s = 0; $s < 3; $s++)
             <td class="col-fecha">{{ isset($fila['slots'][$s]) ? $fila['slots'][$s]['fecha'] : '' }}</td>
@@ -216,6 +226,9 @@
         @endforelse
     </tbody>
 </table>
+
+{{-- espacio --}}
+<div class="sec-gap"></div>
 
 {{-- ═══ RESPONSABLE DEL REGISTRO ═══ --}}
 <table class="resp-table">
