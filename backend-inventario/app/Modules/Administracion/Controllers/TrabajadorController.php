@@ -124,10 +124,12 @@ class TrabajadorController extends Controller
 
         $trabajador->update($validated);
 
+        $trabajador->refresh();
+
         return response()->json([
             'success' => true,
             'message' => 'Trabajador actualizado exitosamente.',
-            'data' => $trabajador->fresh()->load('centroCosto:id,codigo,nombre'),
+            'data' => $trabajador->load('centroCosto:id,codigo,nombre'),
         ]);
     }
 
