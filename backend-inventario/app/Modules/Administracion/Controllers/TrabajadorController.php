@@ -188,7 +188,7 @@ class TrabajadorController extends Controller
         $grupos = $asignaciones->groupBy('producto_id');
 
         foreach ($grupos as $productoId => $items) {
-            $chunks = $items->chunk(4);
+            $chunks = $items->chunk(3);
             $primerChunk = true;
 
             foreach ($chunks as $chunk) {
@@ -200,13 +200,14 @@ class TrabajadorController extends Controller
                 ])->values()->toArray();
 
                 $primerItem = $chunk->first();
+                $lastObs = $chunk->last()->observaciones ?? '';
                 $filas[] = [
                     'descripcion' => $primerChunk
                         ? strtoupper($primerItem->producto?->nombre ?? '')
                         : '',
                     'unidad' => strtoupper($primerItem->producto?->unidad_medida ?? ''),
                     'slots' => $slots,
-                    'obs' => $primerChunk ? ($primerItem->observaciones ?? '') : '',
+                    'obs' => $lastObs,
                 ];
                 $primerChunk = false;
             }
@@ -216,7 +217,7 @@ class TrabajadorController extends Controller
             'trabajador'      => $trabajador,
             'numTrabajadores' => $numTrabajadores,
             'filas'           => $filas,
-        ])->setPaper('a4', 'landscape');
+        ])->setPaper('a4', 'portrait');
 
         $nombre = 'Kardex-EPP-' . Str::slug($trabajador->nombre) . '.pdf';
 

@@ -5,9 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Kardex EPP - {{ $trabajador->nombre }}</title>
     <style>
-        @page { size: A4 landscape; margin: 12mm 14mm; }
+        @page { size: A4 portrait; margin: 10mm 12mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'DejaVu Sans', sans-serif; font-size: 8px; color: #000; }
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 7.5px; color: #000; }
 
         /* ── CABECERA ── */
         .header-table { width: 100%; border-collapse: collapse; border: 1.5px solid #1E6BB0; margin-bottom: 0; }
@@ -53,11 +53,11 @@
             vertical-align: middle;
             height: 16px;
         }
-        .col-desc  { width: auto; text-align: left; padding-left: 5px; }
-        .col-und   { width: 32px; text-align: center; }
-        .col-fecha { width: 52px; text-align: center; }
-        .col-firma { width: 38px; text-align: center; }
-        .col-obs   { width: 90px; text-align: left; padding-left: 3px; }
+        .col-desc  { width: 110px; text-align: left; padding-left: 5px; }
+        .col-und   { width: 22px; text-align: center; }
+        .col-fecha { width: 42px; text-align: center; }
+        .col-firma { width: 28px; text-align: center; }
+        .col-obs   { width: 60px; text-align: left; padding-left: 3px; }
         .desc-blue { color: #1E6BB0; font-weight: bold; }
         .th-grupo  { background-color: #B8D4EA; }
 
@@ -164,17 +164,15 @@
         <tr>
             <th class="col-desc" rowspan="2">DESCRIPCION</th>
             <th class="col-und"  rowspan="2">UNIDAD</th>
-            <th colspan="8" class="th-grupo">FECHA DE ENTREGA DE EQUIPO DE PROTECCION PERSONAL</th>
+            <th colspan="6" class="th-grupo">FECHA DE ENTREGA DE EQUIPO DE PROTECCION PERSONAL</th>
             <th class="col-obs" rowspan="2">OBSERVACION</th>
         </tr>
         <tr>
             <th class="col-fecha">FECHA</th>
             <th class="col-firma">FIRMA</th>
-            <th class="col-fecha">FECHA<br>ENTREGA/DEVOLUCIÓN</th>
+            <th class="col-fecha">FECHA<br>ENTREGA/<br>DEVOLUCIÓN</th>
             <th class="col-firma">FIRMA</th>
-            <th class="col-fecha">FECHA<br>ENTREGA/DEVOLUCIÓN</th>
-            <th class="col-firma">FIRMA</th>
-            <th class="col-fecha">FECHA<br>ENTREGA/DEVOLUCIÓN</th>
+            <th class="col-fecha">FECHA<br>ENTREGA/<br>DEVOLUCIÓN</th>
             <th class="col-firma">FIRMA</th>
         </tr>
     </thead>
@@ -183,7 +181,7 @@
         <tr>
             <td class="col-desc {{ $fila['descripcion'] ? 'desc-blue' : '' }}">{{ $fila['descripcion'] }}</td>
             <td class="col-und">{{ $fila['unidad'] }}</td>
-            @for($s = 0; $s < 4; $s++)
+            @for($s = 0; $s < 3; $s++)
             <td class="col-fecha" style="text-align:center;">
                 {{ isset($fila['slots'][$s]) ? $fila['slots'][$s]['fecha'] : '' }}
             </td>
