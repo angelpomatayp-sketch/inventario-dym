@@ -5,9 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Kardex EPP - {{ $trabajador->nombre }}</title>
     <style>
-        @page { size: A4 portrait; margin: 20mm 18mm 20mm 18mm; }
+        @page { size: A4 portrait; margin: 18mm 16mm 18mm 16mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'DejaVu Sans', sans-serif; font-size: 7.5px; color: #000; margin: 20mm 18mm; }
+        body { font-family: 'DejaVu Sans', sans-serif; font-size: 7.5px; color: #000; margin: 18mm 16mm; }
 
         /* ── CABECERA ── */
         .header-table { width: 100%; border-collapse: collapse; border: 1px solid #000; }
@@ -168,7 +168,7 @@
         <td colspan="3" class="sec-hdr">DATOS DEL TRABAJADOR</td>
     </tr>
     <tr class="lbl-row">
-        <td colspan="2" style="width:79%; text-align:left; padding-left:8px;">APELLIDOS Y NOMBRES:</td>
+        <td colspan="2" style="width:79%;">APELLIDOS Y NOMBRES:</td>
         <td style="width:21%;">DNI</td>
     </tr>
     <tr class="val-trab">
@@ -211,7 +211,7 @@
     <tbody>
         @forelse($filas as $fila)
         <tr class="epp-data">
-            <td class="col-desc">{{ $fila['descripcion'] }}</td>
+            <td class="col-desc" style="background-color:#fff;">{{ $fila['descripcion'] }}</td>
             <td class="col-und">{{ $fila['unidad'] }}</td>
             @for($s = 0; $s < 3; $s++)
             <td class="col-fecha">{{ isset($fila['slots'][$s]) ? $fila['slots'][$s]['fecha'] : '' }}</td>
