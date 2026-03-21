@@ -191,6 +191,21 @@ const deleteTrabajador = async (trabajador) => {
   }
 }
 
+// ==================== KARDEX EPP (Generado) ====================
+
+const generarKardexEpp = async (trabajador) => {
+  try {
+    const response = await api.get(
+      `/administracion/trabajadores/${trabajador.id}/kardex-epp`,
+      { responseType: 'blob' }
+    )
+    const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    window.open(url, '_blank')
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el Kardex EPP', life: 5000 })
+  }
+}
+
 // ==================== KARDEX PDF ====================
 
 const openKardexDialog = (trabajador) => {
@@ -441,12 +456,12 @@ const formatDateTime = (date) => {
               />
               <Button
                 icon="pi pi-file-pdf"
-                :severity="data.tiene_kardex ? 'danger' : 'secondary'"
+                severity="danger"
                 text
                 rounded
                 size="small"
-                @click="openKardexDialog(data)"
-                v-tooltip.top="'Kardex PDF'"
+                @click="generarKardexEpp(data)"
+                v-tooltip.top="'Kardex EPP'"
               />
               <Button
                 icon="pi pi-trash"

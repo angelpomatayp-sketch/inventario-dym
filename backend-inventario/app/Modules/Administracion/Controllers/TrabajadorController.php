@@ -4,9 +4,12 @@ namespace App\Modules\Administracion\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Administracion\Models\Trabajador;
+use App\Modules\EPPs\Models\AsignacionEpp;
 use App\Shared\Traits\FiltrosPorRol;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Support\Facades\Storage;
@@ -157,6 +160,67 @@ class TrabajadorController extends Controller
             'message' => 'Trabajador dado de baja exitosamente.',
             'data' => $trabajador->fresh(),
         ]);
+    }
+
+    /**
+     * Generar kardex EPP del trabajador en PDF.
+     */
+    public function generarKardexEpp(Trabajador $trabajador): Response
+    {
+        $trabajador->load('centroCosto:id,nombre');
+
+        // Contar trabajadores del mismo centro de costo
+        $numTrabajadores = Trabajador::where('empresa_id', $trabajador->empresa_id)
+            ->where('centro_costo_id', $trabajador->centro_costo_id)
+            ->where('activo', true)
+            ->count();
+
+        // Cargar asignaciones EPP ordenadas por fecha_entrega ASC
+        $asignaciones = AsignacionEpp::with('producto:id,nombre,unidad_medida')
+            ->where('empresa_id', $trabajador->empresa_id)
+            ->where('trabajador_id', $trabajador->id)
+            ->whereIn('tipo_receptor', ['trabajador'])
+            ->orderBy('fecha_entrega', 'asc')
+            ->get();
+
+        // Agrupar por producto_id y construir filas
+        $filas = [];
+        $grupos = $asignaciones->groupBy('producto_id');
+
+        foreach ($grupos as $productoId => $items) {
+            $chunks = $items->chunk(4);
+            $primerChunk = true;
+
+            foreach ($chunks as $chunk) {
+                $slots = $chunk->map(fn($a) => [
+                    'fecha' => $a->fecha_entrega
+                        ? \Carbon\Carbon::parse($a->fecha_entrega)->format('d/m/Y')
+                        : '',
+                    'obs' => $a->observaciones ?? '',
+                ])->values()->toArray();
+
+                $primerItem = $chunk->first();
+                $filas[] = [
+                    'descripcion' => $primerChunk
+                        ? strtoupper($primerItem->producto?->nombre ?? '')
+                        : '',
+                    'unidad' => strtoupper($primerItem->producto?->unidad_medida ?? ''),
+                    'slots' => $slots,
+                    'obs' => $primerChunk ? ($primerItem->observaciones ?? '') : '',
+                ];
+                $primerChunk = false;
+            }
+        }
+
+        $pdf = Pdf::loadView('pdf.kardex_epp', [
+            'trabajador'      => $trabajador,
+            'numTrabajadores' => $numTrabajadores,
+            'filas'           => $filas,
+        ])->setPaper('a4', 'landscape');
+
+        $nombre = 'Kardex-EPP-' . Str::slug($trabajador->nombre) . '.pdf';
+
+        return $pdf->stream($nombre);
     }
 
     /**

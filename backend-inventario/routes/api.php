@@ -82,6 +82,7 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
         Route::get('trabajadores/buscar', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'buscar']);
         Route::apiResource('trabajadores', \App\Modules\Administracion\Controllers\TrabajadorController::class);
         Route::post('trabajadores/{trabajador}/dar-de-baja', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'darDeBaja']);
+        Route::get('trabajadores/{trabajador}/kardex-epp', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'generarKardexEpp']);
         Route::post('trabajadores/{trabajador}/kardex-pdf', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'subirKardexPdf']);
         Route::get('trabajadores/{trabajador}/kardex-pdf', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'descargarKardexPdf']);
         Route::delete('trabajadores/{trabajador}/kardex-pdf', [\App\Modules\Administracion\Controllers\TrabajadorController::class, 'eliminarKardexPdf']);
