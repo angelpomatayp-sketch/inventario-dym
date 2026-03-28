@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
@@ -32,6 +32,10 @@ const esAlmacenero = computed(() => (authStore.user?.roles || []).includes('alma
 
 // Estado
 const productos = ref([])
+const totalProductos = ref(0)
+const first = ref(0)
+const perPage = ref(10)
+const currentPage = ref(1)
 
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -81,10 +85,23 @@ const unidades = ref([])
 const loadProductos = async () => {
   loading.value = true
   try {
-    const response = await api.get('/inventario/productos', { params: { per_page: 2000 } })
+    const params = {
+      page: currentPage.value,
+      per_page: perPage.value
+    }
+    if (searchQuery.value) params.search = searchQuery.value
+    if (selectedFamilia.value) params.familia_id = selectedFamilia.value
+    if (showLowStock.value) params.stock_bajo = true
+    if (esAlmacenero.value && almacenAsignado.value) {
+      params.almacen_id = almacenAsignado.value
+    }
+
+    const response = await api.get('/inventario/productos', { params })
     if (response.data.success) {
       // La API paginada devuelve items directamente en response.data.data
       const items = response.data.data || []
+      const meta = response.data.meta || {}
+      totalProductos.value = Number(meta.total || 0)
       // Transformar datos para la tabla
       productos.value = items.map(p => {
         const stockPorAlmacen = p.stock_por_almacen || []
@@ -187,35 +204,22 @@ onMounted(() => {
   loadUnidades()
 })
 
-// Computed
-const filteredProductos = computed(() => {
-  let result = productos.value
-
-  // Filtrar por búsqueda (código o nombre)
-  if (searchQuery.value) {
-    const search = searchQuery.value.toLowerCase().trim()
-    result = result.filter(p =>
-      p.codigo.toLowerCase().includes(search) ||
-      p.nombre.toLowerCase().includes(search)
-    )
-  }
-
-  // Filtrar por familia (comparar por ID)
-  if (selectedFamilia.value) {
-    result = result.filter(p => p.familia_id === selectedFamilia.value)
-  }
-
-  // Filtrar por stock bajo
-  if (showLowStock.value) {
-    result = result.filter(p => p.tieneStockEnAlmacen && p.stockActual <= p.stockMinimo)
-  }
-
-  return result
+watch([searchQuery, selectedFamilia, showLowStock], () => {
+  currentPage.value = 1
+  first.value = 0
+  loadProductos()
 })
 
 const stockBajoCount = computed(() => {
   return productos.value.filter(p => p.tieneStockEnAlmacen && p.stockActual <= p.stockMinimo && p.activo).length
 })
+
+const onPageChange = (event) => {
+  first.value = event.first
+  perPage.value = event.rows
+  currentPage.value = Math.floor(event.first / event.rows) + 1
+  loadProductos()
+}
 
 // Métodos
 const getStockSeverity = (producto) => {
@@ -624,7 +628,7 @@ const deleteProducto = async () => {
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="bg-white rounded-lg p-4 shadow-sm border-l-4 border-gray-400">
         <p class="text-sm text-gray-500">Total Productos</p>
-        <p class="text-2xl font-bold text-gray-800">{{ productos.length }}</p>
+        <p class="text-2xl font-bold text-gray-800">{{ totalProductos }}</p>
       </div>
       <div class="bg-white rounded-lg p-4 shadow-sm border-l-4 border-gray-400">
         <p class="text-sm text-gray-500">Productos Activos</p>
@@ -673,12 +677,18 @@ const deleteProducto = async () => {
       </div>
 
       <DataTable
-        :value="filteredProductos"
+        :value="productos"
         :loading="loading"
         scrollable
         scrollHeight="65vh"
-        :virtualScrollerOptions="{ itemSize: 53 }"
         stripedRows
+        paginator
+        :rows="perPage"
+        :totalRecords="totalProductos"
+        :first="first"
+        :rowsPerPageOptions="[10, 20, 50]"
+        lazy
+        @page="onPageChange"
         :rowClass="(data) => data.tieneStockEnAlmacen && data.stockActual <= data.stockMinimo ? 'bg-[#F0F2FA]' : ''"
       >
         <Column field="codigo" header="Código" sortable style="width: 100px">
