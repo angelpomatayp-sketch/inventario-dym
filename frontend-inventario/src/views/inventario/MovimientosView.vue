@@ -54,7 +54,6 @@ const fechaRango = ref(null)
 const almacenes = ref([])
 const almacenesTransferencia = ref([])
 const centrosCosto = ref([])
-const productos = ref([])
 const productosSugeridos = ref([])
 
 // Formulario
@@ -199,16 +198,6 @@ const loadCentrosCosto = async () => {
   }
 }
 
-const loadProductos = async () => {
-  try {
-    const response = await api.get('/inventario/productos', { params: { per_page: 2000 } })
-    if (response.data.success) {
-      productos.value = response.data.data || []
-    }
-  } catch (err) {
-    console.error('Error al cargar productos:', err)
-  }
-}
 
 // ==================== IMPORTACIÓN EXCEL ====================
 
@@ -282,16 +271,32 @@ onMounted(() => {
   loadAlmacenes()
   loadAlmacenesTransferencia()
   loadCentrosCosto()
-  loadProductos()
 })
 
 // Buscar productos para autocompletar
-const buscarProducto = (event) => {
-  const query = event.query.toLowerCase()
-  productosSugeridos.value = productos.value.filter(p =>
-    p.nombre.toLowerCase().includes(query) ||
-    p.codigo.toLowerCase().includes(query)
-  )
+const buscarProducto = async (event) => {
+  const query = (event.query || '').trim()
+  if (!query) {
+    productosSugeridos.value = []
+    return
+  }
+
+  try {
+    const params = { search: query, per_page: 20 }
+    if (almacenAsignado.value) {
+      params.almacen_id = almacenAsignado.value
+    }
+
+    const response = await api.get('/inventario/productos', { params })
+    if (response.data.success) {
+      productosSugeridos.value = response.data.data || []
+    } else {
+      productosSugeridos.value = []
+    }
+  } catch (err) {
+    console.error('Error al buscar productos:', err)
+    productosSugeridos.value = []
+  }
 }
 
 // Computed
@@ -543,7 +548,7 @@ const saveMovimiento = async () => {
       })
       dialogVisible.value = false
       await loadMovimientos()
-      await loadProductos() // Recargar para actualizar stock
+      // Recargar lista de movimientos
     }
   } catch (err) {
     console.error('Error al guardar movimiento:', err)
@@ -575,7 +580,7 @@ const anularMovimiento = async () => {
       })
       anularDialogVisible.value = false
       await loadMovimientos()
-      await loadProductos()
+      // Recargar lista de movimientos
     }
   } catch (err) {
     console.error('Error al anular:', err)
@@ -598,7 +603,7 @@ const confirmarRecepcion = async (movimiento) => {
         life: 3000
       })
       await loadMovimientos()
-      await loadProductos()
+      // Recargar lista de movimientos
     }
   } catch (err) {
     console.error('Error al confirmar recepción:', err)
