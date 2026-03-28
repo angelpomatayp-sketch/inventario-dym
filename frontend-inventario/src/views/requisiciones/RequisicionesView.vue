@@ -178,18 +178,10 @@ const loadEstadisticas = async () => {
 
 const searchProductos = async (event) => {
   try {
-    const almacenId = almacenAsignado.value || formData.value.almacen_id || null
-    if (!almacenId) {
-      productoSuggestions.value = []
-      return
-    }
-
     const response = await api.get('/inventario/productos', {
       params: {
         search: event.query,
-        per_page: 10,
-        almacen_id: almacenId,
-        solo_con_stock: true
+        per_page: 10
       }
     })
     if (response.data.success) {

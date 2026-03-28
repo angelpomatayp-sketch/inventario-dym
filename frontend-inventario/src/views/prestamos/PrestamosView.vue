@@ -15,8 +15,12 @@ import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
 import Card from 'primevue/card'
 import { useToast } from 'primevue/usetoast'
+import { useAuthStore } from '@/stores/auth'
 
 const toast = useToast()
+const authStore = useAuthStore()
+const esAdmin = computed(() => authStore.hasRole('admin'))
+const almacenAsignado = computed(() => authStore.user?.almacen_id || null)
 
 // Estados
 const loading = ref(false)
@@ -157,7 +161,13 @@ const cargarCatalogos = async () => {
     api.get('/prestamos/personal'),  // Trabajadores + usuarios combinados
     api.get('/prestamos/centros-costo'),  // Filtrado según permisos del usuario
     api.get('/administracion/almacenes'),
-    api.get('/inventario/productos', { params: { per_page: 1000 } }),
+    api.get('/inventario/productos', {
+      params: {
+        per_page: 1000,
+        solo_con_stock: true,
+        ...( !esAdmin.value && almacenAsignado.value ? { almacen_id: almacenAsignado.value } : {} )
+      }
+    }),
     api.get('/inventario/familias')
   ])
 
