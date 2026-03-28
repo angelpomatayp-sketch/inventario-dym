@@ -68,21 +68,25 @@ class ProductoController extends Controller
             $query->where('activo', $request->boolean('activo'));
         }
 
-        if ($almacenId) {
-            $query->whereHas('stockAlmacenes', function ($q) use ($almacenId, $soloConStock) {
-                $q->where('almacen_id', $almacenId);
-                if ($soloConStock) {
+        // El catálogo es público: no filtrar por almacén a menos que se pida solo con stock
+        if ($soloConStock) {
+            if ($almacenId) {
+                $query->whereHas('stockAlmacenes', function ($q) use ($almacenId) {
+                    $q->where('almacen_id', $almacenId)
+                      ->where('stock_actual', '>', 0);
+                });
+            } else {
+                $query->whereHas('stockAlmacenes', function ($q) {
                     $q->where('stock_actual', '>', 0);
-                }
-            });
-        } elseif ($soloConStock) {
-            $query->whereHas('stockAlmacenes', function ($q) {
-                $q->where('stock_actual', '>', 0);
-            });
+                });
+            }
         }
 
         if ($request->boolean('stock_bajo')) {
-            $query->whereHas('stockAlmacenes', function ($q) {
+            $query->whereHas('stockAlmacenes', function ($q) use ($almacenId) {
+                if ($almacenId) {
+                    $q->where('almacen_id', $almacenId);
+                }
                 $q->whereColumn('stock_actual', '<=', 'stock_minimo')
                   ->where('stock_minimo', '>', 0);
             });
