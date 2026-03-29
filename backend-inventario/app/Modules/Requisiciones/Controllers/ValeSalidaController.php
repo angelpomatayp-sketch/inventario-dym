@@ -724,6 +724,7 @@ class ValeSalidaController extends Controller
             $stockAlmacen = StockAlmacen::where('empresa_id', $empresaId)
                 ->where('producto_id', $det['producto_id'])
                 ->where('almacen_id', $vale->almacen_id)
+                ->lockForUpdate()
                 ->first();
 
             $nuevoStock = $stockAlmacen->stock_actual - $det['cantidad'];

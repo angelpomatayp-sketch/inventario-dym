@@ -307,6 +307,18 @@ class MovimientoController extends Controller
         try {
             DB::beginTransaction();
 
+            $observacionesAnulacion = trim((string) $movimiento->observaciones);
+            $observacionesAnulacion = ($observacionesAnulacion !== '' ? $observacionesAnulacion . "\n" : '')
+                . "[ANULADO] " . $request->motivo;
+
+            // Anular movimiento
+            $movimiento->update([
+                'estado' => Movimiento::ESTADO_ANULADO,
+                'anulado_por' => $request->user()->id,
+                'fecha_anulacion' => now(),
+                'observaciones' => $observacionesAnulacion,
+            ]);
+
             // Revertir stock
             foreach ($movimiento->detalles as $detalle) {
                 $this->revertirStock(
@@ -317,14 +329,6 @@ class MovimientoController extends Controller
                     $movimiento
                 );
             }
-
-            // Anular movimiento
-            $movimiento->update([
-                'estado' => Movimiento::ESTADO_ANULADO,
-                'anulado_por' => $request->user()->id,
-                'fecha_anulacion' => now(),
-                'observaciones' => $movimiento->observaciones . "\n[ANULADO] " . $request->motivo,
-            ]);
 
             DB::commit();
 
@@ -775,9 +779,26 @@ class MovimientoController extends Controller
                     ->first();
 
                 if ($stockAlmacen) {
+                    $valorActual = $stockAlmacen->stock_actual * $stockAlmacen->costo_promedio;
+                    $valorRemovido = $cantidad * $costoUnitario;
+                    $nuevoStock = max(0, $stockAlmacen->stock_actual - $cantidad);
+                    $nuevoCostoPromedio = $nuevoStock > 0 ? max(0, ($valorActual - $valorRemovido) / $nuevoStock) : 0;
+
                     $stockAlmacen->update([
-                        'stock_actual' => max(0, $stockAlmacen->stock_actual - $cantidad),
+                        'stock_actual' => $nuevoStock,
+                        'costo_promedio' => $nuevoCostoPromedio,
                     ]);
+
+                    $this->registrarKardex(
+                        $empresaId,
+                        $productoId,
+                        (int) $movimiento->almacen_destino_id,
+                        $movimiento,
+                        Kardex::TIPO_SALIDA,
+                        $cantidad,
+                        $costoUnitario,
+                        $stockAlmacen
+                    );
                 }
                 break;
 
@@ -798,9 +819,26 @@ class MovimientoController extends Controller
                     ]);
                 }
 
+                $valorActual = $stockAlmacen->stock_actual * $stockAlmacen->costo_promedio;
+                $valorNuevo = $cantidad * $costoUnitario;
+                $nuevoStock = $stockAlmacen->stock_actual + $cantidad;
+                $nuevoCostoPromedio = $nuevoStock > 0 ? ($valorActual + $valorNuevo) / $nuevoStock : 0;
+
                 $stockAlmacen->update([
-                    'stock_actual' => $stockAlmacen->stock_actual + $cantidad,
+                    'stock_actual' => $nuevoStock,
+                    'costo_promedio' => $nuevoCostoPromedio,
                 ]);
+
+                $this->registrarKardex(
+                    $empresaId,
+                    $productoId,
+                    (int) $movimiento->almacen_origen_id,
+                    $movimiento,
+                    Kardex::TIPO_ENTRADA,
+                    $cantidad,
+                    $costoUnitario,
+                    $stockAlmacen
+                );
                 break;
 
             case Movimiento::TIPO_TRANSFERENCIA:
@@ -822,9 +860,26 @@ class MovimientoController extends Controller
                     ]);
                 }
 
+                $valorActualOrigen = $stockOrigen->stock_actual * $stockOrigen->costo_promedio;
+                $valorNuevoOrigen = $cantidad * $costoUnitario;
+                $nuevoStockOrigen = $stockOrigen->stock_actual + $cantidad;
+                $nuevoCostoOrigen = $nuevoStockOrigen > 0 ? ($valorActualOrigen + $valorNuevoOrigen) / $nuevoStockOrigen : 0;
+
                 $stockOrigen->update([
-                    'stock_actual' => $stockOrigen->stock_actual + $cantidad,
+                    'stock_actual' => $nuevoStockOrigen,
+                    'costo_promedio' => $nuevoCostoOrigen,
                 ]);
+
+                $this->registrarKardex(
+                    $empresaId,
+                    $productoId,
+                    (int) $movimiento->almacen_origen_id,
+                    $movimiento,
+                    Kardex::TIPO_ENTRADA,
+                    $cantidad,
+                    $costoUnitario,
+                    $stockOrigen
+                );
 
                 if ($movimiento->estado === Movimiento::ESTADO_COMPLETADO) {
                     $stockDestino = StockAlmacen::where('empresa_id', $empresaId)
@@ -834,9 +889,26 @@ class MovimientoController extends Controller
                         ->first();
 
                     if ($stockDestino) {
+                        $valorActualDestino = $stockDestino->stock_actual * $stockDestino->costo_promedio;
+                        $valorRemovidoDestino = $cantidad * $costoUnitario;
+                        $nuevoStockDestino = max(0, $stockDestino->stock_actual - $cantidad);
+                        $nuevoCostoDestino = $nuevoStockDestino > 0 ? max(0, ($valorActualDestino - $valorRemovidoDestino) / $nuevoStockDestino) : 0;
+
                         $stockDestino->update([
-                            'stock_actual' => max(0, $stockDestino->stock_actual - $cantidad),
+                            'stock_actual' => $nuevoStockDestino,
+                            'costo_promedio' => $nuevoCostoDestino,
                         ]);
+
+                        $this->registrarKardex(
+                            $empresaId,
+                            $productoId,
+                            (int) $movimiento->almacen_destino_id,
+                            $movimiento,
+                            Kardex::TIPO_SALIDA,
+                            $cantidad,
+                            $costoUnitario,
+                            $stockDestino
+                        );
                     }
                 }
                 break;

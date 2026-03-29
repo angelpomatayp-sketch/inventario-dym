@@ -746,11 +746,14 @@ class PrestamoService
 
         if (!$stockAlmacen) {
             // Si no existe stock, no hay nada que decrementar
-            return;
+            throw new Exception("No existe stock para el producto {$productoId} en el almacén {$almacenId}.");
         }
 
         $costoUnitario = $stockAlmacen->costo_promedio;
-        $nuevoStock = max(0, $stockAlmacen->stock_actual - $cantidad);
+        if ($stockAlmacen->stock_actual < $cantidad) {
+            throw new Exception("Stock insuficiente para el producto {$productoId}. Disponible: {$stockAlmacen->stock_actual}, solicitado: {$cantidad}.");
+        }
+        $nuevoStock = $stockAlmacen->stock_actual - $cantidad;
 
         $stockAlmacen->update([
             'stock_actual' => $nuevoStock,

@@ -41,6 +41,10 @@ const nombreAlmacenAsignado = computed(() => {
 // Estado
 const movimientos = ref([])
 const loading = ref(false)
+const totalRecords = ref(0)
+const first = ref(0)
+const perPage = ref(10)
+const currentPage = ref(1)
 const dialogVisible = ref(false)
 const viewDialogVisible = ref(false)
 const anularDialogVisible = ref(false)
@@ -119,7 +123,11 @@ const estadosMovimiento = [
 const loadMovimientos = async () => {
   loading.value = true
   try {
-    const params = {}
+    const params = {
+      page: currentPage.value,
+      per_page: perPage.value
+    }
+    if (searchQuery.value) params.search = searchQuery.value
     if (selectedTipo.value) params.tipo = selectedTipo.value
     if (selectedEstado.value) params.estado = selectedEstado.value
     if (fechaRango.value && fechaRango.value[0]) {
@@ -132,6 +140,7 @@ const loadMovimientos = async () => {
     const response = await api.get('/inventario/movimientos', { params })
     if (response.data.success) {
       movimientos.value = response.data.data || []
+      totalRecords.value = response.data.meta?.total || 0
     }
   } catch (err) {
     console.error('Error al cargar movimientos:', err)
@@ -298,16 +307,6 @@ const buscarProducto = async (event) => {
     productosSugeridos.value = []
   }
 }
-
-// Computed
-const filteredMovimientos = computed(() => {
-  if (!searchQuery.value) return movimientos.value
-  const query = searchQuery.value.toLowerCase()
-  return movimientos.value.filter(m =>
-    m.numero?.toLowerCase().includes(query) ||
-    m.documento_referencia?.toLowerCase().includes(query)
-  )
-})
 
 const subtiposDisponibles = computed(() => {
   if (formData.value.tipo === 'ENTRADA') return subtiposEntrada
@@ -614,8 +613,17 @@ const confirmarRecepcion = async (movimiento) => {
   }
 }
 
+const onPageChange = (event) => {
+  first.value = event.first
+  perPage.value = event.rows
+  currentPage.value = Math.floor(event.first / event.rows) + 1
+  loadMovimientos()
+}
+
 // Watch para recargar al cambiar filtros
-watch([selectedTipo, selectedEstado, fechaRango], () => {
+watch([searchQuery, selectedTipo, selectedEstado, fechaRango], () => {
+  currentPage.value = 1
+  first.value = 0
   loadMovimientos()
 })
 </script>
@@ -729,10 +737,15 @@ watch([selectedTipo, selectedEstado, fechaRango], () => {
       </div>
 
       <DataTable
-        :value="filteredMovimientos"
+        :value="movimientos"
         :loading="loading"
         paginator
-        :rows="10"
+        lazy
+        :rows="perPage"
+        :first="first"
+        :totalRecords="totalRecords"
+        :rowsPerPageOptions="[10, 20, 50]"
+        @page="onPageChange"
         stripedRows
         :rowClass="(data) => data.estado === 'ANULADO' ? 'bg-red-50 line-through' : ''"
       >

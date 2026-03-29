@@ -102,7 +102,7 @@ class ProductoController extends Controller
         $query->orderBy($sortField, $sortOrder);
 
         // Paginación
-        $perPage = $this->resolvePerPage($request, 10, 100);
+        $perPage = $this->resolvePerPage($request, 10, 2000);
         $productos = $query->paginate($perPage);
 
         // Transformar para incluir stock total
