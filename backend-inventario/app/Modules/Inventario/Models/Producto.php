@@ -62,6 +62,13 @@ class Producto extends Model implements Auditable
         static::deleting(function (Producto $producto) {
             $producto->imagenes()->each(fn($imagen) => $imagen->delete());
         });
+
+        // Al hacer soft delete, marcar como inactivo para que no aparezca en queries que solo filtran activo=true
+        static::deleted(function (Producto $producto) {
+            if (!$producto->isForceDeleting()) {
+                $producto->withoutEvents(fn() => $producto->updateQuietly(['activo' => false]));
+            }
+        });
     }
 
     // ==================== RELACIONES ====================

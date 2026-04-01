@@ -942,9 +942,11 @@ class ReporteController extends Controller
                 ->leftJoin('stock_almacen as sa', 'p.id', '=', 'sa.producto_id')
                 ->where('p.empresa_id', $empresaId)
                 ->where('p.activo', true)
+                ->whereNull('p.deleted_at')
+                ->where('p.stock_minimo', '>', 0)
                 ->when($almacenAsignado, fn($q) => $q->where('sa.almacen_id', $almacenAsignado))
                 ->groupBy('p.id', 'p.stock_minimo')
-                ->havingRaw('COALESCE(SUM(sa.stock_actual), 0) <= p.stock_minimo')
+                ->havingRaw('COALESCE(SUM(sa.stock_actual), 0) < p.stock_minimo')
                 ->select('p.id')
                 ->get()
                 ->count(),
