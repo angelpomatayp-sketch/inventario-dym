@@ -214,7 +214,8 @@ class PrestamoController extends Controller
                     ->orWhere('nombre', 'like', '%instrumento%')
                     ->orWhere('codigo', 'like', '%HER%')
                     ->orWhere('codigo', 'like', '%EQU%')
-                    ->orWhere('codigo', 'like', '%MAQ%');
+                    ->orWhere('codigo', 'like', '%MAQ%')
+                    ->orWhere('codigo', 'EQ-ELEC');
             })
             ->withCount('productos')
             ->get();
@@ -265,7 +266,8 @@ class PrestamoController extends Controller
                         ->orWhere('nombre', 'like', '%instrumento%')
                         ->orWhere('codigo', 'like', '%HER%')
                         ->orWhere('codigo', 'like', '%EQU%')
-                        ->orWhere('codigo', 'like', '%MAQ%');
+                        ->orWhere('codigo', 'like', '%MAQ%')
+                        ->orWhere('codigo', 'EQ-ELEC');
                 });
         });
 
