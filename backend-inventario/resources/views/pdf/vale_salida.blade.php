@@ -221,7 +221,12 @@
             <td>{{ $detalle->producto?->nombre ?? '-' }}</td>
             <td class="center">{{ $detalle->producto?->unidad_medida ?? '-' }}</td>
             <td class="center">
-                {{ number_format((float)($detalle->cantidad_entregada ?: $detalle->cantidad_solicitada), 2) }}
+                @php
+                    $cantidadMostrar = ((float) $detalle->cantidad_entregada > 0)
+                        ? (float) $detalle->cantidad_entregada
+                        : (float) $detalle->cantidad_solicitada;
+                @endphp
+                {{ number_format($cantidadMostrar, 2) }}
             </td>
             <td></td>
             <td></td>
