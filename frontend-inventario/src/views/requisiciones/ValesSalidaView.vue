@@ -57,6 +57,7 @@ const selectedAlmacen = ref(null)
 
 // Dialogos
 const dialogVisible = ref(false)
+const editDialogVisible = ref(false)
 const viewDialogVisible = ref(false)
 const entregarDialogVisible = ref(false)
 const desdeRequisicionDialogVisible = ref(false)
@@ -70,6 +71,15 @@ const requisicionesAprobadas = ref([])
 const selectedRequisicion = ref(null)
 const estadisticas = ref({})
 const receptorSuggestions = ref([])
+const editForm = ref({
+  id: null,
+  numero: '',
+  fecha: new Date(),
+  receptor_nombre: '',
+  receptor_dni: '',
+  motivo: '',
+  observaciones: ''
+})
 
 // Formulario nuevo vale
 const formData = ref({
@@ -287,6 +297,27 @@ const openEntregarDialog = async (vale) => {
   }
 }
 
+const openEditDialog = async (vale) => {
+  try {
+    const response = await api.get(`/vales-salida/${vale.id}`)
+    if (response.data.success) {
+      const v = response.data.data
+      editForm.value = {
+        id: v.id,
+        numero: v.numero,
+        fecha: v.fecha ? new Date(v.fecha) : new Date(),
+        receptor_nombre: v.receptor_nombre || '',
+        receptor_dni: v.receptor_dni || '',
+        motivo: v.motivo || '',
+        observaciones: v.observaciones || ''
+      }
+      editDialogVisible.value = true
+    }
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar el vale para editar', life: 5000 })
+  }
+}
+
 const addDetalle = () => {
   formData.value.detalles.push({
     producto: null,
@@ -423,6 +454,41 @@ const crearDesdeRequisicion = async () => {
   }
 }
 
+const saveEditVale = async () => {
+  if (!editForm.value.id) return
+  if (!editForm.value.receptor_nombre?.trim()) {
+    toast.add({ severity: 'warn', summary: 'Validacion', detail: 'Ingrese el nombre del receptor', life: 4000 })
+    return
+  }
+
+  loading.value = true
+  try {
+    const response = await api.put(`/vales-salida/${editForm.value.id}`, {
+      fecha: formatDate(editForm.value.fecha),
+      receptor_nombre: editForm.value.receptor_nombre?.trim(),
+      receptor_dni: editForm.value.receptor_dni || null,
+      motivo: editForm.value.motivo || null,
+      observaciones: editForm.value.observaciones || null
+    })
+
+    if (response.data.success) {
+      toast.add({ severity: 'success', summary: 'Exito', detail: 'Vale actualizado correctamente', life: 3000 })
+      editDialogVisible.value = false
+      loadVales()
+      loadEstadisticas()
+    }
+  } catch (err) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.response?.data?.message || 'Error al actualizar el vale',
+      life: 5000
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
 const procesarEntrega = async () => {
   const entregas = entregaData.value
     .filter(e => e.entregar && e.cantidad_entregar > 0)
@@ -536,6 +602,10 @@ const getEstadoSeverity = (estado) => {
 
 const canEntregar = (vale) => {
   return vale.estado === 'PENDIENTE' || vale.estado === 'PARCIAL'
+}
+
+const canEditar = (vale) => {
+  return vale.estado === 'PENDIENTE'
 }
 
 const canAnular = (vale) => {
@@ -703,10 +773,11 @@ onMounted(() => {
             </template>
           </Column>
 
-          <Column header="Acciones" style="width: 170px">
+          <Column header="Acciones" style="width: 210px">
             <template #body="{ data }">
               <div class="flex gap-1">
                 <Button icon="pi pi-eye" severity="info" text rounded size="small" @click="viewVale(data)" v-tooltip.top="'Ver detalle'" />
+                <Button v-if="canEditar(data)" icon="pi pi-pencil" severity="warning" text rounded size="small" @click="openEditDialog(data)" v-tooltip.top="'Editar antes de entrega'" />
                 <Button icon="pi pi-print" severity="secondary" text rounded size="small" @click="imprimirVale(data)" v-tooltip.top="'Imprimir vale PDF'" />
                 <Button v-if="canEntregar(data)" icon="pi pi-check-circle" severity="success" text rounded size="small" @click="openEntregarDialog(data)" v-tooltip.top="'Procesar entrega'" />
                 <Button v-if="canAnular(data)" icon="pi pi-ban" severity="danger" text rounded size="small" @click="anularVale(data)" v-tooltip.top="'Anular'" />
@@ -818,6 +889,49 @@ onMounted(() => {
       <template #footer>
         <Button label="Cancelar" severity="secondary" @click="dialogVisible = false" />
         <Button label="Crear Vale" icon="pi pi-check" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="saveVale" :loading="loading" />
+      </template>
+    </Dialog>
+
+    <!-- Dialog Editar Vale -->
+    <Dialog v-model:visible="editDialogVisible" header="Editar Vale de Salida" :modal="true" :style="{ width: '90vw', maxWidth: '700px', maxHeight: '90vh' }" :contentStyle="{ overflow: 'auto', maxHeight: 'calc(90vh - 120px)' }">
+      <div class="space-y-4">
+        <Message severity="warn" :closable="false">
+          Solo puedes editar este vale mientras no se haya procesado ninguna entrega.
+        </Message>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Numero</label>
+            <InputText :modelValue="editForm.numero" class="w-full" disabled />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+            <DatePicker v-model="editForm.fecha" dateFormat="dd/mm/yy" showIcon class="w-full" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Receptor *</label>
+            <InputText v-model="editForm.receptor_nombre" class="w-full" placeholder="Nombre de quien recibe" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">DNI Receptor</label>
+            <InputText v-model="editForm.receptor_dni" class="w-full" placeholder="Documento de identidad" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
+          <Textarea v-model="editForm.motivo" rows="2" class="w-full" placeholder="Motivo de la salida..." />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+          <Textarea v-model="editForm.observaciones" rows="3" class="w-full" placeholder="Observaciones adicionales..." />
+        </div>
+      </div>
+
+      <template #footer>
+        <Button label="Cancelar" severity="secondary" @click="editDialogVisible = false" />
+        <Button label="Guardar Cambios" icon="pi pi-check" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="saveEditVale" :loading="loading" />
       </template>
     </Dialog>
 

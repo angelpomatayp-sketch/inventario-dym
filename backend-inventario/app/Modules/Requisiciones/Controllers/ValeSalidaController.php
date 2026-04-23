@@ -204,6 +204,76 @@ class ValeSalidaController extends Controller
     }
 
     /**
+     * Editar vale de salida antes de procesar entregas.
+     */
+    public function update(Request $request, ValeSalida $valeSalida): JsonResponse
+    {
+        if ($valeSalida->empresa_id !== $request->user()->empresa_id) {
+            return $this->error('No autorizado', 403);
+        }
+
+        // Solo se permite editar vales pendientes y sin entregas registradas.
+        if (!$valeSalida->puedeEditarse()) {
+            return $this->error('Solo se pueden editar vales en estado pendiente', 422);
+        }
+
+        $tieneEntregas = $valeSalida->detalles()->where('cantidad_entregada', '>', 0)->exists();
+        if ($tieneEntregas) {
+            return $this->error('No se puede editar un vale que ya tiene entregas procesadas', 422);
+        }
+
+        $empresaId = $request->user()->empresa_id;
+
+        $request->validate([
+            'fecha' => 'required|date',
+            'receptor_id' => 'nullable|integer',
+            'receptor_tipo' => 'nullable|in:trabajador,usuario',
+            'receptor_nombre' => 'nullable|string|max:200',
+            'receptor_dni' => 'nullable|string|max:15',
+            'motivo' => 'nullable|string|max:500',
+            'observaciones' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $receptor = $this->resolverReceptor(
+                $request,
+                $empresaId,
+                (int) $valeSalida->centro_costo_id,
+                (int) $valeSalida->almacen_id
+            );
+
+            $valeSalida->update([
+                'fecha' => $request->fecha,
+                'receptor_id' => $receptor['receptor_id'],
+                'receptor_nombre' => $receptor['receptor_nombre'],
+                'receptor_dni' => $receptor['receptor_dni'],
+                'motivo' => $request->motivo,
+                'observaciones' => $request->observaciones,
+            ]);
+
+            DB::commit();
+
+            $valeSalida->load(['detalles.producto', 'almacen', 'centroCosto', 'solicitante', 'despachador']);
+
+            return $this->success($valeSalida, 'Vale actualizado exitosamente');
+        } catch (\InvalidArgumentException $e) {
+            DB::rollBack();
+            return $this->error($e->getMessage(), 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al actualizar vale de salida', [
+                'empresa_id' => $empresaId,
+                'user_id' => $request->user()->id,
+                'vale_salida_id' => $valeSalida->id,
+                'error' => $e->getMessage(),
+            ]);
+            return $this->serverError('Error interno al actualizar el vale');
+        }
+    }
+
+    /**
      * Crear vale desde requisicion aprobada.
      */
     public function crearDesdeRequisicion(Request $request, Requisicion $requisicion): JsonResponse

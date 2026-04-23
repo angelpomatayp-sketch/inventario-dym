@@ -149,6 +149,7 @@ Route::middleware(['auth:sanctum', 'session.timeout', 'contexto'])->group(functi
     Route::prefix('vales-salida')->group(function () {
         Route::get('/', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'index']);
         Route::post('/', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'store']);
+        Route::put('/{valeSalida}', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'update']);
         Route::get('/estadisticas', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'estadisticas']);
         Route::get('/personal', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'personalReceptores']);
         Route::get('/requisiciones-aprobadas', [\App\Modules\Requisiciones\Controllers\ValeSalidaController::class, 'requisicionesAprobadas']);
