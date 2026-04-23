@@ -11,7 +11,12 @@
             font-size: 10px;
             line-height: 1.4;
             color: #1a1a1a;
-            padding: 1cm 1.2cm 1.5cm 1.2cm;
+            padding: 0.8cm 0.8cm 1.2cm 0.8cm;
+        }
+
+        .vale-wrapper {
+            width: 16.8cm;
+            margin-right: auto;
         }
 
         /* ── CABECERA ── */
@@ -132,6 +137,8 @@
     $filasVacias = max(0, $maxFilas - $filasActuales);
     $estado = $vale->estado ?? 'PENDIENTE';
 @endphp
+
+<div class="vale-wrapper">
 
 {{-- ═══════════ CABECERA ═══════════ --}}
 <table class="header-table">
@@ -272,6 +279,8 @@
 <div class="nota-legal">
     Cualquier daño, deterioro, pérdida u otro se responsabiliza el personal a cargo de los materiales, equipos
     y otros sujeto a descuento, salvo estos cumplan su ciclo de vida.
+</div>
+
 </div>
 
 <script type="text/php">

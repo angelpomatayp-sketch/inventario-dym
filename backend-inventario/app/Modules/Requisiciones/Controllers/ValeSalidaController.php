@@ -581,7 +581,7 @@ class ValeSalidaController extends Controller
             ]);
 
             $pdf = Pdf::loadView('pdf.vale_salida', ['vale' => $valeSalida]);
-            $pdf->setPaper('A4', 'portrait');
+            $pdf->setPaper('A4', 'landscape');
             $pdfContent = $pdf->output();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Error generando PDF vale de salida', [
