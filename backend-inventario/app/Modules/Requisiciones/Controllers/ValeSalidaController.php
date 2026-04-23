@@ -232,6 +232,13 @@ class ValeSalidaController extends Controller
             'receptor_dni' => 'nullable|string|max:15',
             'motivo' => 'nullable|string|max:500',
             'observaciones' => 'nullable|string|max:1000',
+            'detalles' => 'required|array|min:1',
+            'detalles.*.producto_id' => [
+                'required',
+                Rule::exists('productos', 'id')->where(fn($q) => $q->where('empresa_id', $empresaId)),
+            ],
+            'detalles.*.cantidad_solicitada' => 'required|numeric|min:0.01',
+            'detalles.*.requisicion_detalle_id' => 'nullable|exists:requerimientos_detalle,id',
         ]);
 
         try {
@@ -252,6 +259,18 @@ class ValeSalidaController extends Controller
                 'motivo' => $request->motivo,
                 'observaciones' => $request->observaciones,
             ]);
+
+            // Reemplazar detalles (solo permitido al no tener entregas).
+            $valeSalida->detalles()->delete();
+            foreach ($request->detalles as $detalle) {
+                ValeSalidaDetalle::create([
+                    'vale_salida_id' => $valeSalida->id,
+                    'producto_id' => $detalle['producto_id'],
+                    'requisicion_detalle_id' => $detalle['requisicion_detalle_id'] ?? null,
+                    'cantidad_solicitada' => $detalle['cantidad_solicitada'],
+                    'cantidad_entregada' => 0,
+                ]);
+            }
 
             DB::commit();
 

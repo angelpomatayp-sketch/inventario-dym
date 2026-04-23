@@ -71,14 +71,20 @@ const requisicionesAprobadas = ref([])
 const selectedRequisicion = ref(null)
 const estadisticas = ref({})
 const receptorSuggestions = ref([])
+const editReceptorSuggestions = ref([])
+const editProductoSuggestions = ref([])
 const editForm = ref({
   id: null,
   numero: '',
   fecha: new Date(),
+  almacen_id: null,
+  centro_costo_id: null,
+  receptor: null,
   receptor_nombre: '',
   receptor_dni: '',
   motivo: '',
-  observaciones: ''
+  observaciones: '',
+  detalles: []
 })
 
 // Formulario nuevo vale
@@ -306,16 +312,111 @@ const openEditDialog = async (vale) => {
         id: v.id,
         numero: v.numero,
         fecha: v.fecha ? new Date(v.fecha) : new Date(),
+        almacen_id: v.almacen_id || null,
+        centro_costo_id: v.centro_costo_id || null,
+        receptor: v.receptor_nombre || '',
         receptor_nombre: v.receptor_nombre || '',
         receptor_dni: v.receptor_dni || '',
         motivo: v.motivo || '',
-        observaciones: v.observaciones || ''
+        observaciones: v.observaciones || '',
+        detalles: (v.detalles || []).map(d => ({
+          producto: d.producto
+            ? {
+                id: d.producto.id,
+                codigo: d.producto.codigo,
+                nombre: d.producto.nombre,
+                unidad: d.producto.unidad_medida,
+                stock: d.producto.stock_total || 0,
+                label: `${d.producto.codigo} - ${d.producto.nombre}`
+              }
+            : null,
+          producto_id: d.producto_id,
+          requisicion_detalle_id: d.requisicion_detalle_id || null,
+          cantidad_solicitada: parseFloat(d.cantidad_solicitada)
+        }))
       }
       editDialogVisible.value = true
     }
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar el vale para editar', life: 5000 })
   }
+}
+
+const searchEditReceptores = async (event) => {
+  try {
+    const params = {
+      search: event.query || '',
+      centro_costo_id: editForm.value.centro_costo_id,
+      almacen_id: editForm.value.almacen_id
+    }
+
+    const response = await api.get('/vales-salida/personal', { params })
+    if (response.data.success) {
+      editReceptorSuggestions.value = (response.data.data || []).map(p => ({
+        id: p.id,
+        tipo: p.tipo,
+        nombre: p.nombre,
+        dni: p.dni,
+        display_name: p.display_name
+      }))
+    }
+  } catch (err) {
+    editReceptorSuggestions.value = []
+  }
+}
+
+const onSelectEditReceptor = () => {
+  const receptor = editForm.value.receptor
+  if (!receptor || typeof receptor !== 'object') {
+    return
+  }
+
+  editForm.value.receptor_nombre = receptor.nombre || ''
+  editForm.value.receptor_dni = receptor.dni || ''
+}
+
+const searchEditProductos = async (event) => {
+  try {
+    const almacenId = almacenAsignado.value || editForm.value.almacen_id || null
+    if (!almacenId) {
+      editProductoSuggestions.value = []
+      return
+    }
+
+    const response = await api.get('/inventario/productos', {
+      params: {
+        search: event.query,
+        per_page: 10,
+        almacen_id: almacenId,
+        solo_con_stock: true
+      }
+    })
+    if (response.data.success) {
+      editProductoSuggestions.value = response.data.data.map(p => ({
+        id: p.id,
+        codigo: p.codigo,
+        nombre: p.nombre,
+        unidad: p.unidad_medida,
+        stock: p.stock_total || 0,
+        label: `${p.codigo} - ${p.nombre} (Stock: ${p.stock_total || 0})`
+      }))
+    }
+  } catch (err) {
+    editProductoSuggestions.value = []
+  }
+}
+
+const addEditDetalle = () => {
+  editForm.value.detalles.push({
+    producto: null,
+    producto_id: null,
+    requisicion_detalle_id: null,
+    cantidad_solicitada: 1
+  })
+}
+
+const removeEditDetalle = (index) => {
+  editForm.value.detalles.splice(index, 1)
 }
 
 const addDetalle = () => {
@@ -456,8 +557,24 @@ const crearDesdeRequisicion = async () => {
 
 const saveEditVale = async () => {
   if (!editForm.value.id) return
-  if (!editForm.value.receptor_nombre?.trim()) {
+  const receptorSeleccionado = editForm.value.receptor && typeof editForm.value.receptor === 'object'
+    ? editForm.value.receptor
+    : null
+  const receptorNombreManual = typeof editForm.value.receptor === 'string'
+    ? editForm.value.receptor
+    : editForm.value.receptor_nombre
+
+  if (!receptorSeleccionado && !receptorNombreManual?.trim()) {
     toast.add({ severity: 'warn', summary: 'Validacion', detail: 'Ingrese el nombre del receptor', life: 4000 })
+    return
+  }
+  if (!editForm.value.detalles.length) {
+    toast.add({ severity: 'warn', summary: 'Validacion', detail: 'Agregue al menos un producto', life: 4000 })
+    return
+  }
+  const detallesInvalidos = editForm.value.detalles.some(d => !d.producto?.id || !d.cantidad_solicitada || d.cantidad_solicitada <= 0)
+  if (detallesInvalidos) {
+    toast.add({ severity: 'warn', summary: 'Validacion', detail: 'Complete producto y cantidad valida en todos los detalles', life: 4000 })
     return
   }
 
@@ -465,10 +582,17 @@ const saveEditVale = async () => {
   try {
     const response = await api.put(`/vales-salida/${editForm.value.id}`, {
       fecha: formatDate(editForm.value.fecha),
-      receptor_nombre: editForm.value.receptor_nombre?.trim(),
-      receptor_dni: editForm.value.receptor_dni || null,
+      receptor_id: receptorSeleccionado?.id || null,
+      receptor_tipo: receptorSeleccionado?.tipo || null,
+      receptor_nombre: receptorSeleccionado ? receptorSeleccionado.nombre : receptorNombreManual?.trim(),
+      receptor_dni: receptorSeleccionado?.dni || editForm.value.receptor_dni || null,
       motivo: editForm.value.motivo || null,
-      observaciones: editForm.value.observaciones || null
+      observaciones: editForm.value.observaciones || null,
+      detalles: editForm.value.detalles.map(d => ({
+        producto_id: d.producto.id,
+        requisicion_detalle_id: d.requisicion_detalle_id || null,
+        cantidad_solicitada: d.cantidad_solicitada
+      }))
     })
 
     if (response.data.success) {
@@ -910,12 +1034,33 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Receptor *</label>
-            <InputText v-model="editForm.receptor_nombre" class="w-full" placeholder="Nombre de quien recibe" />
+            <AutoComplete
+              v-model="editForm.receptor"
+              :suggestions="editReceptorSuggestions"
+              optionLabel="display_name"
+              placeholder="Buscar receptor o escribir manual..."
+              class="w-full"
+              @complete="searchEditReceptores"
+              @item-select="onSelectEditReceptor"
+              dropdown
+            >
+              <template #option="slotProps">
+                <div class="flex flex-col">
+                  <span class="font-medium">{{ slotProps.option.display_name }}</span>
+                  <span class="text-xs text-gray-500">{{ slotProps.option.dni || 'Sin DNI' }}</span>
+                </div>
+              </template>
+            </AutoComplete>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">DNI Receptor</label>
             <InputText v-model="editForm.receptor_dni" class="w-full" placeholder="Documento de identidad" />
           </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nombre receptor (manual)</label>
+          <InputText v-model="editForm.receptor_nombre" class="w-full" placeholder="Usar si no seleccionas de la lista" />
         </div>
 
         <div>
@@ -926,6 +1071,46 @@ onMounted(() => {
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
           <Textarea v-model="editForm.observaciones" rows="3" class="w-full" placeholder="Observaciones adicionales..." />
+        </div>
+
+        <Divider />
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-sm font-medium text-gray-700">Productos del Vale *</label>
+            <Button label="Agregar" icon="pi pi-plus" size="small" severity="secondary" @click="addEditDetalle" />
+          </div>
+
+          <div v-if="editForm.detalles.length === 0" class="text-center py-4 text-gray-500 border rounded">
+            <p>No hay productos agregados</p>
+          </div>
+
+          <div v-else class="space-y-2">
+            <div v-for="(det, index) in editForm.detalles" :key="index" class="grid grid-cols-12 gap-2 items-end p-3 bg-gray-50 rounded">
+              <div class="col-span-7">
+                <label class="block text-xs text-gray-500 mb-1">Producto</label>
+                <AutoComplete
+                  v-model="det.producto"
+                  :suggestions="editProductoSuggestions"
+                  optionLabel="label"
+                  placeholder="Buscar..."
+                  class="w-full"
+                  @complete="searchEditProductos"
+                />
+              </div>
+              <div class="col-span-2">
+                <label class="block text-xs text-gray-500 mb-1">Cantidad</label>
+                <InputNumber v-model="det.cantidad_solicitada" :min="0.01" class="w-full" />
+              </div>
+              <div class="col-span-2 text-center">
+                <label class="block text-xs text-gray-500 mb-1">Stock</label>
+                <span class="text-sm font-medium">{{ det.producto?.stock ?? '-' }}</span>
+              </div>
+              <div class="col-span-1">
+                <Button icon="pi pi-trash" severity="danger" text rounded @click="removeEditDetalle(index)" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
