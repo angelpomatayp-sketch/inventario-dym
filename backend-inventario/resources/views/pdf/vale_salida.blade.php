@@ -15,7 +15,7 @@
         }
 
         .vale-wrapper {
-            width: 16.8cm;
+            width: 14.3cm;
             margin-right: auto;
         }
 
@@ -283,21 +283,5 @@
 
 </div>
 
-<script type="text/php">
-    if (isset($pdf)) {
-        $w = $pdf->get_width();
-        $h = $pdf->get_height();
-        $font = $fontMetrics->getFont("DejaVu Sans", "normal");
-        $color = [0.61, 0.64, 0.67];
-        $lineColor = [0.90, 0.91, 0.93];
-        $pdf->line(28, $h - 25, $w - 28, $h - 25, $lineColor, 0.5);
-        $pdf->page_text(
-            $w / 2 - 90,
-            $h - 15,
-            "CAP Pacifico S.R.L.  -  Página {PAGE_NUM} de {PAGE_COUNT}",
-            $font, 7, $color
-        );
-    }
-</script>
 </body>
 </html>
