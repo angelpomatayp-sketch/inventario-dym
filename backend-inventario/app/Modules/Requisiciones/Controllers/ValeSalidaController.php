@@ -410,6 +410,22 @@ class ValeSalidaController extends Controller
             'anulador',
         ]);
 
+        // Adjuntar stock disponible por detalle en el almacén del vale.
+        $productoIds = $valeSalida->detalles
+            ->pluck('producto_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $stockPorProducto = StockAlmacen::where('empresa_id', $request->user()->empresa_id)
+            ->where('almacen_id', $valeSalida->almacen_id)
+            ->whereIn('producto_id', $productoIds)
+            ->pluck('stock_actual', 'producto_id');
+
+        $valeSalida->detalles->each(function ($detalle) use ($stockPorProducto) {
+            $detalle->stock_disponible = (float) ($stockPorProducto[$detalle->producto_id] ?? 0);
+        });
+
         return $this->success($valeSalida);
     }
 

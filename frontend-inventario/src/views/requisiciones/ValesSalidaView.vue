@@ -326,7 +326,7 @@ const openEditDialog = async (vale) => {
                 codigo: d.producto.codigo,
                 nombre: d.producto.nombre,
                 unidad: d.producto.unidad_medida,
-                stock: d.producto.stock_total || 0,
+                stock: Number(d.stock_disponible ?? d.producto.stock_total ?? 0),
                 label: `${d.producto.codigo} - ${d.producto.nombre}`
               }
             : null,
