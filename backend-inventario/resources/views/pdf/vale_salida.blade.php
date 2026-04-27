@@ -9,9 +9,9 @@
         body {
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 10px;
-            line-height: 1.4;
+            line-height: 1.3;
             color: #1a1a1a;
-            padding: 0.8cm 0.8cm 1.2cm 0.8cm;
+            padding: 0.55cm 0.8cm 0.55cm 0.8cm;
         }
 
         .vale-wrapper {
@@ -24,34 +24,34 @@
             width: 100%;
             border-collapse: collapse;
             border: 1.5px solid #333;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
-        .header-table td { vertical-align: middle; padding: 1px 10px; }
-        .header-logo  { width: 130px; border-right: 1.5px solid #333; }
+        .header-table td { vertical-align: middle; padding: 1px 8px; }
+        .header-logo  { width: 120px; border-right: 1.5px solid #333; }
         .header-title { text-align: center; border-right: 1.5px solid #333; }
         .header-title .formato-label {
-            font-size: 8px; color: #000; font-weight: bold;
+            font-size: 7.5px; color: #000; font-weight: bold;
             text-transform: uppercase; letter-spacing: 1px;
-            border-bottom: 1px solid #333; display: block; padding-bottom: 3px; margin-bottom: 3px;
+            border-bottom: 1px solid #333; display: block; padding-bottom: 2px; margin-bottom: 2px;
         }
         .header-title .doc-title {
-            font-size: 15px; font-weight: bold;
+            font-size: 14px; font-weight: bold;
             color: #000; text-transform: uppercase; letter-spacing: 2px;
         }
-        .header-codigo { width: 140px; font-size: 9px; line-height: 1.9; text-align: center; vertical-align: middle; }
+        .header-codigo { width: 130px; font-size: 8.5px; line-height: 1.7; text-align: center; vertical-align: middle; }
         .header-codigo .lbl { font-weight: bold; }
 
         /* ── NÚMERO DEL VALE ── */
         .numero-row {
             width: 100%;
             text-align: right;
-            margin-bottom: 7px;
+            margin-bottom: 4px;
         }
         .numero-box {
             display: inline-block;
             border: 1.5px solid #333;
-            padding: 3px 18px;
-            font-size: 13px;
+            padding: 2px 14px;
+            font-size: 12px;
             font-weight: bold;
             letter-spacing: 1px;
         }
@@ -60,72 +60,75 @@
         .datos-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
         .datos-table td {
-            padding: 4px 8px;
+            padding: 3px 8px;
             border: none;
             border-bottom: 1px solid #333;
-            font-size: 10px;
+            font-size: 9.5px;
             vertical-align: middle;
         }
         .datos-table .lbl {
             font-weight: bold;
             color: #000;
-            width: 105px;
+            width: 100px;
             white-space: nowrap;
         }
-        .datos-table .val { min-width: 130px; }
+        .datos-table .val { min-width: 120px; }
 
         /* ── TABLA DE ÍTEMS ── */
         table.items {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
             border: 1.5px solid #333;
+            table-layout: fixed;
         }
         table.items th {
             background-color: #66BB6A;
             color: #000;
-            padding: 5px 7px;
-            font-size: 9px;
+            padding: 3px 5px;
+            font-size: 8.5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border: 1px solid #43A047;
+            overflow: hidden;
         }
         table.items th.center, table.items td.center { text-align: center; }
         table.items td {
-            padding: 4px 7px;
+            padding: 2px 5px;
             border: 1px solid #ccc;
-            font-size: 9.5px;
-            height: 19px;
+            font-size: 8.5px;
+            height: 14px;
+            overflow: hidden;
         }
         table.items tr:nth-child(even) td { background-color: #f8faf8; }
 
         /* ── ESTADO ── */
-        .estado-PENDIENTE { background:#fef3c7; color:#92400e; padding:2px 7px; border-radius:3px; font-weight:bold; font-size:9px; }
-        .estado-ENTREGADO { background:#d1fae5; color:#065f46; padding:2px 7px; border-radius:3px; font-weight:bold; font-size:9px; }
-        .estado-PARCIAL   { background:#dbeafe; color:#1e3a8a; padding:2px 7px; border-radius:3px; font-weight:bold; font-size:9px; }
-        .estado-ANULADO   { background:#e5e7eb; color:#374151; padding:2px 7px; border-radius:3px; font-weight:bold; font-size:9px; }
+        .estado-PENDIENTE { background:#fef3c7; color:#92400e; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8.5px; }
+        .estado-ENTREGADO { background:#d1fae5; color:#065f46; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8.5px; }
+        .estado-PARCIAL   { background:#dbeafe; color:#1e3a8a; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8.5px; }
+        .estado-ANULADO   { background:#e5e7eb; color:#374151; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8.5px; }
 
         /* ── FIRMAS ── */
-        .firmas-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+        .firmas-table { width: 100%; border-collapse: collapse; margin-top: 7px; }
         .firmas-table td { width: 33.33%; padding: 0; }
-        .firma-label-cell { font-size: 8.5px; font-weight: bold; color: #000; padding: 2px 4px; border: none; text-align: left; }
-        .firma-box { border: 1px solid #555; height: 60px; vertical-align: bottom; text-align: left; padding: 3px 5px; }
-        .firma-vb { font-size: 8px; color: #000; }
-        .firma-nombre { font-size: 8px; color: #000; font-weight: bold; }
+        .firma-label-cell { font-size: 8px; font-weight: bold; color: #000; padding: 1px 3px; border: none; text-align: left; }
+        .firma-box { border: 1px solid #555; height: 42px; vertical-align: bottom; text-align: left; padding: 2px 4px; }
+        .firma-vb { font-size: 7.5px; color: #000; }
+        .firma-nombre { font-size: 7.5px; color: #000; font-weight: bold; }
 
         /* ── NOTA LEGAL ── */
         .nota-legal {
-            margin-top: 14px;
-            padding: 6px 10px;
+            margin-top: 7px;
+            padding: 4px 8px;
             border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 8.5px;
+            border-radius: 3px;
+            font-size: 8px;
             color: #555;
             background-color: #fafafa;
-            line-height: 1.5;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -149,9 +152,9 @@
                 $logoData = (extension_loaded('gd') && file_exists($logoPath)) ? base64_encode(file_get_contents($logoPath)) : null;
             @endphp
             @if($logoData)
-                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:106px; max-height:48px; display:block; margin:auto;">
+                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:100px; max-height:40px; display:block; margin:auto;">
             @else
-                <div style="font-size:11px; font-weight:bold; color:#1E2D72; line-height:1.4;">
+                <div style="font-size:10px; font-weight:bold; color:#1E2D72; line-height:1.3;">
                     CONTRATISTAS<br>ASOCIADOS<br>PACIFICO S.R.L.
                 </div>
             @endif
@@ -170,7 +173,7 @@
 
 {{-- ═══════════ NÚMERO ═══════════ --}}
 <div class="numero-row">
-    <div class="numero-box">VS-{{ substr($vale->numero, strrpos($vale->numero, '-') + 1) }}</div>
+    <div class="numero-box">{{ $vale->numero }}</div>
 </div>
 
 {{-- ═══════════ DATOS GENERALES ═══════════ --}}
@@ -211,14 +214,22 @@
 
 {{-- ═══════════ DETALLE DE MATERIALES ═══════════ --}}
 <table class="items">
+    <colgroup>
+        <col style="width:22px">
+        <col>
+        <col style="width:50px">
+        <col style="width:55px">
+        <col style="width:40px">
+        <col style="width:100px">
+    </colgroup>
     <thead>
         <tr>
-            <th class="center" style="width:28px">N°</th>
+            <th class="center">N°</th>
             <th style="text-align:left">Descripción</th>
-            <th class="center" style="width:58px">Unidad</th>
-            <th class="center" style="width:65px">Cantidad</th>
-            <th class="center" style="width:45px">V°B°</th>
-            <th style="width:115px; text-align:left">Observaciones</th>
+            <th class="center">Unidad</th>
+            <th class="center">Cantidad</th>
+            <th class="center">V°B°</th>
+            <th style="text-align:left">Observaciones</th>
         </tr>
     </thead>
     <tbody>
