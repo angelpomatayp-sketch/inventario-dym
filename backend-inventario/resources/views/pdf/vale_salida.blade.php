@@ -83,7 +83,6 @@
             border-collapse: collapse;
             margin-bottom: 6px;
             border: 1.5px solid #333;
-            table-layout: fixed;
         }
         table.items th {
             background-color: #66BB6A;
@@ -215,12 +214,12 @@
 <table class="items">
     <thead>
         <tr>
-            <th class="center" style="width:0.55cm">N°</th>
-            <th style="text-align:left; width:6.5cm">Descripción</th>
-            <th class="center" style="width:1.4cm">Unidad</th>
-            <th class="center" style="width:1.7cm">Cantidad</th>
-            <th class="center" style="width:1.0cm">V°B°</th>
-            <th style="text-align:left; width:3.15cm">Observaciones</th>
+            <th class="center" style="width:4%">N°</th>
+            <th style="text-align:left; width:44%">Descripción</th>
+            <th class="center" style="width:11%">Unidad</th>
+            <th class="center" style="width:12%">Cantidad</th>
+            <th class="center" style="width:7%">V°B°</th>
+            <th style="text-align:left; width:22%">Observaciones</th>
         </tr>
     </thead>
     <tbody>
