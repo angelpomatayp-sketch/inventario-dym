@@ -213,22 +213,14 @@
 
 {{-- ═══════════ DETALLE DE MATERIALES ═══════════ --}}
 <table class="items">
-    <colgroup>
-        <col style="width:0.55cm">
-        <col style="width:6.5cm">
-        <col style="width:1.4cm">
-        <col style="width:1.7cm">
-        <col style="width:1.0cm">
-        <col style="width:3.15cm">
-    </colgroup>
     <thead>
         <tr>
-            <th class="center">N°</th>
-            <th style="text-align:left">Descripción</th>
-            <th class="center">Unidad</th>
-            <th class="center">Cantidad</th>
-            <th class="center">V°B°</th>
-            <th style="text-align:left">Observaciones</th>
+            <th class="center" style="width:0.55cm">N°</th>
+            <th style="text-align:left; width:6.5cm">Descripción</th>
+            <th class="center" style="width:1.4cm">Unidad</th>
+            <th class="center" style="width:1.7cm">Cantidad</th>
+            <th class="center" style="width:1.0cm">V°B°</th>
+            <th style="text-align:left; width:3.15cm">Observaciones</th>
         </tr>
     </thead>
     <tbody>
