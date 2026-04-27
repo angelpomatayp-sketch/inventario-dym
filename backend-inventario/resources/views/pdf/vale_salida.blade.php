@@ -93,7 +93,6 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border: 1px solid #43A047;
-            overflow: hidden;
         }
         table.items th.center, table.items td.center { text-align: center; }
         table.items td {
@@ -215,12 +214,12 @@
 {{-- ═══════════ DETALLE DE MATERIALES ═══════════ --}}
 <table class="items">
     <colgroup>
-        <col style="width:22px">
-        <col>
-        <col style="width:50px">
-        <col style="width:55px">
-        <col style="width:40px">
-        <col style="width:100px">
+        <col style="width:0.55cm">
+        <col style="width:6.5cm">
+        <col style="width:1.4cm">
+        <col style="width:1.7cm">
+        <col style="width:1.0cm">
+        <col style="width:3.15cm">
     </colgroup>
     <thead>
         <tr>
