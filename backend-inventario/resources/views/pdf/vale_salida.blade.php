@@ -11,7 +11,7 @@
             font-size: 10px;
             line-height: 1.3;
             color: #1a1a1a;
-            padding: 0.6cm 0.8cm 0.55cm 0.8cm;
+            padding: 1.0cm 0.8cm 0.55cm 0.8cm;
         }
 
         .vale-wrapper {
@@ -113,7 +113,7 @@
         .firmas-table { width: 100%; border-collapse: collapse; margin-top: 7px; }
         .firmas-table td { width: 33.33%; padding: 0; }
         .firma-label-cell { font-size: 8px; font-weight: bold; color: #000; padding: 1px 3px; border: none; text-align: left; }
-        .firma-box { border: 1px solid #555; height: 48px; vertical-align: bottom; text-align: left; padding: 2px 4px; }
+        .firma-box { border: 1px solid #555; height: 65px; vertical-align: bottom; text-align: left; padding: 2px 4px; }
         .firma-vb { font-size: 7.5px; color: #000; }
         .firma-nombre { font-size: 7.5px; color: #000; font-weight: bold; }
 
