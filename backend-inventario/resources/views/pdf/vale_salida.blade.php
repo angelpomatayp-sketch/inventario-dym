@@ -16,6 +16,7 @@
 
         .vale-wrapper {
             width: 14.3cm;
+            margin-left: 2cm;
             margin-right: auto;
         }
 
