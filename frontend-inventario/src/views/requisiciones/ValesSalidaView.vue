@@ -265,6 +265,7 @@ const openNewDialog = () => {
 const openDesdeRequisicionDialog = () => {
   loadRequisicionesAprobadas()
   selectedRequisicion.value = null
+  formData.value.fecha = new Date()
   formData.value.receptor = null
   formData.value.receptor_nombre = ''
   formData.value.receptor_dni = ''
@@ -311,7 +312,7 @@ const openEditDialog = async (vale) => {
       editForm.value = {
         id: v.id,
         numero: v.numero,
-        fecha: v.fecha ? new Date(v.fecha) : new Date(),
+        fecha: parseDateOnly(v.fecha) || new Date(),
         almacen_id: v.almacen_id || null,
         centro_costo_id: v.centro_costo_id || null,
         receptor: v.receptor_nombre || '',
@@ -529,6 +530,7 @@ const crearDesdeRequisicion = async () => {
   try {
     const response = await api.post(`/requisiciones/${selectedRequisicion.value.id}/generar-vale`, {
       almacen_id: almId,
+      fecha: formatDate(formData.value.fecha),
       receptor_id: formData.value.receptor?.id || null,
       receptor_tipo: formData.value.receptor?.tipo || null,
       receptor_nombre: formData.value.receptor_nombre,
@@ -700,13 +702,28 @@ const anularVale = async (vale) => {
 const formatDate = (date) => {
   if (!date) return null
   const d = new Date(date)
-  return d.toISOString().split('T')[0]
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 const formatDateDisplay = (dateStr) => {
   if (!dateStr) return '-'
-  const date = new Date(dateStr)
+  const date = parseDateOnly(dateStr)
+  if (!date) return '-'
   return date.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+const parseDateOnly = (value) => {
+  if (!value) return null
+  if (value instanceof Date) return value
+
+  const datePart = String(value).split('T')[0]
+  const parts = datePart.split('-').map(Number)
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return null
+
+  return new Date(parts[0], parts[1] - 1, parts[2])
 }
 
 const formatCurrency = (value) => {
@@ -945,6 +962,10 @@ onMounted(() => {
             </Select>
           </div>
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+            <DatePicker v-model="formData.fecha" dateFormat="dd/mm/yy" showIcon class="w-full" />
+          </div>
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Receptor *</label>
             <AutoComplete
               v-model="formData.receptor"
@@ -1125,7 +1146,7 @@ onMounted(() => {
       <div class="space-y-4">
         <Message severity="info" :closable="false">Seleccione una requisicion aprobada para generar el vale de salida</Message>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Almacen de Despacho *</label>
             <template v-if="almacenAsignado">
@@ -1138,6 +1159,10 @@ onMounted(() => {
                 <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
               </template>
             </Select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+            <DatePicker v-model="formData.fecha" dateFormat="dd/mm/yy" showIcon class="w-full" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Receptor *</label>
