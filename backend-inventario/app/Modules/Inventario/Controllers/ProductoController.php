@@ -215,8 +215,12 @@ class ProductoController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
+            $databaseError = config('app.debug')
+                ? $e->getMessage()
+                : 'No se pudo guardar el producto. Intente nuevamente.';
+
             return $this->error('No se pudo crear el producto', 500, [
-                'database' => [$e->getMessage()],
+                'database' => [$databaseError],
             ]);
         }
 
@@ -475,19 +479,27 @@ class ProductoController extends Controller
         }
 
         $base = $prefijo . '-';
-        $ultimoCodigo = Producto::where('empresa_id', $empresaId)
+        $codigosExistentes = Producto::withTrashed()
+            ->where('empresa_id', $empresaId)
             ->where('codigo', 'like', $base . '%')
-            ->orderBy('codigo', 'desc')
             ->lockForUpdate()
-            ->value('codigo');
+            ->pluck('codigo');
 
         $secuencia = 1;
-        if ($ultimoCodigo && preg_match('/-(\d+)$/', $ultimoCodigo, $matches)) {
-            $secuencia = ((int) $matches[1]) + 1;
+        $secuenciaMaxima = $codigosExistentes
+            ->map(function ($codigo) {
+                return preg_match('/-(\d+)$/', (string) $codigo, $matches)
+                    ? (int) $matches[1]
+                    : 0;
+            })
+            ->max();
+
+        if ($secuenciaMaxima) {
+            $secuencia = $secuenciaMaxima + 1;
         }
 
         $codigo = $base . str_pad((string) $secuencia, 3, '0', STR_PAD_LEFT);
-        while (Producto::where('empresa_id', $empresaId)->where('codigo', $codigo)->exists()) {
+        while (Producto::withTrashed()->where('empresa_id', $empresaId)->where('codigo', $codigo)->exists()) {
             $secuencia++;
             $codigo = $base . str_pad((string) $secuencia, 3, '0', STR_PAD_LEFT);
         }
