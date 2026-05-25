@@ -550,7 +550,14 @@ const saveProducto = async () => {
     }
   } catch (err) {
     console.error('Error al guardar producto:', err)
-    const errorMessage = err.response?.data?.message || err.message || 'Error al guardar el producto'
+    if (err.response?.data) {
+      console.error('Detalle del servidor:', err.response.data)
+    }
+    const validationErrors = err.response?.data?.errors
+    const firstValidationError = validationErrors
+      ? Object.values(validationErrors).flat().find(Boolean)
+      : null
+    const errorMessage = firstValidationError || err.response?.data?.message || err.message || 'Error al guardar el producto'
     toast.add({
       severity: 'error',
       summary: 'Error',

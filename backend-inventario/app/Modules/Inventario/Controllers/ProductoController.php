@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ProductoController extends Controller
 {
@@ -149,15 +150,25 @@ class ProductoController extends Controller
     {
         $empresaId = $request->user()->empresa_id ?? $request->empresa_id;
 
+        if (!$empresaId) {
+            return $this->validationError(
+                ['empresa_id' => ['El usuario no tiene una empresa asignada.']],
+                'No se puede crear el producto sin empresa asignada'
+            );
+        }
+
         $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'familia_id' => 'nullable|exists:familias,id',
+            'familia_id' => [
+                'nullable',
+                Rule::exists('familias', 'id')->where(fn($q) => $q->where('empresa_id', $empresaId)),
+            ],
             'unidad_medida' => 'required|string|max:10',
             'marca' => 'nullable|string|max:100',
             'modelo' => 'nullable|string|max:100',
-            'stock_minimo' => 'integer|min:0',
-            'stock_maximo' => 'integer|min:0',
+            'stock_minimo' => 'numeric|min:0',
+            'stock_maximo' => 'numeric|min:0',
             'ubicacion_fisica' => 'nullable|string|max:255',
             'requiere_lote' => 'boolean',
             'activo' => 'boolean',
@@ -245,16 +256,21 @@ class ProductoController extends Controller
      */
     public function update(Request $request, Producto $producto): JsonResponse
     {
+        $empresaId = $request->user()->empresa_id ?? $producto->empresa_id;
+
         $request->validate([
             'codigo' => 'sometimes|string|max:30|unique:productos,codigo,' . $producto->id . ',id,empresa_id,' . $producto->empresa_id,
             'nombre' => 'sometimes|string|max:255',
             'descripcion' => 'nullable|string',
-            'familia_id' => 'nullable|exists:familias,id',
+            'familia_id' => [
+                'nullable',
+                Rule::exists('familias', 'id')->where(fn($q) => $q->where('empresa_id', $empresaId)),
+            ],
             'unidad_medida' => 'sometimes|string|max:10',
             'marca' => 'nullable|string|max:100',
             'modelo' => 'nullable|string|max:100',
-            'stock_minimo' => 'integer|min:0',
-            'stock_maximo' => 'integer|min:0',
+            'stock_minimo' => 'numeric|min:0',
+            'stock_maximo' => 'numeric|min:0',
             'ubicacion_fisica' => 'nullable|string|max:255',
             'requiere_lote' => 'boolean',
             'activo' => 'boolean',
