@@ -12,9 +12,11 @@ use App\Shared\Traits\FiltrosPorRol;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class ProductoController extends Controller
 {
@@ -182,28 +184,41 @@ class ProductoController extends Controller
             'unidad_medida.required' => 'La unidad de medida es requerida',
         ]);
 
-        $producto = DB::transaction(function () use ($request, $empresaId) {
-            return Producto::create([
+        try {
+            $producto = DB::transaction(function () use ($request, $empresaId) {
+                return Producto::create([
+                    'empresa_id' => $empresaId,
+                    'codigo' => $this->generarCodigoProducto($empresaId, $request->familia_id),
+                    'nombre' => $request->nombre,
+                    'descripcion' => $request->descripcion,
+                    'familia_id' => $request->familia_id,
+                    'unidad_medida' => $request->unidad_medida,
+                    'marca' => $request->marca,
+                    'modelo' => $request->modelo,
+                    'stock_minimo' => $request->get('stock_minimo', 0),
+                    'stock_maximo' => $request->get('stock_maximo', 0),
+                    'ubicacion_fisica' => $request->ubicacion_fisica,
+                    'requiere_lote' => $request->get('requiere_lote', false),
+                    'activo' => $request->get('activo', true),
+                    // Campos EPP
+                    'vida_util_dias' => $request->vida_util_dias,
+                    'dias_alerta_vencimiento' => $request->dias_alerta_vencimiento,
+                    'requiere_talla' => $request->get('requiere_talla', false),
+                    'tallas_disponibles' => $request->tallas_disponibles,
+                ]);
+            });
+        } catch (Throwable $e) {
+            Log::error('Error al crear producto', [
                 'empresa_id' => $empresaId,
-                'codigo' => $this->generarCodigoProducto($empresaId, $request->familia_id),
-                'nombre' => $request->nombre,
-                'descripcion' => $request->descripcion,
-                'familia_id' => $request->familia_id,
-                'unidad_medida' => $request->unidad_medida,
-                'marca' => $request->marca,
-                'modelo' => $request->modelo,
-                'stock_minimo' => $request->get('stock_minimo', 0),
-                'stock_maximo' => $request->get('stock_maximo', 0),
-                'ubicacion_fisica' => $request->ubicacion_fisica,
-                'requiere_lote' => $request->get('requiere_lote', false),
-                'activo' => $request->get('activo', true),
-                // Campos EPP
-                'vida_util_dias' => $request->vida_util_dias,
-                'dias_alerta_vencimiento' => $request->dias_alerta_vencimiento,
-                'requiere_talla' => $request->get('requiere_talla', false),
-                'tallas_disponibles' => $request->tallas_disponibles,
+                'user_id' => $request->user()?->id,
+                'payload' => $request->except(['password', 'token']),
+                'error' => $e->getMessage(),
             ]);
-        });
+
+            return $this->error('No se pudo crear el producto', 500, [
+                'database' => [$e->getMessage()],
+            ]);
+        }
 
         $producto->load('familia');
 
