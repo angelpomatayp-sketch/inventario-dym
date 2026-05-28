@@ -8,14 +8,14 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 10px;
+            font-size: 9.5px;
             line-height: 1.3;
             color: #1a1a1a;
             padding: 1.0cm 0.8cm 0.55cm 0.8cm;
         }
 
         .vale-wrapper {
-            width: 14.3cm;
+            width: 13.6cm;
             margin-left: auto;
             margin-right: 0;
         }
@@ -27,19 +27,19 @@
             border: 1.5px solid #333;
             margin-bottom: 4px;
         }
-        .header-table td { vertical-align: middle; padding: 1px 8px; }
-        .header-logo  { width: 120px; border-right: 1.5px solid #333; }
+        .header-table td { vertical-align: middle; padding: 1px 7px; }
+        .header-logo  { width: 114px; border-right: 1.5px solid #333; }
         .header-title { text-align: center; border-right: 1.5px solid #333; }
         .header-title .formato-label {
-            font-size: 7.5px; color: #000; font-weight: bold;
+            font-size: 7px; color: #000; font-weight: bold;
             text-transform: uppercase; letter-spacing: 1px;
             border-bottom: 1px solid #333; display: block; padding-bottom: 2px; margin-bottom: 2px;
         }
         .header-title .doc-title {
-            font-size: 14px; font-weight: bold;
+            font-size: 13px; font-weight: bold;
             color: #000; text-transform: uppercase; letter-spacing: 2px;
         }
-        .header-codigo { width: 130px; font-size: 8.5px; line-height: 1.7; text-align: center; vertical-align: middle; }
+        .header-codigo { width: 124px; font-size: 8px; line-height: 1.7; text-align: center; vertical-align: middle; }
         .header-codigo .lbl { font-weight: bold; }
 
         /* ── NÚMERO DEL VALE ── */
@@ -51,8 +51,8 @@
         .numero-box {
             display: inline-block;
             border: 1.5px solid #333;
-            padding: 2px 14px;
-            font-size: 12px;
+            padding: 2px 13px;
+            font-size: 11px;
             font-weight: bold;
             letter-spacing: 1px;
         }
@@ -64,19 +64,19 @@
             margin-bottom: 6px;
         }
         .datos-table td {
-            padding: 3px 8px;
+            padding: 3px 7px;
             border: none;
             border-bottom: 1px solid #333;
-            font-size: 9.5px;
+            font-size: 9px;
             vertical-align: middle;
         }
         .datos-table .lbl {
             font-weight: bold;
             color: #000;
-            width: 100px;
+            width: 95px;
             white-space: nowrap;
         }
-        .datos-table .val { min-width: 120px; }
+        .datos-table .val { min-width: 114px; }
 
         /* ── TABLA DE ÍTEMS ── */
         table.items {
@@ -89,7 +89,7 @@
             background-color: #66BB6A;
             color: #000;
             padding: 3px 5px;
-            font-size: 8.5px;
+            font-size: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border: 1px solid #43A047;
@@ -98,25 +98,25 @@
         table.items td {
             padding: 2px 5px;
             border: 1px solid #ccc;
-            font-size: 8.5px;
-            height: 15px;
+            font-size: 8px;
+            height: 14px;
             overflow: hidden;
         }
         table.items tr:nth-child(even) td { background-color: #f8faf8; }
 
         /* ── ESTADO ── */
-        .estado-PENDIENTE { background:#fef3c7; color:#92400e; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8.5px; }
-        .estado-ENTREGADO { background:#d1fae5; color:#065f46; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8.5px; }
-        .estado-PARCIAL   { background:#dbeafe; color:#1e3a8a; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8.5px; }
-        .estado-ANULADO   { background:#e5e7eb; color:#374151; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8.5px; }
+        .estado-PENDIENTE { background:#fef3c7; color:#92400e; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8px; }
+        .estado-ENTREGADO { background:#d1fae5; color:#065f46; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8px; }
+        .estado-PARCIAL   { background:#dbeafe; color:#1e3a8a; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8px; }
+        .estado-ANULADO   { background:#e5e7eb; color:#374151; padding:1px 5px; border-radius:3px; font-weight:bold; font-size:8px; }
 
         /* ── FIRMAS ── */
         .firmas-table { width: 100%; border-collapse: collapse; margin-top: 7px; }
         .firmas-table td { width: 33.33%; padding: 0; }
-        .firma-label-cell { font-size: 8px; font-weight: bold; color: #000; padding: 1px 3px; border: none; text-align: left; }
-        .firma-box { border: 1px solid #555; height: 65px; vertical-align: bottom; text-align: left; padding: 2px 4px; }
-        .firma-vb { font-size: 7.5px; color: #000; }
-        .firma-nombre { font-size: 7.5px; color: #000; font-weight: bold; }
+        .firma-label-cell { font-size: 7.5px; font-weight: bold; color: #000; padding: 1px 3px; border: none; text-align: left; }
+        .firma-box { border: 1px solid #555; height: 62px; vertical-align: bottom; text-align: left; padding: 2px 4px; }
+        .firma-vb { font-size: 7px; color: #000; }
+        .firma-nombre { font-size: 7px; color: #000; font-weight: bold; }
 
         /* ── NOTA LEGAL ── */
         .nota-legal {
@@ -124,7 +124,7 @@
             padding: 4px 8px;
             border: 1px solid #ccc;
             border-radius: 3px;
-            font-size: 8px;
+            font-size: 7.5px;
             color: #555;
             background-color: #fafafa;
             line-height: 1.4;
@@ -151,7 +151,7 @@
                 $logoData = (extension_loaded('gd') && file_exists($logoPath)) ? base64_encode(file_get_contents($logoPath)) : null;
             @endphp
             @if($logoData)
-                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:100px; max-height:40px; display:block; margin:auto;">
+                <img src="data:image/png;base64,{{ $logoData }}" style="max-width:95px; max-height:38px; display:block; margin:auto;">
             @else
                 <div style="font-size:10px; font-weight:bold; color:#1E2D72; line-height:1.3;">
                     CONTRATISTAS<br>ASOCIADOS<br>PACIFICO S.R.L.
