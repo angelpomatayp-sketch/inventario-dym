@@ -49,6 +49,9 @@ const nombreCentroCostoAsignado = computed(() => {
 const loading = ref(false)
 const vales = ref([])
 const totalRecords = ref(0)
+const first = ref(0)
+const perPage = ref(15)
+const currentPage = ref(1)
 
 // Filtros
 const searchQuery = ref('')
@@ -116,7 +119,10 @@ const estados = ref([
 const loadVales = async () => {
   loading.value = true
   try {
-    const params = {}
+    const params = {
+      page: currentPage.value,
+      per_page: perPage.value,
+    }
     if (searchQuery.value) params.search = searchQuery.value
     if (selectedEstado.value) params.estado = selectedEstado.value
     if (selectedAlmacen.value) params.almacen_id = selectedAlmacen.value
@@ -132,6 +138,18 @@ const loadVales = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const onPageChange = (event) => {
+  first.value = event.first
+  perPage.value = event.rows
+  currentPage.value = Math.floor(event.first / event.rows) + 1
+  loadVales()
+}
+
+const resetPagination = () => {
+  currentPage.value = 1
+  first.value = 0
 }
 
 const loadAlmacenes = async () => {
@@ -847,22 +865,22 @@ onMounted(() => {
     <Card>
       <template #content>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <InputText v-model="searchQuery" placeholder="Buscar por numero o receptor..." class="w-full" @keyup.enter="loadVales" />
-          <Select v-model="selectedEstado" :options="estados" optionLabel="label" optionValue="value" placeholder="Estado" class="w-full" @change="loadVales">
+          <InputText v-model="searchQuery" placeholder="Buscar por numero o receptor..." class="w-full" @keyup.enter="resetPagination(); loadVales()" />
+          <Select v-model="selectedEstado" :options="estados" optionLabel="label" optionValue="value" placeholder="Estado" class="w-full" @change="resetPagination(); loadVales()">
             <template #value="slotProps">
               <span v-if="slotProps.value !== null && slotProps.value !== undefined">{{ estados.find(e => e.value === slotProps.value)?.label }}</span>
               <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
             </template>
           </Select>
-          <Select v-model="selectedAlmacen" :options="[{label: 'Todos', value: null}, ...almacenes]" optionLabel="label" optionValue="value" placeholder="Almacen" class="w-full" @change="loadVales">
+          <Select v-model="selectedAlmacen" :options="[{label: 'Todos', value: null}, ...almacenes]" optionLabel="label" optionValue="value" placeholder="Almacen" class="w-full" @change="resetPagination(); loadVales()">
             <template #value="slotProps">
               <span v-if="slotProps.value !== null && slotProps.value !== undefined">{{ almacenes.find(a => a.value === slotProps.value)?.label || 'Todos' }}</span>
               <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
             </template>
           </Select>
           <div class="flex gap-2">
-            <Button label="Buscar" icon="pi pi-search" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="loadVales" />
-            <Button icon="pi pi-refresh" severity="secondary" outlined @click="searchQuery = ''; selectedEstado = null; selectedAlmacen = null; loadVales()" />
+            <Button label="Buscar" icon="pi pi-search" class="!bg-[#1E2D72] !border-[#1E2D72]" @click="resetPagination(); loadVales()" />
+            <Button icon="pi pi-refresh" severity="secondary" outlined @click="searchQuery = ''; selectedEstado = null; selectedAlmacen = null; resetPagination(); loadVales()" />
           </div>
         </div>
       </template>
@@ -871,7 +889,22 @@ onMounted(() => {
     <!-- Tabla -->
     <Card>
       <template #content>
-        <DataTable :value="vales" :loading="loading" :paginator="true" :rows="15" :rowsPerPageOptions="[10, 15, 25, 50]" responsiveLayout="scroll" stripedRows class="text-sm">
+        <DataTable
+          :value="vales"
+          :loading="loading"
+          :paginator="true"
+          lazy
+          :rows="perPage"
+          :first="first"
+          :totalRecords="totalRecords"
+          :rowsPerPageOptions="[10, 15, 25, 50]"
+          @page="onPageChange"
+          responsiveLayout="scroll"
+          stripedRows
+          class="text-sm"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} vales"
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+        >
           <template #empty>
             <div class="text-center py-8 text-gray-500">
               <i class="pi pi-sign-out text-4xl mb-2"></i>

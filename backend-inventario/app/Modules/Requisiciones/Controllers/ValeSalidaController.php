@@ -743,21 +743,26 @@ class ValeSalidaController extends Controller
 
     /**
      * Obtener estadisticas.
+     * Los almaceneros solo ven estadísticas de su almacén asignado.
      */
     public function estadisticas(Request $request): JsonResponse
     {
         $empresaId = $request->user()->empresa_id;
+        $almacenId = $this->getAlmacenAsignado($request);
+
+        $base = ValeSalida::where('empresa_id', $empresaId)
+            ->when($almacenId, fn($q) => $q->where('almacen_id', $almacenId));
 
         $stats = [
-            'total' => ValeSalida::where('empresa_id', $empresaId)->count(),
-            'pendientes' => ValeSalida::where('empresa_id', $empresaId)
-                ->where('estado', ValeSalida::ESTADO_PENDIENTE)->count(),
-            'entregados_hoy' => ValeSalida::where('empresa_id', $empresaId)
+            'total' => (clone $base)->count(),
+            'pendientes' => (clone $base)->where('estado', ValeSalida::ESTADO_PENDIENTE)->count(),
+            'entregados_hoy' => (clone $base)
                 ->where('estado', ValeSalida::ESTADO_ENTREGADO)
                 ->whereDate('fecha', today())->count(),
             'valor_mes' => DB::table('vales_salida_detalle as vsd')
                 ->join('vales_salida as vs', 'vs.id', '=', 'vsd.vale_salida_id')
                 ->where('vs.empresa_id', $empresaId)
+                ->when($almacenId, fn($q) => $q->where('vs.almacen_id', $almacenId))
                 ->whereMonth('vs.fecha', now()->month)
                 ->whereYear('vs.fecha', now()->year)
                 ->where('vs.estado', ValeSalida::ESTADO_ENTREGADO)
