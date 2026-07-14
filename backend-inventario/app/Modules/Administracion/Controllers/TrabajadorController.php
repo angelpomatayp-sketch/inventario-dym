@@ -107,8 +107,10 @@ class TrabajadorController extends Controller
     /**
      * Mostrar un trabajador.
      */
-    public function show(Trabajador $trabajador): JsonResponse
+    public function show(Request $request, Trabajador $trabajador): JsonResponse
     {
+        $this->autorizarAcceso($request, $trabajador);
+
         return response()->json([
             'success' => true,
             'data' => $trabajador->load('centroCosto'),
@@ -127,6 +129,8 @@ class TrabajadorController extends Controller
             ->where('empresa_id', $empresaId)
             ->whereNull('deleted_at')
             ->firstOrFail();
+
+        $this->autorizarAcceso($request, $trabajador);
 
         $validated = $request->validate([
             'centro_costo_id' => ['nullable', 'exists:centros_costos,id'],
@@ -153,8 +157,10 @@ class TrabajadorController extends Controller
     /**
      * Eliminar trabajador (soft delete).
      */
-    public function destroy(Trabajador $trabajador): JsonResponse
+    public function destroy(Request $request, Trabajador $trabajador): JsonResponse
     {
+        $this->autorizarAcceso($request, $trabajador);
+
         $trabajador->delete();
 
         return response()->json([
@@ -168,6 +174,8 @@ class TrabajadorController extends Controller
      */
     public function darDeBaja(Request $request, Trabajador $trabajador): JsonResponse
     {
+        $this->autorizarAcceso($request, $trabajador);
+
         $validated = $request->validate([
             'observacion' => ['nullable', 'string'],
         ]);
@@ -184,8 +192,9 @@ class TrabajadorController extends Controller
     /**
      * Generar kardex EPP del trabajador en PDF.
      */
-    public function generarKardexEpp(Trabajador $trabajador): Response
+    public function generarKardexEpp(Request $request, Trabajador $trabajador): Response
     {
+        $this->autorizarAcceso($request, $trabajador);
         $trabajador->load('centroCosto:id,nombre');
 
         // Contar trabajadores del mismo centro de costo
@@ -248,6 +257,8 @@ class TrabajadorController extends Controller
      */
     public function subirKardexPdf(Request $request, Trabajador $trabajador): JsonResponse
     {
+        $this->autorizarAcceso($request, $trabajador);
+
         $request->validate([
             'kardex_pdf' => ['required', 'file', 'mimes:pdf', 'max:20480'],
         ], [
@@ -284,8 +295,9 @@ class TrabajadorController extends Controller
     /**
      * Descargar / visualizar kardex PDF.
      */
-    public function descargarKardexPdf(Trabajador $trabajador): BinaryFileResponse
+    public function descargarKardexPdf(Request $request, Trabajador $trabajador): BinaryFileResponse
     {
+        $this->autorizarAcceso($request, $trabajador);
         if (!$trabajador->kardex_pdf_ruta) {
             abort(404, 'Este trabajador no tiene kardex PDF.');
         }
@@ -305,8 +317,9 @@ class TrabajadorController extends Controller
     /**
      * Eliminar kardex PDF.
      */
-    public function eliminarKardexPdf(Trabajador $trabajador): JsonResponse
+    public function eliminarKardexPdf(Request $request, Trabajador $trabajador): JsonResponse
     {
+        $this->autorizarAcceso($request, $trabajador);
         if (!$trabajador->kardex_pdf_ruta) {
             return response()->json(['success' => false, 'message' => 'No hay kardex PDF.'], 404);
         }
@@ -365,5 +378,31 @@ class TrabajadorController extends Controller
             'success' => true,
             'data' => $query->limit(20)->get(),
         ]);
+    }
+
+    /**
+     * Verifica que el usuario tenga acceso al trabajador según su rol.
+     * Admin y jefe_logistica tienen acceso total.
+     * El almacenero solo puede operar sobre trabajadores de su centro de costo.
+     */
+    private function autorizarAcceso(Request $request, Trabajador $trabajador): void
+    {
+        if ($this->tieneAccesoTotal($request)) {
+            return;
+        }
+
+        $centroCostoPermitido = $this->getCentroCostoAsignado($request);
+
+        if (!$centroCostoPermitido) {
+            $almacenAsignado = $this->getAlmacenAsignado($request);
+            if ($almacenAsignado) {
+                $centroCostoPermitido = Almacen::where('id', $almacenAsignado)
+                    ->value('centro_costo_id');
+            }
+        }
+
+        if ($centroCostoPermitido && $trabajador->centro_costo_id !== $centroCostoPermitido) {
+            abort(403, 'No tiene permiso para operar sobre este trabajador.');
+        }
     }
 }
