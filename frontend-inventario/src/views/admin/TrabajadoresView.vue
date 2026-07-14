@@ -202,8 +202,10 @@ const confirmDelete = (trabajador) => {
 const deleteTrabajador = async (trabajador) => {
   try {
     await api.delete(`/administracion/trabajadores/${trabajador.id}`)
+    trabajadores.value = trabajadores.value.filter(t => t.id !== trabajador.id)
+    totalRecords.value = Math.max(0, totalRecords.value - 1)
     toast.add({ severity: 'success', summary: 'Éxito', detail: 'Trabajador eliminado', life: 3000 })
-    await loadTrabajadores()
+    loadTrabajadores()
   } catch (err) {
     console.error('Error al eliminar:', err)
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar el trabajador', life: 5000 })

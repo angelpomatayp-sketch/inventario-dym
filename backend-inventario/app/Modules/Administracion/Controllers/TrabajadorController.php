@@ -26,6 +26,7 @@ class TrabajadorController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Trabajador::with(['centroCosto:id,codigo,nombre'])
+            ->whereNull('trabajadores.deleted_at')
             ->orderBy('nombre');
 
         // Filtro por empresa (multi-tenancy)
