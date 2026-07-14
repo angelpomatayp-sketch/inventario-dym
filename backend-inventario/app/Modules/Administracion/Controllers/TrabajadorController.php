@@ -3,6 +3,7 @@
 namespace App\Modules\Administracion\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Administracion\Models\Almacen;
 use App\Modules\Administracion\Models\Trabajador;
 use App\Modules\EPPs\Models\AsignacionEpp;
 use App\Shared\Traits\FiltrosPorRol;
@@ -32,12 +33,21 @@ class TrabajadorController extends Controller
             $query->where('empresa_id', $request->user()->empresa_id);
         }
 
-        // Filtro por centro de costo según rol (asistente solo ve su centro asignado)
+        // Filtro por centro de costo según rol.
+        // El almacenero tiene almacen_id pero centro_costo_id=null, por lo que
+        // se deriva el centro de costo desde su almacén asignado.
         $centroCostoAsignado = $this->getCentroCostoAsignado($request);
+        if (!$centroCostoAsignado) {
+            $almacenAsignado = $this->getAlmacenAsignado($request);
+            if ($almacenAsignado) {
+                $centroCostoAsignado = Almacen::where('id', $almacenAsignado)
+                    ->value('centro_costo_id');
+            }
+        }
+
         if ($centroCostoAsignado) {
             $query->where('centro_costo_id', $centroCostoAsignado);
         } elseif ($request->filled('centro_costo_id')) {
-            // Filtro manual (para usuarios con acceso total)
             $query->where('centro_costo_id', $request->centro_costo_id);
         }
 
@@ -322,14 +332,28 @@ class TrabajadorController extends Controller
 
     /**
      * Buscar trabajadores para select/autocomplete.
+     * Aplica el mismo filtro por rol que el índice.
      */
     public function buscar(Request $request): JsonResponse
     {
         $query = Trabajador::activos()
+            ->where('empresa_id', $request->user()->empresa_id)
             ->select('id', 'nombre', 'dni', 'cargo', 'centro_costo_id')
             ->orderBy('nombre');
 
-        if ($request->filled('centro_costo_id')) {
+        // Filtro por centro de costo según rol (mismo patrón que index)
+        $centroCostoAsignado = $this->getCentroCostoAsignado($request);
+        if (!$centroCostoAsignado) {
+            $almacenAsignado = $this->getAlmacenAsignado($request);
+            if ($almacenAsignado) {
+                $centroCostoAsignado = Almacen::where('id', $almacenAsignado)
+                    ->value('centro_costo_id');
+            }
+        }
+
+        if ($centroCostoAsignado) {
+            $query->where('centro_costo_id', $centroCostoAsignado);
+        } elseif ($request->filled('centro_costo_id')) {
             $query->where('centro_costo_id', $request->centro_costo_id);
         }
 

@@ -56,17 +56,29 @@ const estadoOptions = [
   { label: 'Inactivos', value: false }
 ]
 
+// Paginación
+const totalRecords = ref(0)
+const first = ref(0)
+const perPage = ref(10)
+const currentPage = ref(1)
+
 // Cargar datos
 const loadTrabajadores = async () => {
   loading.value = true
   try {
-    const params = {}
+    const params = {
+      page: currentPage.value,
+      per_page: perPage.value,
+    }
+    if (searchQuery.value) params.buscar = searchQuery.value
     if (selectedCentroCosto.value) params.centro_costo_id = selectedCentroCosto.value
-    if (selectedEstado.value !== null) params.activo = selectedEstado.value
+    if (selectedEstado.value !== null && selectedEstado.value !== undefined) params.activo = selectedEstado.value
 
     const response = await api.get('/administracion/trabajadores', { params })
     if (response.data.success) {
-      trabajadores.value = response.data.data.data || response.data.data || []
+      const payload = response.data.data
+      trabajadores.value = payload.data || payload || []
+      totalRecords.value = payload.total ?? trabajadores.value.length
     }
   } catch (err) {
     console.error('Error al cargar trabajadores:', err)
@@ -74,6 +86,18 @@ const loadTrabajadores = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const onPageChange = (event) => {
+  first.value = event.first
+  perPage.value = event.rows
+  currentPage.value = Math.floor(event.first / event.rows) + 1
+  loadTrabajadores()
+}
+
+const resetPagination = () => {
+  currentPage.value = 1
+  first.value = 0
 }
 
 const loadCentrosCosto = async () => {
@@ -95,16 +119,6 @@ onMounted(() => {
   loadCentrosCosto()
 })
 
-// Filtrar trabajadores
-const filteredTrabajadores = computed(() => {
-  if (!searchQuery.value) return trabajadores.value
-  const query = searchQuery.value.toLowerCase()
-  return trabajadores.value.filter(t =>
-    t.nombre?.toLowerCase().includes(query) ||
-    t.dni?.toLowerCase().includes(query) ||
-    t.cargo?.toLowerCase().includes(query)
-  )
-})
 
 // Métodos CRUD
 const openNew = () => {
@@ -367,6 +381,7 @@ const formatDateTime = (date) => {
             v-model="searchQuery"
             placeholder="Buscar por nombre, DNI o cargo..."
             class="w-full pl-10"
+            @keyup.enter="resetPagination(); loadTrabajadores()"
           />
         </div>
         <Select
@@ -377,7 +392,7 @@ const formatDateTime = (date) => {
           placeholder="Obra / Unidad"
           class="w-48"
           showClear
-          @change="loadTrabajadores"
+          @change="resetPagination(); loadTrabajadores()"
         />
         <Select
           v-model="selectedEstado"
@@ -387,18 +402,25 @@ const formatDateTime = (date) => {
           placeholder="Estado"
           class="w-36"
           showClear
-          @change="loadTrabajadores"
+          @change="resetPagination(); loadTrabajadores()"
         />
       </div>
 
       <DataTable
-        :value="filteredTrabajadores"
+        :value="trabajadores"
         :loading="loading"
         paginator
-        :rows="10"
+        lazy
+        :rows="perPage"
+        :first="first"
+        :totalRecords="totalRecords"
+        :rowsPerPageOptions="[10, 20, 50]"
+        @page="onPageChange"
         stripedRows
         emptyMessage="No hay trabajadores registrados"
         class="text-sm"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} trabajadores"
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
       >
         <Column field="nombre" header="Nombre" sortable style="min-width: 200px">
           <template #body="{ data }">
