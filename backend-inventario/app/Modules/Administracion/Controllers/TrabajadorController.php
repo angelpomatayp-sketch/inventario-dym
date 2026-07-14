@@ -155,13 +155,13 @@ class TrabajadorController extends Controller
     }
 
     /**
-     * Eliminar trabajador (soft delete).
+     * Eliminar trabajador definitivamente.
      */
     public function destroy(Request $request, Trabajador $trabajador): JsonResponse
     {
         $this->autorizarAcceso($request, $trabajador);
 
-        $trabajador->delete();
+        $trabajador->forceDelete();
 
         return response()->json([
             'success' => true,
