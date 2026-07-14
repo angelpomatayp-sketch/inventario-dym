@@ -401,7 +401,9 @@ class TrabajadorController extends Controller
             }
         }
 
-        if ($centroCostoPermitido && $trabajador->centro_costo_id !== $centroCostoPermitido) {
+        if ($centroCostoPermitido
+            && $trabajador->centro_costo_id !== null
+            && (int) $trabajador->centro_costo_id !== (int) $centroCostoPermitido) {
             abort(403, 'No tiene permiso para operar sobre este trabajador.');
         }
     }
